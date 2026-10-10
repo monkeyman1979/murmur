@@ -8,7 +8,7 @@ import fr from "@/locales/fr.json";
 import ru from "@/locales/ru.json";
 
 const state = vi.hoisted(() => ({ openUrl: vi.fn() }));
-vi.mock("@tauri-apps/api/app", () => ({ getVersion: vi.fn(async () => "0.1.0-pre.1") }));
+vi.mock("@tauri-apps/api/app", () => ({ getVersion: vi.fn(async () => "0.1.0") }));
 vi.mock("@tauri-apps/plugin-opener", () => ({ openUrl: (...args: unknown[]) => state.openUrl(...args) }));
 
 describe("About external links", () => {
@@ -31,6 +31,7 @@ describe("About external links", () => {
   it("offers one report link, retains opt-in diagnostics, and surfaces opener errors", async () => {
     const wrapper = mount(About, { global: { plugins: [createI18n({ legacy: false, locale: "en", messages: { en, es, fr, ru } })], stubs: { RouterLink: true, SupportDiagnosticsDialog: true } } });
     await flushPromises();
+    expect(wrapper.get("dl dd").text()).toBe("0.1.0");
     expect(wrapper.text()).toContain("Source license");
     expect(wrapper.text()).toContain("MIT");
     expect(wrapper.text()).not.toContain("do not redistribute");

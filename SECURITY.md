@@ -1,6 +1,6 @@
 # Security policy
 
-Murmur's proposed first release is source-only v0.1.0 for Apple Silicon macOS. No supported binary release is claimed here. Security fixes and support windows are not yet promised.
+Murmur is preparing v0.1.0 for Apple Silicon macOS. No supported binary release is available yet; an installer still needs signing, notarization, and installed-artifact testing. Security fixes and support windows are not yet promised.
 
 **Do not open a public issue for a vulnerability.** Issues, comments and attachments are public. Never post transcripts, recordings, API keys, signing material, logs containing personal data, or details that expose someone else's system. Do not upload a diagnostic report without reading and redacting it yourself.
 
