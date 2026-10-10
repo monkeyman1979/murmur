@@ -1,0 +1,103 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Murmur",
+  "version": "0.1.0-pre.1",
+  "identifier": "com.monkeyman.murmur",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Murmur",
+        "visible": false,
+        "width": 1120,
+        "height": 760,
+        "minWidth": 720,
+        "minHeight": 520,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      },
+      {
+        "label": "indicator",
+        "url": "index.html?window=indicator",
+        "title": "Murmur Recording",
+        "width": 360,
+        "height": 40,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "visible": false,
+        "resizable": false,
+        "visibleOnAllWorkspaces": true,
+        "acceptFirstMouse": false,
+        "shadow": false
+      },
+      {
+        "label": "meeting-controller",
+        "url": "index.html?window=meeting-controller",
+        "title": "Murmur Meeting Recording",
+        "width": 320,
+        "height": 46,
+        "minWidth": 320,
+        "minHeight": 46,
+        "maxWidth": 320,
+        "maxHeight": 46,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "visible": false,
+        "resizable": false,
+        "closable": false,
+        "visibleOnAllWorkspaces": true,
+        "acceptFirstMouse": true,
+        "shadow": false,
+        "transparent": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": false,
+    "resources": {
+      "../LICENSE": "LICENSE",
+      "resources/THIRD-PARTY-NOTICES.txt": "resources/THIRD-PARTY-NOTICES.txt",
+      "locales/es.lproj/InfoPlist.strings": "es.lproj/InfoPlist.strings",
+      "locales/fr.lproj/InfoPlist.strings": "fr.lproj/InfoPlist.strings",
+      "locales/ru.lproj/InfoPlist.strings": "ru.lproj/InfoPlist.strings"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "14.4",
+      "hardenedRuntime": true,
+      "entitlements": "./entitlements.plist",
+      "infoPlist": "./Info.plist"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIyNUU5RTk0QzdDQUY0RDgKUldUWTlNckhsSjVlSWl1Vjl4WE5LRFJ4akIzejZaaEZOc0VRcHRBRlpQY0JEUElXSDYrSDJGSzQK",
+      "endpoints": [
+        "https://releases.seedtoshelves.com/murmur/stable/latest.json"
+      ]
+    }
+  }
+}

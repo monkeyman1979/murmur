@@ -1,0 +1,4 @@
+"NSMicrophoneUsageDescription" = "Murmur escucha el micrófono mientras dictas o inicias expresamente una grabación local de una reunión.";
+"NSAudioCaptureUsageDescription" = "Al iniciar la grabación de una reunión, Murmur captura el audio del sistema del Mac para transcribirlo localmente. Nunca graba la pantalla.";
+"NSInputMonitoringUsageDescription" = "Murmur detecta el atajo de dictado que has configurado (⌘ derecho de forma predeterminada).";
+"NSAppleEventsUsageDescription" = "Murmur abre el panel Privacidad y seguridad cuando lo solicitas y controla el volumen de salida si activas la opción de silenciar el audio del sistema durante el dictado.";

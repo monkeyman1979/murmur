@@ -1,0 +1,9 @@
+# Contributing
+
+Thanks for considering a contribution. The first target is a source-only Apple Silicon macOS v0.1.0 candidate, not a Linux release or a signed installer. Check [BUILDING.md](docs/BUILDING.md) for tools and checks. Open a narrowly scoped issue/PR with the behavior, expected result, macOS version and app version; use synthetic reproduction data. Run `corepack pnpm test:unit`, `corepack pnpm build`, `corepack pnpm legal:inventory:check` and relevant Rust checks before asking for review. Do not disable failing tests to obtain a green build.
+
+Interface translations: see [the locale workflow](src/locales/README.md). English, Spanish, French and Russian are selectable for trial, but fluent review and installed-app accessibility/layout QA are still needed; do not describe them as certified translations. Update all four catalogs, native copy and relevant tests together. App language must not change Dictation or new-meeting Auto-detect, saved transcripts or saved custom Copy for AI instructions. The model's listed language tokens are not language-by-language accuracy claims.
+
+**Public issues and pull requests are public.** Never attach transcripts, recordings, clipboard contents, keys, private logs, personal data or unredacted Preview diagnostics. Use the private route in [SECURITY.md](SECURITY.md) for vulnerabilities once the repository owner has enabled and tested it; do not put security findings in public issues. Maintainer review and release timing are not guaranteed.
+
+Original contributions should be yours to license under the project's [MIT license](LICENSE). Identify any third-party code, assets, fonts or model data and preserve their upstream licenses; do not claim imported work is Murmur-owned. Changes to vendor files, notices, download URLs, privacy or the updater need additional rights/safety review. Preserve existing user data and bundle identifiers unless a migration is separately designed and tested.

@@ -1,0 +1,705 @@
+{
+  "common": {
+    "appName": "Murmur",
+    "tagline": "Local-first dictation"
+  },
+  "navigation": {
+    "home": "Home",
+    "dictations": "Dictations",
+    "meetings": "Meetings",
+    "meeting": "Meeting",
+    "dictionary": "Dictionary",
+    "settings": "Settings",
+    "recordMeeting": "Record meeting",
+    "showMeetingControls": "Show meeting controls",
+    "meetingPaused": "Meeting paused",
+    "meetingActive": "Meeting active",
+    "openMeeting": "Open {status} meeting, {duration}",
+    "paused": "paused",
+    "active": "active",
+    "resume": "Resume",
+    "pause": "Pause",
+    "scrollToTop": "Scroll to top",
+    "toggleSidebar": "Toggle sidebar",
+    "storageEphemeral": "History is session-only. New dictations will not be saved after Murmur quits, and meeting recording is unavailable. Restart Murmur after fixing storage access.",
+    "storageUnavailable": "Murmur can no longer verify secure history storage. History writes and meeting recording are blocked. Restart Murmur after fixing storage access."
+  },
+  "dictionaryTabs": {
+    "label": "Dictionary sections",
+    "vocabulary": "Vocabulary",
+    "corrections": "Corrections"
+  },
+  "settingsTabs": {
+    "label": "Settings sections",
+    "general": "General",
+    "permissions": "Permissions",
+    "about": "About"
+  },
+  "aboutPage": {
+    "support": "Support",
+    "report": "Report a problem",
+    "preview": "Preview diagnostics",
+    "reportError": "Could not open the report page. Try again later.",
+    "supportBody": "Generate a content-free local report to help troubleshoot Murmur. Nothing is uploaded automatically, and you see the complete report before copying it.",
+    "title": "About Murmur",
+    "version": "Version",
+    "bundle": "Bundle",
+    "madeBy": "Made by",
+    "sourceLicense": "Source license",
+    "body": "Murmur is a local-first voice dictation app built on Tauri 2, whisper.cpp, and cpal. Dictation, meeting transcription, history, vocabulary, and corrections stay on this Mac. Network access is limited to explicit model downloads and external links in this source-only candidate. Automatic updates are paused.",
+    "copyright": "© 2026 monkeyman1979. Pre-release build — not an official public download.",
+    "acknowledgements": "Acknowledgements and licenses"
+  },
+  "searchField": { "clear": "Clear search" },
+  "historyPage": {
+    "search": "Search dictations",
+    "copied": "Transcript copied",
+    "notice": "Completed dictations Murmur saved, newest first. If one didn't land in your intended field, copy it here or use {copy} in the menu bar, then paste it yourself. Set a retention window in {settings} if you want old entries to expire automatically.",
+    "copyLast": "Copy Last Dictation",
+    "settingsDictation": "Settings → Dictation",
+    "dismiss": "Dismiss",
+    "dismissInformation": "Dismiss dictations information",
+    "noMatches": "No matches for \"{query}\".",
+    "noTranscripts": "No transcripts yet. Your first dictation will land here.",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "dictationCount": "{count} {label}",
+    "loading": "Loading…",
+    "loadMore": "Load more",
+    "showing": "Showing {count} {label}",
+    "total": "{count} {label} total",
+    "counts": {
+      "dictations": { "one": "dictation", "few": "dictations", "many": "dictations", "other": "dictations" },
+      "matches": { "one": "match", "few": "matches", "many": "matches", "other": "matches" },
+      "entries": { "one": "entry", "few": "entries", "many": "entries", "other": "entries" }
+    }
+  },
+  "timeUnits": {
+    "second": "second", "seconds": "seconds", "minute": "minute", "minutes": "minutes",
+    "hour": "hour", "hours": "hours", "day": "day", "days": "days",
+    "secondFew": "seconds", "minuteFew": "minutes", "hourFew": "hours", "dayFew": "days"
+  },
+  "homePage": {
+    "shortcutBefore": "Hold", "shortcutAfter": "to dictate", "dictated": "Dictated", "words": "words",
+    "timeSaved": "Time saved", "averageSpeed": "Average speed", "wpm": "wpm",
+    "transcript": "transcript", "transcripts": "transcripts", "transcriptsFew": "transcripts",
+    "recentMeetings": "Recent meetings", "recentDictations": "Recent dictations", "viewAll": "View all",
+    "aiTipLabel": "About Copy for AI",
+    "aiTip": "Copy for AI puts your AI handoff prompt and the selected meeting’s transcript on your clipboard. Paste it into an AI assistant for a summary; Murmur does not send it. If you paste it into another service, that service receives it.",
+    "aiTipLink": "View or change your AI handoff prompt", "aiTipDismiss": "Dismiss Copy for AI tip",
+    "emptyMeetings": "No meeting transcripts yet. Record a meeting and its transcript will appear here.",
+    "emptyDictations": "No transcripts yet. Your first dictation will show up here."
+  },
+  "meetingsPage": {
+    "search": "Search completed transcripts", "loadingCaptures": "Loading captures", "retry": "Retry",
+    "noResults": "No completed transcripts match “{query}”.", "empty": "No meeting captures yet.",
+    "refreshing": "Refreshing captures…", "needsAttention": "Needs attention", "inProgress": "In progress",
+    "searchResults": "Search results", "meetings": "Meetings", "meetingCount": "{count} {label}",
+    "meetingCountOne": "meeting", "meetingCountFew": "meetings", "meetingCountMany": "meetings", "meetingCountOther": "meetings",
+    "loading": "Loading…", "loadMore": "Load more", "recordingStarted": "Meeting recording started."
+  },
+  "vocabularyPage": {
+    "intro": "Add names or terms Murmur often gets wrong so it recognizes them next time. If it hears a word correctly but spells it wrong, add a {correction} instead.",
+    "correction": "Correction", "placeholder": "Type a word or name", "input": "Vocabulary word", "add": "Add",
+    "limit": "You've reached the 50-word limit. Remove a word before adding another.",
+    "nearLimit": "Approaching the 50-word limit. Shorter, highest-impact lists perform better than big ones.",
+    "empty": "No words yet. Add the names or terms Murmur gets wrong most often.",
+    "list": "Vocabulary list", "remove": "Remove {word}",
+    "count": "{count} / {max} words. Used on your next dictation."
+  },
+  "correctionsPage": {
+    "intro": "Fix words or phrases before Murmur pastes them. Leave {replace} empty to remove the text. For names or terms Murmur has trouble recognizing, use {vocabulary} instead.",
+    "replace": "Replace with", "vocabulary": "Vocabulary", "heard": "Murmur heard…", "find": "Text to find",
+    "replacePlaceholder": "Replace with…", "replacement": "Replacement text", "add": "Add",
+    "case": "Case-sensitive", "wholeWord": "Whole word only", "wholeWordQuestion": "What does whole word only mean?",
+    "wholeWordHelp": "Only replaces whole words. Without this, a rule to delete “um” would also break “umbrella” and “summary” — those letters are tucked inside both.",
+    "empty": "No corrections yet. Start with the mistakes you find yourself fixing by hand after every dictation.",
+    "list": "Corrections list", "deleted": "(deleted)", "caseHint": "Matches only the exact casing",
+    "wholeWordHint": "Matches whole words only", "wordBadge": "Word", "remove": "Remove correction",
+    "removeLabel": "Remove correction {find} to {replace}",
+    "count": "{count} {label}. Used on your next dictation.", "one": "correction", "few": "corrections", "many": "corrections", "other": "corrections"
+  },
+  "transcriptRow": {
+    "time": "time", "word": "word", "words": "words", "wordsFew": "words", "wordsMany": "words", "remember": "Remember a correction",
+    "rememberLabel": "Remember a correction from this transcript", "copy": "Copy text", "delete": "Delete entry"
+  },
+  "rememberCorrection": {
+    "title": "Remember this correction", "pasted": "What Murmur pasted",
+    "help": "Add a rule for future dictations; this transcript won’t change.",
+    "required": "Enter the text Murmur got wrong.", "duplicate": "A correction for this phrase already exists.",
+    "done": "Done"
+  },
+  "captureActions": {
+    "rename": "Rename", "delete": "Delete meeting", "retry_transcription": "Retry transcription",
+    "pause_transcription": "Pause transcription", "resume_transcription": "Resume transcription",
+    "cancel_transcription": "Cancel transcription", "retry_finalization": "Retry saving",
+    "choose_folder": "Choose another folder", "retry_cleanup": "Retry cleanup",
+    "cleanup_audio": "Retry temporary-audio cleanup", "save_audio": "Save audio copy",
+    "keep_audio": "Keep until deleted", "delete_audio": "Delete audio", "regenerate": "Regenerate Markdown",
+    "copy_transcript": "Copy transcript", "copy_for_ai": "Copy for AI", "copy_path": "Copy file path",
+    "reveal": "Reveal in Finder", "stopping": "Stopping…", "working": "Working…",
+    "more": "More meeting actions", "view": "View transcript"
+  },
+  "captureStatuses": {
+    "Preparing": "Preparing", "Recording": "Recording", "Pausing": "Pausing", "Paused": "Paused",
+    "Resuming": "Resuming", "Finishing recording": "Finishing recording", "Transcribing audio": "Transcribing audio",
+    "Transcription paused": "Transcription paused", "Queued during recording": "Queued during recording", "Queued for transcription": "Queued for transcription",
+    "Saving transcript": "Saving transcript", "Ready": "Ready", "Missing file": "Missing file",
+    "File unavailable": "File unavailable", "Interrupted": "Interrupted", "Recording failed": "Recording failed",
+    "No speech recognized": "No speech recognized", "Transcription stopped": "Transcription stopped", "Transcription cancelled": "Transcription cancelled",
+    "Transcription failed": "Transcription failed", "Saving failed": "Saving failed", "Deleting": "Deleting",
+    "Cleanup failed": "Cleanup failed", "Cancelled": "Cancelled", "Unknown state": "Unknown state"
+  },
+  "captureProgress": {
+    "parts": "{completed} of {total} parts", "announcement": "{phase}: {completed} of {total} parts",
+    "starting": "Starting transcription"
+  },
+  "captureRow": { "word": "word", "words": "words", "wordsFew": "words", "wordsMany": "words" },
+  "meetingStart": {
+    "title": "Record meeting", "firstTitle": "Before your first recording",
+    "notice": "Murmur records your microphone and all audio playing on your Mac. It does not record your screen.",
+    "consent": "Make sure everyone knows the meeting is being recorded.",
+    "review": "Review the recording requirements below and start when ready.",
+    "microphoneRequired": "Microphone access required",
+    "microphoneHelp": "Allow Murmur to use your microphone so it can record your side of the meeting.",
+    "openSettings": "Open Settings", "allow": "Allow",
+    "macosRequired": "Meeting transcripts require macOS {version} or newer.",
+    "databaseUnavailable": "Murmur’s durable capture database is unavailable. Dictation can continue, but a meeting cannot be saved safely.",
+    "startingRecording": "Starting the recording…", "starting": "Starting…", "start": "Start recording"
+  },
+  "activeMeeting": {
+    "recording": "Recording meeting",
+    "more": "More recording actions", "discard": "Discard recording",
+    "discardTitle": "Discard this meeting recording?",
+    "discardDescription": "Temporary audio and partial transcript checkpoints will be permanently deleted.",
+    "keep": "Keep recording"
+  },
+  "captureDetail": {
+    "backHome": "Back to Home", "backMeetings": "Back to Meetings", "invalidLink": "This meeting link is not valid.",
+    "notFound": "Meeting not found.", "details": "Details", "created": "Created", "started": "Started",
+    "ended": "Ended", "notStarted": "Not started", "inProgress": "In progress", "language": "Language",
+    "automatic": "Automatic", "words": "Words", "retainedAudio": "Retained audio",
+    "noAudio": "No retained audio", "kept": "Kept until deleted", "retained": "Retained",
+    "activeRecording": "Meeting recording", "finishTranscribe": "Finish & transcribe",
+    "transcript": "Transcript", "segments": "Transcript segments", "overlapping": "Overlapping speech at {time}",
+    "unavailable": "The durable transcript is not available to display."
+  },
+  "meetingTitle": {
+    "required": "Enter a meeting title.", "label": "Meeting title", "saveHint": "Save title (Enter)",
+    "save": "Save meeting title", "open": "Open {title}", "rename": "Rename meeting"
+  },
+  "meetingDialogs": {
+    "deleteTitle": "Delete “{title}”?",
+    "deleteDescription": "This removes the meeting and any retained audio from Murmur. Markdown and other saved copies remain on your Mac. This can't be undone.",
+    "cancel": "Cancel", "deleteMeeting": "Delete meeting", "deleteAudioTitle": "Delete retained audio?",
+    "deleteAudioDescription": "The transcript stays in Murmur. Only Murmur's retained meeting audio is permanently removed; audio copies saved elsewhere are unchanged.",
+    "deleteAudio": "Delete audio", "overwriteTitle": "Replace the existing Markdown file?",
+    "overwriteDescription": "The file may contain edits made outside Murmur. Replacing it writes the durable Murmur transcript to the stored path.",
+    "keepFile": "Keep existing file", "replaceFile": "Replace file"
+  },
+  "captureToasts": {
+    "errors": {
+      "rename": "Title wasn't updated", "delete": "Capture wasn't deleted",
+      "retry_transcription": "Transcription retry wasn't started", "pause_transcription": "Transcription wasn't paused", "resume_transcription": "Transcription wasn't resumed", "cancel_transcription": "Transcription wasn't cancelled",
+      "retry_finalization": "Saving retry wasn't started", "choose_folder": "Folder wasn't updated",
+      "retry_cleanup": "Cleanup retry failed", "cleanup_audio": "Temporary audio wasn't cleaned up",
+      "save_audio": "Audio copy wasn't saved", "keep_audio": "Audio retention wasn't updated",
+      "delete_audio": "Retained audio wasn't deleted", "regenerate": "Markdown wasn't restored",
+      "copy_transcript": "Transcript wasn't copied", "copy_for_ai": "Prompt and transcript weren't copied",
+      "copy_path": "File path wasn't copied", "reveal": "Transcript couldn't be revealed"
+    },
+    "titleUpdated": "Title updated", "retryStarted": "Transcription retry started",
+    "transcriptionStopped": "Transcription cancelled", "transcriptionPaused": "Transcription paused", "transcriptionResumed": "Transcription resumed", "savingRetry": "Saving retry started",
+    "markdownRestored": "Markdown restored", "audioCleaned": "Temporary audio cleaned up",
+    "audioKept": "Meeting audio kept", "audioDeleted": "Retained audio deleted",
+    "folderUpdated": "Transcript folder updated", "audioSaved": "Audio copy saved",
+    "captureDeleted": "Capture deleted", "meetingDeleted": "Meeting deleted",
+    "meetingsDeleted": "{count} meetings deleted", "meetingHistoryFailed": "Meeting history wasn't deleted",
+    "transcriptCopied": "Transcript copied", "forAiCopied": "Copied for AI",
+    "pathCopied": "File path copied",
+    "folderPicker": "Choose a folder for meeting transcripts", "audioPicker": "Save meeting audio copy",
+    "audioFormat": "MPEG-4 Audio"
+  },
+  "captureMessages": {
+    "retryMissing": "Your audio is saved on this Mac, but the settings needed to retry this older meeting aren't available.",
+    "retryInvalid": "Your audio is saved on this Mac, but its transcription settings are invalid.",
+    "retryNoAudio": "No usable audio is available, so this meeting can only be deleted.",
+    "interruptedRetry": "Recording did not finish. Your audio is saved on this Mac, so you can retry transcription.",
+    "interruptedUnavailable": "Recording did not finish. {reason}",
+    "failedRetry": "Recording did not finish. Your audio so far is saved on this Mac, so you can retry transcription.",
+    "noSpeechRetry": "No words were recognized. If you expected speech, you can retry the saved audio from the menu.",
+    "noSpeechDelete": "No words were recognized. You can delete this meeting if you don't need it.",
+    "paused": "Your audio and progress are saved. Resume transcription when you're ready.",
+    "queued": "Transcription will resume after recording ends.",
+    "waiting": "Waiting for earlier meetings to finish transcribing.",
+    "stoppedRetry": "Transcription was cancelled. Your audio is saved on this Mac, so you can retry transcription.",
+    "stoppedUnavailable": "Transcription was cancelled. {reason}",
+    "transcriptionRetry": "Transcription did not finish. Your audio is saved on this Mac, so you can retry transcription.",
+    "transcriptionUnavailable": "Transcription did not finish. {reason}",
+    "finalizationFailed": "The transcript is safe in Murmur, but its Markdown file couldn't be saved.",
+    "cleanupFailed": "Temporary data could not be removed. The capture remains available.",
+    "markdownMissing": "The transcript is safe in Murmur; its Markdown copy is missing."
+  },
+  "captureAudio": {
+    "kept": "Audio kept{size}", "preserved": "Audio preserved{size}",
+    "cleanupPending": "Audio cleanup pending{size}", "retained": "Audio retained{size}",
+    "recoveryCountdown": "Audio retained for recovery · deletes in {duration}{size}",
+    "hours": "{count} {unit}", "days": "{count} {unit}"
+  },
+  "captureErrors": {
+    "feature_disabled": "Meeting capture is unavailable in this build. Your data has not disappeared.",
+    "capture_not_found": "This capture no longer exists. Refresh Meetings to update the list.",
+    "capture_conflict": "This capture conflicts with an existing durable record. Refresh and try again.",
+    "invalid_request": "That capture request is not valid.",
+    "invalid_state_transition": "The capture changed before this action could finish. Refresh and try again.",
+    "invalid_persisted_state": "This capture has an invalid saved state and was not modified.",
+    "recovery_discovery_failed": "Murmur could not inspect meeting recovery data safely.",
+    "cleanup_required": "Temporary recovery data must be cleaned up before this capture can be removed.",
+    "cleanup_failed": "Temporary recovery data could not be removed. Retry cleanup or keep the capture for recovery.",
+    "transcript_unavailable": "The durable transcript is not available for this capture.",
+    "transcript_file_missing": "The Markdown file is missing. The durable transcript remains available in Murmur.",
+    "output_file_exists": "The existing Markdown file may contain edits. Confirm replacement before overwriting it.",
+    "output_directory_unwritable": "That folder cannot be used for Markdown output. Choose another folder.",
+    "stt_model_missing": "The local speech model is missing. Restore it in Settings → Speech model, then retry.",
+    "persistence_unavailable": "Murmur cannot safely access its durable capture database right now.",
+    "unsupported_macos": "Meeting transcripts require macOS 15 or newer.",
+    "screen_permission_denied": "Screen & System Audio Recording access is required. No video is saved.",
+    "microphone_permission_denied": "Microphone access is required to record your side of the meeting.",
+    "permission_requires_relaunch": "Permission changed. Relaunch Murmur before starting the recording.",
+    "source_selection_cancelled": "Source selection was cancelled. No audio recording started; the setup record remains in Meetings.",
+    "source_unavailable": "The selected meeting source is no longer available.",
+    "capture_busy": "Another dictation or meeting capture is using audio right now.",
+    "recording_preparation_timed_out": "Transcription did not pause in time. No new recording started. Try again; your previous meeting is safe.",
+    "insufficient_disk_space": "There is not enough free disk space to start this meeting capture.",
+    "system_audio_start_failed": "Selected system audio could not start. No complete meeting recording is active.",
+    "microphone_start_failed": "The microphone track could not start. No complete meeting recording is active.",
+    "writer_queue_overflow": "Meeting audio could not be written quickly enough. Recoverable audio was preserved.",
+    "chunk_write_failed": "Meeting audio could not be saved. Recoverable audio was preserved.",
+    "source_ended": "The selected meeting source ended. Transcribe the audio captured so far from Meetings.",
+    "microphone_disconnected": "The meeting microphone disconnected. Check Meetings for the preserved recording.",
+    "capture_interrupted": "Meeting recording was interrupted. Check Meetings for recovery options.",
+    "audio_format_changed": "The microphone or output route changed its audio format. Murmur stopped before transcription and kept the recovery audio.",
+    "chunk_invalid": "Murmur received invalid audio timing or chunk data. It stopped safely and kept the staging data for inspection.",
+    "settings_not_hydrated": "Murmur is still loading local meeting settings. Wait a moment and try again.",
+    "processing_profile_missing": "This capture has no saved processing profile and cannot be retried safely.",
+    "processing_profile_invalid": "This capture's saved processing profile is invalid.",
+    "transcription_failed": "Transcription failed. The captured audio remains available to retry.",
+    "no_speech_recognized": "No speech was recognized in the recording. Saved audio remains available to retry if you expected words.",
+    "transcription_cancelled": "Transcription stopped. The captured audio and completed progress remain available to retry.",
+    "markdown_write_failed": "The Markdown transcript could not be saved. Choose a folder and retry.",
+    "audio_unavailable": "No recoverable audio is available.",
+    "audio_export_failed": "Murmur could not save the audio copy. The retained source audio is unchanged.",
+    "unknown": "The capture action failed. Refresh and try again."
+  },
+  "runtimeErrors": {
+    "modelStatus": "Model status is unavailable. Try again.",
+    "modelDownload": "Download failed. Check your connection and available storage, then retry.",
+    "modelVerify": "Verification couldn't complete. Try again.",
+    "modelMismatch": "Hash mismatch — re-download to restore.",
+    "modelActivate": "The speech model could not be activated. Try again.",
+    "modelIncomplete": "Download did not finish",
+    "autostartStatus": "Launch at login status is unavailable.",
+    "autostartUpdate": "Launch at login could not be updated.",
+    "microphoneList": "Microphone devices are unavailable. Try again.",
+    "microphoneSelection": "The microphone selection could not be applied.",
+    "microphonePreviewStart": "The microphone preview could not start.",
+    "microphonePreviewStop": "The microphone preview could not stop.",
+    "updateInstalledOnly": "Update checks are available in the installed Murmur app.",
+    "updateCheck": "Update couldn't be checked — try again.",
+    "updateDownload": "Update couldn't be downloaded — try again.",
+    "updateFinishWork": "Finish current work, then try again.",
+    "updateReopen": "Update installed — quit and reopen Murmur.",
+    "updateInstall": "Update couldn't be installed — try again."
+  },
+  "themeToggle": {
+    "light": "Switch to light theme", "dark": "Switch to dark theme", "system": "Switch to follow-system theme"
+  },
+  "speechModelSettings": {
+    "heading": "Speech model", "help": "Downloads connect to the model host only when you start them. Transcription runs offline after the model is installed.",
+    "captionSmall": "Excellent quality for private, local dictation.", "storage": "Storage: {size}",
+    "deleteTitle": "Delete model?", "deleteDescription": "This permanently removes {name} from disk. You can re-download it any time. This action can't be undone.",
+    "delete": "Delete", "downloadModel": "Download model", "downloadingModel": "Downloading model",
+    "installed": "Installed", "modelInstalled": "Model installed", "downloading": "Downloading… {percent}%",
+    "verifying": "Verifying… {percent}%", "verified": "Verified", "bytes": "{hashed} of {total}",
+    "required": "Required for dictation — not installed. Click the download button to enable dictation.",
+    "notInstalled": "Not installed", "downloadRequired": "Download required model", "download": "Download",
+    "verifyHint": "Check for file corruption (offline)", "verifyLabel": "Check this model file for corruption",
+    "redownload": "Re-download model", "reveal": "Show in Finder", "deleteModel": "Delete model"
+  },
+  "permissionSettings": {
+    "heading": "System permissions", "microphone": "Microphone", "microphoneHelp": "Capture audio while you hold the hotkey.",
+    "inputMonitoring": "Input Monitoring", "inputHelp": "Detect your dictation hotkey system-wide via our CGEventTap listener.",
+    "accessibility": "Accessibility", "accessibilityHelp": "Synthesize the ⌘V keystroke that pastes transcribed text into your focused app.",
+    "refreshHelp": "Status refreshes every couple of seconds, so grants or revokes in System Settings show up here without a relaunch. “Open Settings” deep-links to the exact Privacy pane for each permission.",
+    "granted": "Granted", "denied": "Not granted", "notDetermined": "Not yet prompted", "unknown": "Unknown", "checking": "Checking…",
+    "grant": "Grant", "openSettings": "Open Settings"
+  },
+  "hotkeyRecorder": { "change": "Change hotkey", "press": "Press your hotkey…", "left": "Left", "right": "Right", "unknown": "Unknown", "space": "Space", "tab": "Tab", "enter": "Enter", "escape": "Escape" },
+  "updatesCard": {
+    "availableVersion": "Murmur {version} available", "downloading": "Downloading update", "readyBlocked": "Update ready — restart when finished",
+    "ready": "Update ready", "installing": "Installing update", "unavailable": "Update unavailable",
+    "update": "Update", "finishFirst": "Finish current work first", "restartUpdate": "Restart to update",
+    "restart": "Restart Murmur", "retry": "Retry", "later": "Later"
+  },
+  "supportDiagnostics": {
+    "title": "Support diagnostics",
+    "description": "Preview the exact content before copying it. This report excludes transcripts, audio, titles, device labels, clipboard contents, URLs, and file paths. Murmur never uploads it automatically. If you report a bug, preview and copy this report, review it, and paste only what you want to share. Public issue reports are visible to everyone.",
+    "generating": "Generating a fresh report…", "generationFailed": "Diagnostics could not be generated. Try again.",
+    "preview": "Support diagnostics preview", "copied": "Diagnostics copied. Review them again before sharing.",
+    "copyFailed": "Diagnostics could not be copied. Nothing was uploaded.",
+    "close": "Close", "retry": "Try again", "copying": "Copying…", "copy": "Copy diagnostics"
+  },
+  "acknowledgements": {
+    "back": "Back to About", "original": "Original Murmur code and artwork are MIT licensed. Copyright © 2026 monkeyman1979.",
+    "license": "The complete license is included as LICENSE with the app and source code.",
+    "thankYou": "Thank you to open-source contributors",
+    "contributors": "Murmur uses Tauri, Vue, Reka UI, shadcn-vue, Lucide, whisper.cpp, OpenAI Whisper, Geist, Google Sans Flex, and other open-source work. These components retain their own licenses.",
+    "notices": "Complete third-party credits and license texts are in THIRD-PARTY-NOTICES.txt, included with the app and source code."
+  },
+  "generalSettings": {
+    "hotkey": "Hotkey", "hotkeyTitle": "Dictation hotkey",
+    "hotkeyHelp": "Hold to record while pressed. Double-tap to lock recording on; tap again to stop. Press and hold the combination you want, then release.",
+    "appearance": "Appearance", "theme": "Theme", "themeHelp": "Follow the system, or force light or dark across the app.",
+    "system": "System", "light": "Light", "dark": "Dark", "shell": "Shell gradient",
+    "shellHelp": "Choose the color atmosphere behind the sidebar and title bar.",
+    "sunset": "Sunset Sky", "forest": "Forest", "desert": "Desert", "mocha": "Coffee Mocha", "fundamentals": "Fundamentals",
+    "login": "Launch at login", "loginHelp": "Start Murmur automatically when you log in.",
+    "updates": "Software updates", "checking": "Checking…", "upToDate": "Murmur is up to date.",
+    "versionAvailable": "Murmur {version} is available.", "updateAvailable": "An update is available.",
+    "updateFailed": "Update check failed.",
+    "updateHelp": "Murmur checks at launch at most once per day. Downloads and installation remain your choice.",
+    "checkUpdates": "Check for updates", "sound": "Sound cues",
+    "soundHelp": "Play short chimes when dictation starts, ends, and if something didn't go through. Uses built-in system sounds and respects your volume.",
+    "mute": "Mute system audio while dictating",
+    "muteHelp": "Automatically mute system audio while a dictation is active — YouTube, Spotify, games, notifications. Restores when the dictation ends. Sound cues above keep playing either way.",
+    "microphone": "Microphone", "microphoneHelp": "Automatic uses your system default, but prefers USB microphones for Murmur when connected.",
+    "inputDevice": "Input device", "automatic": "Automatic", "default": "default", "refreshMicrophones": "Refresh microphone list",
+    "dictation": "Dictation", "keepDictations": "Keep dictations for",
+    "dictationRetentionHelp": "Dictations older than this window are removed automatically. Shortening the window applies immediately after confirmation; individual entries cannot be exempted.",
+    "dictationRetentionLabel": "Dictation retention window", "deleteDictations": "Delete dictations now",
+    "deleteDictationsHelp": "Permanently delete every stored dictation transcript. Meeting captures, vocabulary, and corrections are not affected.",
+    "deleteNow": "Delete now", "deleteAllDictations": "Delete all dictations?",
+    "dictationsDeletedHelp": "This permanently deletes every dictation transcript and resets the related totals on your Home dashboard.",
+    "otherDataSafe": "Meeting captures, vocabulary, and corrections stay intact.",
+    "irreversible": "This can't be undone.", "confirmDeleteDictations": "Delete all dictations",
+    "meetingCaptures": "Meeting captures", "keepMeetings": "Keep meeting transcripts for",
+    "meetingRetentionHelp": "Completed meetings older than this window are removed automatically. Shortening the window applies immediately after confirmation. Failed, interrupted, active, and processing meetings are kept.",
+    "meetingRetentionLabel": "Meeting transcript retention window", "keepAudio": "Keep successful meeting audio for",
+    "audioRetentionHelp": "Successful recordings stay local for a recovery grace period. Failed or interrupted audio is preserved until you retry, save a copy, or explicitly delete it.",
+    "audioRetentionLabel": "Successful meeting audio retention", "deleteMeetings": "Delete meeting history now",
+    "deleteMeetingsHelp": "Permanently delete stored meetings from Murmur, including retained meeting audio and recovery checkpoints. Active and processing meetings are left alone.",
+    "deleting": "Deleting…", "deleteAllMeetings": "Delete all meeting history?",
+    "meetingsDeletedHelp": "This permanently removes every stored meeting that is not active or processing, including failed or interrupted captures, retained audio, and recovery checkpoints.",
+    "savedCopiesSafe": "Markdown or audio copies you saved elsewhere stay on disk.",
+    "confirmDeleteMeetings": "Delete all meetings",
+    "aiPrompt": "AI handoff prompt",
+    "aiPromptHelp": "Used by Copy for AI. Murmur combines these instructions with the transcript on your clipboard so you can paste it into any AI assistant. Murmur does not send it anywhere.",
+    "aiPromptLanguageHelp": "The default follows your App language. A saved custom prompt stays exactly as written when you change App language; restore the default to use the current App language.",
+    "restoreDefault": "Restore default", "restoreTitle": "Restore the default AI handoff prompt?",
+    "restoreHelp": "This replaces your saved instructions. The change affects future Copy for AI actions only.",
+    "keepCustom": "Keep custom prompt", "save": "Save", "cancel": "Cancel",
+    "retentionTitle": "Change {kind} retention to {period}?", "meetingKind": "meeting", "dictationKind": "dictation",
+    "meetingChangeHelp": "Any completed meetings older than {period} will be permanently deleted immediately, including Murmur-owned retained audio and recovery checkpoints.",
+    "meetingChangeSafe": "Failed, interrupted, active, and processing meetings stay in Murmur. Markdown or audio copies you saved elsewhere stay on disk.",
+    "dictationChangeHelp": "Any existing dictations older than {period} will be permanently deleted immediately.",
+    "keepCurrent": "Keep current setting", "changeTo": "Change to {period}",
+    "retentionForever": "Keep forever", "retentionDays": "{count} days", "retentionYear": "1 year",
+    "audioImmediately": "Delete immediately", "audioAfterHours": "After 24 hours", "audioAfterDays": "After 7 days", "audioUntilDeleted": "Until deleted",
+    "dictationsForeverToast": "Dictations will be kept forever.", "meetingsForeverToast": "Meeting transcripts will be kept forever.",
+    "dictationsAfterToast": "Dictations will be deleted after {period}.", "meetingsAfterToast": "Meeting transcripts will be deleted after {period}.",
+    "aiPromptMissing": "Include {placeholder} exactly once.", "aiPromptRepeated": "Use {placeholder} only once.",
+    "aiPromptStorageError": "AI handoff prompt storage is unavailable. Try reloading Murmur; your previously saved prompt was not changed."
+  },
+  "settingsAppLanguage": {
+    "title": "App language",
+    "description": "Interface only. Dictations and new meetings detect the spoken language automatically. Changing App language never translates or edits saved transcripts.",
+    "label": "App language"
+  },
+  "settingsDictationLanguage": {
+    "title": "Dictation language",
+    "description": "Auto-detect is always on. Murmur attempts to transcribe in the spoken language; App language changes only the interface.",
+    "showLanguages": "Dictation & meeting languages",
+    "dialogTitle": "Languages for dictation and meetings",
+    "dialogExplanation": "Murmur can try to write dictations and new meeting transcripts in the languages below. It detects the spoken language automatically.",
+    "dialogExample": "The first group also has app menus and settings in those languages. The second group does not. Speech is not translated into your App language.",
+    "dialogLimit": "We have not tested transcription accuracy language by language for either group. Results can be inaccurate, especially for short, noisy or mixed-language speech.",
+    "search": "Search languages",
+    "listLabel": "Languages for dictation and new meeting transcripts; accuracy not tested language by language",
+    "appAndModelLanguages": "App, dictation & meeting transcripts (untested)",
+    "modelOnlyLanguages": "Dictation & meeting transcripts only (untested)",
+    "noMatches": "No matching languages.",
+    "close": "Close"
+  },
+  "meetingController": {
+    "cleanupLabel": "Cleanup issue",
+    "cleanupDetail": "Temporary audio cleanup failed. Retry from Meetings.",
+    "pausedStatus": "Meeting recording paused",
+    "recordingStatus": "Meeting recording in progress",
+    "activeTime": "{status}, {time} active recording time",
+    "discardTooltip": "Discard recording (confirmation required)",
+    "discardLabel": "Discard meeting recording",
+    "confirmQuestion": "Discard meeting recording?",
+    "keepLabel": "Keep meeting recording",
+    "keep": "Keep",
+    "confirmDiscardLabel": "Confirm discard meeting recording",
+    "discard": "Discard",
+    "resumeTooltip": "Resume recording",
+    "resumeLabel": "Resume meeting recording",
+    "pauseTooltip": "Pause recording",
+    "pauseLabel": "Pause meeting recording",
+    "stopTooltip": "Stop recording and transcribe",
+    "stopLabel": "Stop meeting recording and transcribe",
+    "stop": "Stop",
+    "issues": {
+      "lowDisk": { "label": "Low storage", "detail": "Recording is continuing, but Murmur may need to stop it soon." },
+      "twoHours": { "label": "2 hours recorded", "detail": "Recording is continuing normally." },
+      "timeLimit": { "label": "15 minutes left", "detail": "Murmur stops meeting recordings at four hours." },
+      "diskQuery": { "label": "Storage issue", "detail": "Murmur could not confirm that recording storage is available." },
+      "unknown": { "label": "Recording warning", "detail": "Open Meetings for more information." },
+      "status": { "label": "Status unavailable", "detail": "Murmur could not confirm the recording status. Use Stop before relying on this recording." },
+      "recording": "Recording issue"
+    }
+  },
+  "indicator": {
+    "recording": "Recording",
+    "transcribing": "Transcribing…",
+    "cancelled": "Cancelled",
+    "microphoneError": "Mic unavailable",
+    "modelMissing": "Model missing",
+    "recordingLimit": "Recording stopped",
+    "noAudio": "No audio · {device}",
+    "noAudioGeneric": "No audio · Check audio input",
+    "noSpeech": "No speech recognized · {device}",
+    "noSpeechGeneric": "No speech recognized · Check audio input"
+  },
+  "permissionsBanner": {
+    "title": "Permissions needed",
+    "body": "Some system permissions Murmur needs aren't granted yet — dictation, hotkey capture, or auto-paste won't fully work until they are.",
+    "button": "Open Permissions"
+  },
+  "speechModelBanner": {
+    "title": "Speech model needed",
+    "body": "Download the local Whisper model from Settings → Speech model before dictation can transcribe. Your audio still stays on this device.",
+    "button": "Open Settings",
+    "downloading": "Downloading speech model… {percent}%",
+    "errorTitle": "Speech model download failed",
+    "errorBody": "Open Settings → Speech model to retry the local Whisper model download.",
+    "retryButton": "Open Settings"
+  },
+  "onboarding": {
+    "stepLabel": "Step {current} of {total}",
+    "cta": {
+      "back": "Back",
+      "continue": "Continue",
+      "next": "Next",
+      "getStarted": "Get started",
+      "done": "Done",
+      "grantRequired": "Grant required permissions",
+      "connectMicrophone": "Connect a microphone",
+      "completeDemos": "Complete this gesture",
+      "openMurmur": "Open Murmur"
+    },
+    "steps": {
+      "permissions": {
+        "title": "Give Murmur what it needs.",
+        "subtitle": "These permissions let Murmur hear your voice, recognize the shortcut, and place text where you're working."
+      },
+      "microphone": {
+        "title": "Check your microphone.",
+        "subtitle": "Murmur checks your input automatically. If it is ready, continue to try dictation."
+      },
+      "requiredModel": {
+        "title": "Download once. Dictate offline.",
+        "subtitle": "Murmur needs one local speech model. After it is installed, transcription runs on this Mac with no server fallback."
+      },
+      "tryIt": {
+        "title": "Learn the shortcut.",
+        "subtitle": "Try both ways to dictate with your configured shortcut."
+      },
+      "welcome": {
+        "title": "Your voice. Your meetings. On your Mac.",
+        "subtitle": "Dictate anywhere and capture meetings without sending your audio to a transcription server."
+      },
+      "productOverview": {
+        "title": "Write anywhere. Remember every meeting.",
+        "subtitle": "Local voice tools for everyday writing and timestamped local meeting transcripts."
+      },
+      "ready": {
+        "title": "You’re ready.",
+        "subtitle": "Dictate anywhere and capture meetings on your Mac."
+      }
+    },
+    "permissions": {
+      "status": {
+        "granted": "Granted",
+        "denied": "Needed",
+        "notDetermined": "Needed",
+        "checking": "Checking…"
+      },
+      "action": {
+        "allow": "Allow",
+        "openSettings": "Open Settings",
+        "granted": "Granted"
+      },
+      "microphone": {
+        "title": "Microphone",
+        "body": "For microphone checks, dictation, and meetings you choose to record."
+      },
+      "inputMonitoring": {
+        "title": "Keyboard shortcut · Input Monitoring",
+        "body": "Checks keycodes and modifiers to recognize your shortcut or cancel recording. Other key events are not turned into text, retained, or logged."
+      },
+      "accessibility": {
+        "title": "Text insertion · Accessibility",
+        "body": "Pastes transcribed text into the active app and restores your clipboard when safe."
+      },
+      "allSet": "All permissions are granted. You can continue.",
+      "relaunch": {
+        "body": "If you granted access in System Settings and it still shows as needed, relaunch Murmur so your system applies the new permission.",
+        "button": "Relaunch"
+      },
+      "autostart": {
+        "title": "Launch at login",
+        "body": "Start Murmur automatically when you log in. Optional.",
+        "unknown": "Could not verify",
+        "error": "Could not update Launch at login. The switch reflects the last verified state."
+      },
+      "helpLabel": "Need help?",
+      "settingsFallback": "If macOS asks, choose Allow. Otherwise, open Settings, turn on Murmur, then come back. We'll check automatically.",
+      "inputSettingsFallback": "No macOS prompt? Open Settings. If Murmur isn't listed, click + and choose the app you opened, then authenticate and turn it on. macOS may ask you to quit and reopen it.",
+      "settingsError": "Could not open Settings. In Privacy & Security, find {permission} and turn on Murmur.",
+      "relaunchHelp": "Access enabled but still not detected? Relaunch Murmur; your progress is saved. If macOS quits without reopening it, open the same app again yourself.",
+      "relaunchError": "Could not relaunch. Quit and reopen Murmur to apply access."
+    },
+    "microphone": {
+      "currentLabel": "Current input",
+      "ready": "Your microphone is ready; no changes needed.",
+      "changeInput": "Change or test microphone",
+      "hideInput": "Hide microphone options",
+      "pickerLabel": "Microphone",
+      "automatic": "Automatic",
+      "defaultSuffix": "default",
+      "refresh": "Refresh microphone list",
+      "meterLive": "Live input meter",
+      "meterStarting": "Starting meter…",
+      "permissionNeeded": "Microphone permission needed",
+      "meterHint": "Say a few words to check for movement. Quiet input will not block Continue.",
+      "error": "Could not start the microphone check. Check the selected input and try again.",
+      "permissionHelp": "Go back to Permissions and allow Microphone before testing input.",
+      "noDevice": "No input device is available. Connect a microphone to continue.",
+      "loading": "Checking input devices…",
+      "enumerationError": "Could not list input devices. Try again."
+    },
+    "language": {
+      "subpicker": {
+        "auto": "Auto-detect",
+        "en": "English",
+        "es": "Spanish",
+        "fr": "French",
+        "de": "German",
+        "pt": "Portuguese",
+        "it": "Italian",
+        "nl": "Dutch",
+        "pl": "Polish",
+        "sv": "Swedish",
+        "no": "Norwegian",
+        "da": "Danish",
+        "fi": "Finnish",
+        "el": "Greek",
+        "uk": "Ukrainian",
+        "ru": "Russian"
+      }
+    },
+    "requiredModel": {
+      "left": {
+        "download": "This is a hard setup requirement. The main app stays locked until the speech model is downloaded and verified.",
+        "local": "After download, audio is transcribed locally on your device — no server fallback."
+      },
+      "requiredLabel": "Required setup",
+      "cardTitle": "Whisper Small Multilingual",
+      "cardBody": "One download, about {size}. A connection is needed only to install it.",
+      "readyToDownload": "Ready to download {size}. Keep Murmur open until it completes.",
+      "checking": "Checking…",
+      "checkingButton": "Checking…",
+      "downloadButton": "Download Whisper ({size})",
+      "downloadingButton": "Downloading…",
+      "retryButton": "Retry",
+      "downloading": "Downloading model…",
+      "keepOpen": "Please keep Murmur open during the download.",
+      "completeTitle": "Downloaded and ready.",
+      "errorTitle": "Model setup needs attention",
+      "errorBody": "This step could not finish. Retry to continue from the failed stage. A download requires a connection.",
+      "verifying": "Verifying…",
+      "activating": "Preparing model…",
+      "redownloadButton": "Re-download model",
+      "mismatch": "The checksum does not match. Re-download to restore the model.",
+      "errors": {
+        "checking": "Could not inspect the model. Retry to check the local file.",
+        "verify": "Could not verify the local file. Retry checksum verification.",
+        "activate": "Checksum verified, but activation failed. Retry preparing the model.",
+        "download": "Download failed. Check your connection and retry; no server fallback is used."
+      }
+    },
+    "permissionStep": {
+      "statusGranted": "Granted",
+      "statusDenied": "Not granted",
+      "statusNotDetermined": "Not yet prompted",
+      "statusChecking": "Checking…",
+      "openSettingsButton": "Open Settings",
+      "relaunchBanner": "Granted in Settings but still showing red? Murmur may need to relaunch before the new permission applies. We will pick up on this step after restart.",
+      "relaunchButton": "Relaunch",
+      "labels": {
+        "mic": "Microphone",
+        "inputMonitoring": "Input Monitoring",
+        "accessibility": "Accessibility"
+      }
+    },
+    "tryIt": {
+      "feedback": {
+        "preparing": "Preparing shortcut…",
+        "ready": "Ready",
+        "complete": "Complete"
+      },
+      "gestureStep": "Gesture {current} of {total}",
+      "nextGestureButton": "Try hands-free",
+      "holdTitle": "Hold to dictate",
+      "holdBody": "Hold {binding}, speak, then release.",
+      "toggleTitle": "Double-tap for hands-free",
+      "toggleBody": "Double-tap {binding} to start, then let go and speak. Tap once to stop.",
+      "placeholder": "Your dictation will appear here…",
+      "holdPlaceholder": "Hold your shortcut, speak a short sentence, then release.",
+      "togglePlaceholder": "Double-tap your shortcut to start, then tap again to stop.",
+      "textareaLabel": "Dictation demo",
+      "gate": {
+        "headline": "Dictation needs the required permissions before this test can run.",
+        "missingLabel": "Still needed:",
+        "relaunchNote": "Input Monitoring / Accessibility may need a relaunch after granting."
+      },
+      "outcomes": {
+        "no-audio": "No audio detected. Check your input and try again.",
+        "no-speech": "No speech recognized. Say a few words and try again.",
+        "cancelled": "Dictation cancelled. Try this gesture again.",
+        "pipeline-error": "Dictation could not finish. Try again.",
+        "model-missing": "The speech model is unavailable. Return to model setup.",
+        "setup-error": "Could not prepare the shortcut test. Retry before dictating."
+      }
+    },
+    "welcome": {
+      "privacyLink": "Privacy policy", "privacyError": "Could not open the privacy page. Try again later."
+    },
+    "productOverview": {
+      "previewAlt": "Murmur Home showing a fictional meeting in progress, recent meetings, and recent dictations.",
+      "previewEnglishNote": "Illustrative preview in English",
+      "dictation": {
+        "comparison": "A private, local alternative to Wispr Flow.",
+        "title": "Dictate anywhere",
+        "body": "Speak naturally and Murmur types into any app—all on your Mac."
+      },
+      "meeting": {
+        "comparison": "A private, local alternative to Granola.",
+        "title": "Capture meetings",
+        "body": "Record meetings and keep a local transcript."
+      }
+    }
+  }
+}

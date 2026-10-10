@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Murmur's persistent menu-bar item is the app's entry point. Keep the
+       bundle identifier and permission usage descriptions unchanged. -->
+  <key>LSUIElement</key>
+  <true/>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Murmur listens to your microphone while you dictate or explicitly run local meeting capture.</string>
+  <!-- Core Audio process taps. Declaring this and NOT
+       NSScreenCaptureUsageDescription is what puts Murmur in macOS's narrow
+       "System Audio Recording Only" bucket instead of alongside screen
+       recorders. Do not add the screen-capture key. -->
+  <key>NSAudioCaptureUsageDescription</key>
+  <string>When you start a meeting recording, Murmur captures your Mac’s system audio for local transcription. It never records your screen.</string>
+  <key>NSInputMonitoringUsageDescription</key>
+  <string>Murmur watches for your configured dictation shortcut (Right ⌘ by default).</string>
+  <key>NSAppleEventsUsageDescription</key>
+  <string>Murmur opens the Privacy &amp; Security pane when you ask and controls output volume when you enable Mute system audio while dictating.</string>
+</dict>
+</plist>

@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "meeting-controller",
+  "description": "Floating meeting recording controls",
+  "windows": ["meeting-controller"],
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:window:allow-start-dragging",
+    "allow-meeting-recorder-pause",
+    "allow-meeting-recorder-resume",
+    "allow-meeting-recorder-status",
+    "allow-meeting-recorder-cancel",
+    "allow-meeting-recorder-stop"
+  ]
+}

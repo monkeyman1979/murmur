@@ -1,0 +1,3 @@
+# Corrections.vue previously contained NUL separators in a template key.
+# Treat it as source text so this cleanup remains reviewable.
+src/views/dictionary/Corrections.vue text diff

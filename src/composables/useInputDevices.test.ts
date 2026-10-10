@@ -1,0 +1,60 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises } from "@vue/test-utils";
+import { nextTick } from "vue";
+const native = vi.hoisted(() => ({ invoke: vi.fn(), listen: vi.fn() }));
+vi.mock("@tauri-apps/api/core", () => ({ invoke: native.invoke }));
+vi.mock("@tauri-apps/api/event", () => ({ listen: native.listen }));
+const mic = { name: "Built-in Microphone", is_default: true };
+beforeEach(() => { vi.resetModules(); vi.resetAllMocks(); localStorage.clear(); native.listen.mockResolvedValue(vi.fn()); native.invoke.mockResolvedValue([]); });
+
+describe("useInputDevices", () => {
+  it("distinguishes loading, empty, error, and ready on retry", async () => {
+    const { useInputDevices } = await import("./useInputDevices");
+    const input = useInputDevices();
+    expect(input.state.value).toBe("loading");
+    await flushPromises();
+    expect(input.state.value).toBe("empty");
+    native.invoke.mockRejectedValue(new Error("/Users/private SECRET-LICENSE-TOKEN"));
+    await input.refresh();
+    expect(input.state.value).toBe("error");
+    expect(input.error.value).toBe("Microphone devices are unavailable. Try again.");
+    expect(input.error.value).not.toContain("/Users/private");
+    native.invoke.mockResolvedValue([mic]);
+    await input.refresh();
+    expect(input.state.value).toBe("ready");
+    expect(input.error.value).toBeNull();
+  });
+  it("newer device events win over stale enumeration and clear disconnected selection", async () => {
+    let receive!: (event: { payload: { devices: typeof mic[]; current_default: string | null } }) => void;
+    native.listen.mockImplementation((_name, callback) => { receive = callback; return Promise.resolve(vi.fn()); });
+    let finish!: (devices: typeof mic[]) => void;
+    native.invoke.mockImplementation((name) => name === "list_input_devices" ? new Promise((resolve) => { finish = resolve; }) : Promise.resolve());
+    const { useInputDevices } = await import("./useInputDevices");
+    const input = useInputDevices();
+    input.selected.value = "Disconnected";
+    receive({ payload: { devices: [mic], current_default: mic.name } });
+    finish([]);
+    await flushPromises();
+    expect(input.state.value).toBe("ready");
+    expect(input.devices.value).toEqual([mic]);
+    expect(input.selected.value).toBeNull();
+  });
+  it("serializes persisted selection writes and explicit monitor synchronization", async () => {
+    const { useInputDevices } = await import("./useInputDevices");
+    const input = useInputDevices();
+    await flushPromises();
+    native.invoke.mockClear();
+    let finish!: () => void;
+    native.invoke.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; })).mockResolvedValue(undefined);
+    input.selected.value = "First";
+    await nextTick();
+    await flushPromises();
+    input.selected.value = "Second";
+    await nextTick();
+    const synced = input.syncSelection();
+    expect(native.invoke).toHaveBeenCalledTimes(1);
+    finish();
+    await synced;
+    expect(native.invoke).toHaveBeenLastCalledWith("set_input_device", { name: "Second" });
+  });
+});

@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "fixture_id": "synthetic-meeting-quality-v1",
+  "reference_segments": [
+    {
+      "id": "reference-context",
+      "track": "system",
+      "start_ms": 1000,
+      "end_ms": 5200,
+      "text": "Let's take a break before testing the bicycle brakes.",
+      "kind": "contextual_term"
+    },
+    {
+      "id": "reference-acknowledgment",
+      "track": "microphone",
+      "start_ms": 5400,
+      "end_ms": 5900,
+      "text": "Yeah.",
+      "kind": "acknowledgment"
+    },
+    {
+      "id": "reference-remote-turn",
+      "track": "system",
+      "start_ms": 7000,
+      "end_ms": 12000,
+      "text": "The Aurora widget should preserve every short response and keep source labels honest.",
+      "kind": "speech"
+    },
+    {
+      "id": "reference-overlap",
+      "track": "microphone",
+      "start_ms": 8500,
+      "end_ms": 9100,
+      "text": "Right.",
+      "kind": "overlap"
+    },
+    {
+      "id": "reference-short-turn",
+      "track": "microphone",
+      "start_ms": 12600,
+      "end_ms": 13300,
+      "text": "I agree.",
+      "kind": "short_turn"
+    },
+    {
+      "id": "reference-meaningful-fillers",
+      "track": "system",
+      "start_ms": 14000,
+      "end_ms": 18400,
+      "text": "You know the route; like the blue trail, it bends left.",
+      "kind": "speech"
+    },
+    {
+      "id": "reference-disfluency",
+      "track": "microphone",
+      "start_ms": 19000,
+      "end_ms": 21100,
+      "text": "Um, I need a minute.",
+      "kind": "speech"
+    },
+    {
+      "id": "reference-garbled",
+      "track": "system",
+      "start_ms": 22000,
+      "end_ms": 25000,
+      "text": "The cedar package compiles locally.",
+      "kind": "garbled_passage"
+    },
+    {
+      "id": "reference-missing-region",
+      "track": "system",
+      "start_ms": 27000,
+      "end_ms": 29200,
+      "text": "The checksum ends with seven.",
+      "kind": "speech"
+    },
+    {
+      "id": "reference-takeover",
+      "track": "microphone",
+      "start_ms": 30500,
+      "end_ms": 33800,
+      "text": "I can review the draft tomorrow.",
+      "kind": "speech"
+    }
+  ],
+  "hypothesis_segments": [
+    {
+      "id": "hypothesis-context",
+      "track": "system",
+      "start_ms": 1000,
+      "end_ms": 5200,
+      "text": "Let's take a brake before testing the bicycle breaks.",
+      "kind": "contextual_term"
+    },
+    {
+      "id": "hypothesis-acknowledgment",
+      "track": "microphone",
+      "start_ms": 5400,
+      "end_ms": 5900,
+      "text": "Yeah.",
+      "kind": "acknowledgment"
+    },
+    {
+      "id": "hypothesis-remote-turn",
+      "track": "system",
+      "start_ms": 7000,
+      "end_ms": 12000,
+      "text": "The Aurora widget should preserve every short response and keep source labels honest.",
+      "kind": "speech"
+    },
+    {
+      "id": "hypothesis-overlap-with-bleed",
+      "track": "microphone",
+      "start_ms": 8500,
+      "end_ms": 11800,
+      "text": "Right. The Aurora widget should preserve every short response and keep source labels honest.",
+      "kind": "overlap"
+    },
+    {
+      "id": "hypothesis-short-turn",
+      "track": "microphone",
+      "start_ms": 12600,
+      "end_ms": 13300,
+      "text": "I agree.",
+      "kind": "short_turn"
+    },
+    {
+      "id": "hypothesis-repeated-short-turn",
+      "track": "microphone",
+      "start_ms": 13400,
+      "end_ms": 14100,
+      "text": "I agree.",
+      "kind": "short_turn"
+    },
+    {
+      "id": "hypothesis-meaningful-fillers",
+      "track": "system",
+      "start_ms": 14000,
+      "end_ms": 18400,
+      "text": "You know the route; like the blue trail, it bends left.",
+      "kind": "speech"
+    },
+    {
+      "id": "hypothesis-disfluency",
+      "track": "microphone",
+      "start_ms": 19000,
+      "end_ms": 21100,
+      "text": "Um, I need a minute.",
+      "kind": "speech"
+    },
+    {
+      "id": "hypothesis-garbled",
+      "track": "system",
+      "start_ms": 22000,
+      "end_ms": 25000,
+      "text": "The seater package complies locally.",
+      "kind": "garbled_passage"
+    },
+    {
+      "id": "hypothesis-takeover",
+      "track": "microphone",
+      "start_ms": 30500,
+      "end_ms": 33800,
+      "text": "I can review the draft tomorrow.",
+      "kind": "speech"
+    }
+  ],
+  "key_terms": [
+    { "id": "context-break", "text": "break" },
+    { "id": "context-brakes", "text": "brakes" },
+    { "id": "proper-term", "text": "Aurora" },
+    { "id": "multiword-term", "text": "blue trail" }
+  ]
+}

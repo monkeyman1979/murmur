@@ -1,0 +1,329 @@
+/* Fonts bundled locally — Murmur is offline-first, with no Google Fonts CDN. */
+@import "@fontsource-variable/geist";
+@import "@fontsource/google-sans-flex/latin-500.css";
+
+@import "tailwindcss";
+
+@import "tw-animate-css";
+
+@import "shadcn-vue/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-sans: 'Geist Variable', sans-serif;
+    --font-heading: var(--font-sans);
+    --color-app-content: var(--app-content);
+    --color-app-shell: var(--app-shell);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-active-hover: var(--sidebar-active-hover);
+    --color-sidebar-active: var(--sidebar-active);
+    --color-sidebar-hover: var(--sidebar-hover);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-destructive-fill: var(--destructive-fill);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-success-muted: var(--success-muted);
+    --color-success-border: var(--success-border);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-menu-active: var(--menu-active);
+    --color-menu-hover: var(--menu-hover);
+    --color-menu-foreground: var(--menu-foreground);
+    --color-menu: var(--menu);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+    /* Radix Sand neutrals + Gold primary + Green success/accent. */
+    --background: #fdfdfc; /* sand 1 */
+    --foreground: #21201c; /* sand 12 */
+    --app-shell: #26352f; /* solid fallback for shell-colored utilities */
+    --app-shell-background:
+        radial-gradient(ellipse 78% 68% at 14% -12%, rgba(190, 187, 91, 0.28) 0%, rgba(190, 187, 91, 0) 64%),
+        radial-gradient(ellipse 72% 82% at -8% 108%, rgba(35, 96, 128, 0.34) 0%, rgba(35, 96, 128, 0) 70%),
+        linear-gradient(150deg, #4a4c1f 0%, #29382f 46%, #0c2138 100%);
+    --app-content: var(--background); /* inset light/dark workspace */
+    --app-content-transparent: rgba(253, 253, 252, 0);
+    --progress-track: #e8e7e4;
+    --progress-fill: linear-gradient(90deg, #8fa4ba 0%, #c5a09d 52%, #d99267 100%);
+    --card: #f9f9f8; /* sand 2 */
+    --card-foreground: #21201c;
+    --popover: #fdfdfc;
+    --popover-foreground: #21201c;
+    --menu: #ffffff;
+    --menu-foreground: #21201c;
+    --menu-hover: #f1f0ef;
+    --menu-active: #e8e7e4;
+    --primary: var(--sidebar-primary); /* share the meeting action's warm cream */
+    --primary-foreground: var(--sidebar-primary-foreground);
+    --secondary: #f1f0ef; /* sand 3 */
+    --secondary-foreground: #21201c;
+    --muted: #f1f0ef; /* sand 3 */
+    --muted-foreground: #63635e; /* sand 11 */
+    --accent: #f1f0ef; /* sand 3 */
+    --accent-foreground: #21201c; /* sand 12 */
+    --destructive: #ce2c31; /* readable error text and tonal surfaces */
+    --destructive-fill: #ce2c31; /* filled destructive actions */
+    --destructive-foreground: #ffffff;
+    --border: #dad9d6; /* sand 6 */
+    --input: #cfceca; /* sand 7 */
+    --ring: #b9a88d; /* gold 8 */
+    --success: #30a46c; /* green 9 */
+    --success-foreground: #ffffff;
+    --success-muted: #e6f6eb; /* green 3 */
+    --success-border: #8eceaa; /* green 7 */
+    --chart-1: #978365;
+    --chart-2: #30a46c;
+    --chart-3: #e5484d;
+    --chart-4: #8d8d86;
+    --chart-5: #b9a88d;
+    --radius: 0.625rem;
+    /* The shell and sidebar stay atmospheric while the inset workspace themes. */
+    --sidebar: #26352f;
+    --sidebar-foreground: #f5f5ee;
+    --sidebar-primary: #eee2c8;
+    --sidebar-primary-foreground: #20231e;
+    --sidebar-hover: rgba(255, 255, 255, 0.09);
+    --sidebar-active: rgba(255, 255, 255, 0.16);
+    --sidebar-active-hover: rgba(255, 255, 255, 0.22);
+    --sidebar-accent: var(--sidebar-active);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: rgba(255, 255, 255, 0.16);
+    --sidebar-ring: rgba(255, 255, 255, 0.55);
+}
+
+.dark {
+    --background: #111110; /* sand dark 1 */
+    --foreground: #eeeeec; /* sand dark 12 */
+    --app-shell: #26352f; /* shell gradient stays constant across themes */
+    --app-content: var(--background); /* inset light/dark workspace */
+    --app-content-transparent: rgba(17, 17, 16, 0);
+    --progress-track: #343330;
+    --card: #191918; /* sand dark 2 */
+    --card-foreground: #eeeeec;
+    --popover: #191918;
+    --popover-foreground: #eeeeec;
+    --menu: #252523;
+    --menu-foreground: #eeeeec;
+    --menu-hover: #31312e;
+    --menu-active: #3a3935;
+    --primary: var(--sidebar-primary); /* share the meeting action's warm cream */
+    --primary-foreground: var(--sidebar-primary-foreground);
+    --secondary: #222221; /* sand dark 3 */
+    --secondary-foreground: #eeeeec;
+    --muted: #222221; /* sand dark 3 */
+    --muted-foreground: #b5b3ad; /* sand dark 11 */
+    --accent: #222221; /* sand dark 3 */
+    --accent-foreground: #eeeeec; /* sand dark 12 */
+    --destructive: #ff9592; /* readable error text and tonal surfaces */
+    --destructive-fill: #ce2c31; /* solid action red instead of disabled-looking pink */
+    --destructive-foreground: #ffffff;
+    --border: #3b3a37; /* sand dark 6 */
+    --input: #494844; /* sand dark 7 */
+    --ring: #696256; /* gold dark 8 */
+    --success: #3dd68c; /* green dark 11 */
+    --success-foreground: #111110;
+    --success-muted: #132d21; /* green dark 3 */
+    --success-border: #28684a; /* green dark 7 */
+    --chart-1: #a39073;
+    --chart-2: #3dd68c;
+    --chart-3: #ff9592;
+    --chart-4: #7c7b74;
+    --chart-5: #cbb99f;
+    --sidebar: #26352f;
+    --sidebar-foreground: #f5f5ee;
+    --sidebar-primary: #eee2c8;
+    --sidebar-primary-foreground: #20231e;
+    --sidebar-hover: rgba(255, 255, 255, 0.09);
+    --sidebar-active: rgba(255, 255, 255, 0.16);
+    --sidebar-active-hover: rgba(255, 255, 255, 0.22);
+    --sidebar-accent: var(--sidebar-active);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: rgba(255, 255, 255, 0.16);
+    --sidebar-ring: rgba(255, 255, 255, 0.55);
+}
+
+:root[data-shell-gradient="sunset"] {
+    --app-shell: #b8816c;
+    --progress-fill: linear-gradient(90deg, #8fa4ba 0%, #c5a09d 52%, #d99267 100%);
+    --app-shell-background:
+        radial-gradient(ellipse 78% 68% at 14% -12%, rgba(157, 184, 209, 0.82) 0%, rgba(157, 184, 209, 0) 64%),
+        radial-gradient(ellipse 72% 82% at -8% 108%, rgba(236, 158, 104, 0.72) 0%, rgba(236, 158, 104, 0) 70%),
+        linear-gradient(150deg, #8da3b8 0%, #c5a09d 48%, #d99267 100%);
+    --sidebar: #b8816c;
+    --sidebar-foreground: #28252a;
+    --sidebar-hover: rgba(255, 255, 255, 0.18);
+    --sidebar-active: rgba(255, 255, 255, 0.3);
+    --sidebar-active-hover: rgba(255, 255, 255, 0.4);
+    --sidebar-accent: var(--sidebar-active);
+    --sidebar-accent-foreground: #201d20;
+    --sidebar-border: rgba(32, 29, 32, 0.18);
+    --sidebar-ring: rgba(32, 29, 32, 0.5);
+}
+
+:root[data-shell-gradient="forest"] {
+    --app-shell: #26352f;
+    --progress-fill: linear-gradient(90deg, #a3a45d 0%, #4f8272 52%, #326987 100%);
+    --app-shell-background:
+        radial-gradient(ellipse 78% 68% at 14% -12%, rgba(190, 187, 91, 0.28) 0%, rgba(190, 187, 91, 0) 64%),
+        radial-gradient(ellipse 72% 82% at -8% 108%, rgba(35, 96, 128, 0.34) 0%, rgba(35, 96, 128, 0) 70%),
+        linear-gradient(150deg, #4a4c1f 0%, #29382f 46%, #0c2138 100%);
+    --sidebar: #26352f;
+    --sidebar-foreground: #f5f5ee;
+    --sidebar-hover: rgba(255, 255, 255, 0.09);
+    --sidebar-active: rgba(255, 255, 255, 0.16);
+    --sidebar-active-hover: rgba(255, 255, 255, 0.22);
+    --sidebar-accent: var(--sidebar-active);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: rgba(255, 255, 255, 0.16);
+    --sidebar-ring: rgba(255, 255, 255, 0.55);
+}
+
+:root[data-shell-gradient="desert"] {
+    --app-shell: #c78b63;
+    --progress-fill: linear-gradient(90deg, #e1bd76 0%, #cf8b63 52%, #b86d55 100%);
+    --app-shell-background:
+        radial-gradient(ellipse 78% 68% at 14% -12%, rgba(241, 201, 133, 0.72) 0%, rgba(241, 201, 133, 0) 64%),
+        radial-gradient(ellipse 72% 82% at -8% 108%, rgba(180, 109, 78, 0.28) 0%, rgba(180, 109, 78, 0) 70%),
+        linear-gradient(150deg, #d9b67a 0%, #c98962 48%, #c47d60 100%);
+    --sidebar: #c78b63;
+    --sidebar-foreground: #28211f;
+    --sidebar-hover: rgba(255, 255, 255, 0.18);
+    --sidebar-active: rgba(255, 255, 255, 0.3);
+    --sidebar-active-hover: rgba(255, 255, 255, 0.4);
+    --sidebar-accent: var(--sidebar-active);
+    --sidebar-accent-foreground: #201b19;
+    --sidebar-border: rgba(32, 27, 25, 0.18);
+    --sidebar-ring: rgba(32, 27, 25, 0.5);
+}
+
+:root[data-shell-gradient="mocha"] {
+    --app-shell: #503730;
+    --progress-fill: linear-gradient(90deg, #e5c69d 0%, #b27c6a 52%, #805c6b 100%);
+    --app-shell-background:
+        radial-gradient(ellipse 78% 68% at 14% -12%, rgba(230, 189, 141, 0.16) 0%, rgba(230, 189, 141, 0) 64%),
+        radial-gradient(ellipse 72% 82% at -8% 108%, rgba(139, 87, 93, 0.34) 0%, rgba(139, 87, 93, 0) 70%),
+        linear-gradient(150deg, #795449 0%, #4b302f 48%, #241c22 100%);
+    --sidebar: #503730;
+    --sidebar-foreground: #fbf1e6;
+    --sidebar-hover: rgba(255, 255, 255, 0.12);
+    --sidebar-active: rgba(255, 255, 255, 0.2);
+    --sidebar-active-hover: rgba(255, 255, 255, 0.28);
+    --sidebar-accent: var(--sidebar-active);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: rgba(255, 255, 255, 0.18);
+    --sidebar-ring: rgba(255, 255, 255, 0.65);
+}
+
+@layer utilities {
+  .app-shell-background {
+    background: var(--app-shell-background);
+  }
+
+  .page-header-fade {
+    background: linear-gradient(
+      to bottom,
+      var(--app-content) 0%,
+      var(--app-content) 35%,
+      var(--app-content-transparent) 100%
+    );
+  }
+
+  .progress-track {
+    background: var(--progress-track);
+  }
+
+  .progress-fill {
+    background: var(--progress-fill);
+  }
+}
+
+
+.page-fade-enter-active {
+  transition: opacity 180ms ease-out;
+}
+
+.page-fade-leave-active {
+  transition: opacity 120ms ease-in;
+}
+
+.tab-fade-enter-active,
+.tab-fade-leave-active {
+  transition: opacity 140ms ease;
+}
+
+.scroll-top-fade-enter-active,
+.scroll-top-fade-leave-active {
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.scroll-top-fade-enter-from,
+.scroll-top-fade-leave-to {
+  opacity: 0;
+  transform: translateY(0.25rem);
+}
+
+.page-fade-enter-from,
+.page-fade-leave-to,
+.tab-fade-enter-from,
+.tab-fade-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-enter-active,
+  .page-fade-leave-active,
+  .tab-fade-enter-active,
+  .tab-fade-leave-active,
+  .scroll-top-fade-enter-active,
+  .scroll-top-fade-leave-active {
+    transition-duration: 0.01ms;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    @apply font-sans;
+    }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]):not([data-disabled]),
+  summary {
+    cursor: pointer;
+    }
+}

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "corpus_id": "consented-corpus-v1",
+  "consent_confirmed": false,
+  "language": "en",
+  "initial_prompt": null,
+  "audio_sources": [
+    {
+      "id": "system-000",
+      "track": "system",
+      "wav_path": "system-000.wav",
+      "timeline_start_ms": 0
+    },
+    {
+      "id": "microphone-000",
+      "track": "microphone",
+      "wav_path": "microphone-000.wav",
+      "timeline_start_ms": 0
+    }
+  ],
+  "reference_segments": [
+    {
+      "id": "reference-system-000",
+      "track": "system",
+      "start_ms": 1000,
+      "end_ms": 3000,
+      "text": "Replace this with the consented verbatim reference.",
+      "kind": "speech"
+    },
+    {
+      "id": "reference-microphone-000",
+      "track": "microphone",
+      "start_ms": 3200,
+      "end_ms": 3600,
+      "text": "Replace this acknowledgment.",
+      "kind": "acknowledgment"
+    }
+  ],
+  "key_terms": [
+    {
+      "id": "expected-term-000",
+      "text": "Replace this expected phrase"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Murmur Debug",
+  "identifier": "com.monkeyman.murmur.debug",
+  "bundle": {
+    "macOS": {
+      "signingIdentity": "Murmur Dev"
+    }
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Murmur Debug",
+        "width": 1120,
+        "height": 760,
+        "minWidth": 720,
+        "minHeight": 520,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      },
+      {
+        "label": "indicator",
+        "url": "index.html?window=indicator",
+        "title": "Murmur Debug Recording",
+        "width": 360,
+        "height": 40,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "visible": false,
+        "resizable": false,
+        "visibleOnAllWorkspaces": true,
+        "acceptFirstMouse": false,
+        "shadow": false
+      },
+      {
+        "label": "meeting-controller",
+        "url": "index.html?window=meeting-controller",
+        "title": "Murmur Debug Meeting Recording",
+        "width": 320,
+        "height": 46,
+        "minWidth": 320,
+        "minHeight": 46,
+        "maxWidth": 320,
+        "maxHeight": 46,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "visible": false,
+        "resizable": false,
+        "closable": false,
+        "visibleOnAllWorkspaces": true,
+        "acceptFirstMouse": true,
+        "shadow": false,
+        "transparent": true
+      }
+    ]
+  }
+}
