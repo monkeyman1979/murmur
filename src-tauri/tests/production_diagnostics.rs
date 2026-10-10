@@ -105,13 +105,16 @@ fn tauri_javascript_toolchain_is_project_scoped_and_minor_aligned() {
     let lockfile =
         std::fs::read_to_string(repository.join("pnpm-lock.yaml")).expect("read pnpm lockfile");
 
-    assert_eq!(
-        package.matches("\"@tauri-apps/api\": \"2.10.1\"").count(),
-        2
-    );
-    assert!(package.contains("\"@tauri-apps/cli\": \"2.10.1\""));
+    let packages: serde_json::Value = serde_json::from_str(&package).expect("parse package.json");
+    let rust_manifest =
+        std::fs::read_to_string(manifest_path("Cargo.toml")).expect("read Rust manifest");
+    assert_eq!(packages["dependencies"]["@tauri-apps/api"], "2.11.1");
+    assert_eq!(packages["pnpm"]["overrides"]["@tauri-apps/api"], "2.11.1");
+    assert_eq!(packages["devDependencies"]["@tauri-apps/cli"], "2.11.1");
+    assert!(rust_manifest.contains("tauri = { version = \"=2.11.1\""));
     assert!(workspace.contains("  - \".\""));
-    assert!(!lockfile.contains("'@tauri-apps/api@2.11.1'"));
+    assert!(lockfile.contains("'@tauri-apps/api@2.11.1':"));
+    assert!(!lockfile.contains("'@tauri-apps/api@2.10.1':"));
 }
 
 #[test]
