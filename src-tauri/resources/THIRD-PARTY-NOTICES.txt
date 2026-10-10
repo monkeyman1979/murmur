@@ -7159,7 +7159,7 @@ SOFTWARE.
 ------------------------------------------------------------------------------
 
 Components:
-- @tauri-apps/api 2.10.1 — Apache-2.0 OR MIT
+- @tauri-apps/api 2.11.1 — Apache-2.0 OR MIT
 
 --- LICENSE_APACHE-2.0 ---
 Apache License
