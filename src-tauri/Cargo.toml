@@ -103,6 +103,15 @@ strip = "symbols"
 panic = "abort"
 opt-level = 3
 
+# Build scripts and proc macros run on the build host. Keep them unoptimized
+# separately from runtime crates: with Rust 1.95 on macOS, a shared optimized
+# proc-macro dylib can be rejected as an incompatible dependency (E0463).
+# Do not strip host proc-macro dylibs: on this Xcode/macOS toolchain stripping
+# corrupts their LINKEDIT string pool, and dyld refuses to load them.
+[profile.release.build-override]
+opt-level = 0
+strip = "none"
+
 [[example]]
 name = "meeting_transcript_quality_bench"
 path = "examples/meeting_transcript_quality_bench.rs"
