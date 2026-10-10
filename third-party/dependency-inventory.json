@@ -16,8 +16,8 @@
     "A package without an installed manifest remains in missingManifests but is excluded from the bundled notice until target-specific release review establishes that it ships."
   ],
   "frontend": {
-    "packageCount": 74,
-    "installedPackageCount": 74,
+    "packageCount": 84,
+    "installedPackageCount": 84,
     "missingManifestCount": 0,
     "missingManifests": [],
     "packages": [
@@ -218,10 +218,38 @@
         "repository": "git+https://github.com/vue-macros/vue-macros.git"
       },
       {
+        "name": "@vue/compiler-core",
+        "version": "3.5.32",
+        "license": "MIT",
+        "homepage": "https://github.com/vuejs/core/tree/main/packages/compiler-core#readme",
+        "repository": "git+https://github.com/vuejs/core.git"
+      },
+      {
+        "name": "@vue/compiler-dom",
+        "version": "3.5.32",
+        "license": "MIT",
+        "homepage": "https://github.com/vuejs/core/tree/main/packages/compiler-dom#readme",
+        "repository": "git+https://github.com/vuejs/core.git"
+      },
+      {
         "name": "@vue/compiler-sfc",
         "version": "3.5.32",
         "license": "MIT",
         "homepage": "https://github.com/vuejs/core/tree/main/packages/compiler-sfc#readme",
+        "repository": "git+https://github.com/vuejs/core.git"
+      },
+      {
+        "name": "@vue/compiler-sfc",
+        "version": "3.5.42",
+        "license": "MIT",
+        "homepage": "https://github.com/vuejs/core/tree/main/packages/compiler-sfc#readme",
+        "repository": "git+https://github.com/vuejs/core.git"
+      },
+      {
+        "name": "@vue/compiler-ssr",
+        "version": "3.5.32",
+        "license": "MIT",
+        "homepage": "https://github.com/vuejs/core/tree/main/packages/compiler-ssr#readme",
         "repository": "git+https://github.com/vuejs/core.git"
       },
       {
@@ -251,6 +279,13 @@
         "license": "MIT",
         "homepage": null,
         "repository": "git+https://github.com/vuejs/devtools.git"
+      },
+      {
+        "name": "@vue/shared",
+        "version": "3.5.32",
+        "license": "MIT",
+        "homepage": "https://github.com/vuejs/core/tree/main/packages/shared#readme",
+        "repository": "git+https://github.com/vuejs/core.git"
       },
       {
         "name": "@vueuse/core",
@@ -323,6 +358,20 @@
         "repository": "unjs/defu"
       },
       {
+        "name": "entities",
+        "version": "7.0.1",
+        "license": "BSD-2-Clause",
+        "homepage": null,
+        "repository": "https://github.com/fb55/entities.git"
+      },
+      {
+        "name": "estree-walker",
+        "version": "2.0.2",
+        "license": "MIT",
+        "homepage": null,
+        "repository": "https://github.com/Rich-Harris/estree-walker"
+      },
+      {
         "name": "fdir",
         "version": "6.5.0",
         "license": "MIT",
@@ -393,6 +442,13 @@
         "repository": "https://github.com/johnsoncodehk/muggle-string.git"
       },
       {
+        "name": "nanoid",
+        "version": "3.3.19",
+        "license": "MIT",
+        "homepage": null,
+        "repository": "ai/nanoid"
+      },
+      {
         "name": "ohash",
         "version": "2.0.11",
         "license": "MIT",
@@ -414,11 +470,25 @@
         "repository": "unjs/perfect-debounce"
       },
       {
+        "name": "picocolors",
+        "version": "1.1.1",
+        "license": "ISC",
+        "homepage": null,
+        "repository": "alexeyraspopov/picocolors"
+      },
+      {
         "name": "picomatch",
         "version": "4.0.4",
         "license": "MIT",
         "homepage": "https://github.com/micromatch/picomatch",
         "repository": "micromatch/picomatch"
+      },
+      {
+        "name": "postcss",
+        "version": "8.5.28",
+        "license": "MIT",
+        "homepage": "https://postcss.org/",
+        "repository": "postcss/postcss"
       },
       {
         "name": "readdirp",
@@ -443,7 +513,7 @@
       },
       {
         "name": "source-map-js",
-        "version": "1.2.1",
+        "version": "1.2.2",
         "license": "BSD-3-Clause",
         "homepage": "https://github.com/7rulnik/source-map-js",
         "repository": "7rulnik/source-map-js"
@@ -492,9 +562,9 @@
       },
       {
         "name": "vue",
-        "version": "3.5.32",
+        "version": "3.5.42",
         "license": "MIT",
-        "homepage": "https://github.com/vuejs/core/tree/main/packages/vue#readme",
+        "homepage": "https://vuejs.org/",
         "repository": "git+https://github.com/vuejs/core.git"
       },
       {
@@ -542,7 +612,7 @@
     ]
   },
   "rust": {
-    "packageCount": 417,
+    "packageCount": 438,
     "packages": [
       {
         "name": "adler2",
@@ -579,7 +649,7 @@
       },
       {
         "name": "alloc-no-stdlib",
-        "version": "2.0.4",
+        "version": "3.0.0",
         "license": "BSD-3-Clause",
         "licenseFile": null,
         "repository": "https://github.com/dropbox/rust-alloc-no-stdlib",
@@ -590,7 +660,7 @@
       },
       {
         "name": "alloc-stdlib",
-        "version": "0.2.2",
+        "version": "0.3.0",
         "license": "BSD-3-Clause",
         "licenseFile": null,
         "repository": "https://github.com/dropbox/rust-alloc-no-stdlib",
@@ -732,6 +802,28 @@
         ]
       },
       {
+        "name": "bit-set",
+        "version": "0.8.0",
+        "license": "Apache-2.0 OR MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/contain-rs/bit-set",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "bit-vec",
+        "version": "0.8.0",
+        "license": "Apache-2.0 OR MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/contain-rs/bit-vec",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "bitflags",
         "version": "1.3.2",
         "license": "MIT/Apache-2.0",
@@ -777,7 +869,7 @@
       },
       {
         "name": "brotli",
-        "version": "8.0.2",
+        "version": "9.0.0",
         "license": "BSD-3-Clause AND MIT",
         "licenseFile": null,
         "repository": "https://github.com/dropbox/rust-brotli",
@@ -788,10 +880,21 @@
       },
       {
         "name": "brotli-decompressor",
-        "version": "5.0.0",
+        "version": "6.0.1",
         "license": "BSD-3-Clause/MIT",
         "licenseFile": null,
         "repository": "https://github.com/dropbox/rust-brotli-decompressor",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "bs58",
+        "version": "0.5.1",
+        "license": "MIT/Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/Nullus157/bs58-rs",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -902,6 +1005,17 @@
         "license": "Apache-2.0/MIT",
         "licenseFile": null,
         "repository": "https://github.com/jethrogb/rust-cexpr",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "cfb",
+        "version": "0.14.0",
+        "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/mdsteele/rust-cfb",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -1139,6 +1253,17 @@
         ]
       },
       {
+        "name": "cssparser",
+        "version": "0.37.0",
+        "license": "MPL-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/rust-cssparser",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "cssparser-macros",
         "version": "0.6.1",
         "license": "MPL-2.0",
@@ -1150,11 +1275,22 @@
         ]
       },
       {
+        "name": "cssparser-macros",
+        "version": "0.7.1",
+        "license": "MPL-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/rust-cssparser",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "ctor",
-        "version": "0.2.9",
+        "version": "1.0.13",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
-        "repository": "https://github.com/mmastrac/rust-ctor",
+        "repository": "https://github.com/mmastrac/linktime",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -1238,6 +1374,28 @@
         ]
       },
       {
+        "name": "derive_more",
+        "version": "2.1.1",
+        "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/JelteF/derive_more",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "derive_more-impl",
+        "version": "2.1.1",
+        "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/JelteF/derive_more",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "digest",
         "version": "0.10.7",
         "license": "MIT OR Apache-2.0",
@@ -1309,6 +1467,17 @@
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/yaahc/displaydoc",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "dom_query",
+        "version": "0.28.0",
+        "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/niklak/dom_query",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -1518,6 +1687,17 @@
         "license": "Apache-2.0 / MIT",
         "licenseFile": null,
         "repository": "https://github.com/servo/rust-fnv",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "foldhash",
+        "version": "0.2.0",
+        "license": "Zlib",
+        "licenseFile": null,
+        "repository": "https://github.com/orlp/foldhash",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -1865,6 +2045,17 @@
         ]
       },
       {
+        "name": "html5ever",
+        "version": "0.39.0",
+        "license": "MIT OR Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/html5ever",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "http",
         "version": "1.4.0",
         "license": "MIT OR Apache-2.0",
@@ -2118,6 +2309,17 @@
         ]
       },
       {
+        "name": "infer",
+        "version": "0.22.0",
+        "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/bojand/infer",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "ipnet",
         "version": "2.12.0",
         "license": "MIT OR Apache-2.0",
@@ -2195,8 +2397,30 @@
         ]
       },
       {
+        "name": "json-patch",
+        "version": "4.2.0",
+        "license": "MIT/Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/idubrov/json-patch",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "jsonptr",
         "version": "0.6.3",
+        "license": "MIT OR Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/chanced/jsonptr",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "jsonptr",
+        "version": "0.7.1",
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/chanced/jsonptr",
@@ -2382,6 +2606,17 @@
         ]
       },
       {
+        "name": "markup5ever",
+        "version": "0.39.0",
+        "license": "MIT OR Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/html5ever",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "match_token",
         "version": "0.1.0",
         "license": "MIT OR Apache-2.0",
@@ -2493,7 +2728,7 @@
       },
       {
         "name": "muda",
-        "version": "0.17.2",
+        "version": "0.19.3",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/muda",
@@ -2966,6 +3201,17 @@
       },
       {
         "name": "phf",
+        "version": "0.13.1",
+        "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/rust-phf/rust-phf",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "phf",
         "version": "0.8.0",
         "license": "MIT",
         "licenseFile": null,
@@ -2978,6 +3224,17 @@
       {
         "name": "phf_codegen",
         "version": "0.11.3",
+        "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/rust-phf/rust-phf",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "phf_codegen",
+        "version": "0.13.1",
         "license": "MIT",
         "licenseFile": null,
         "repository": "https://github.com/rust-phf/rust-phf",
@@ -3011,6 +3268,17 @@
       {
         "name": "phf_generator",
         "version": "0.11.3",
+        "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/rust-phf/rust-phf",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "phf_generator",
+        "version": "0.13.1",
         "license": "MIT",
         "licenseFile": null,
         "repository": "https://github.com/rust-phf/rust-phf",
@@ -3043,7 +3311,7 @@
       },
       {
         "name": "phf_macros",
-        "version": "0.11.3",
+        "version": "0.13.1",
         "license": "MIT",
         "licenseFile": null,
         "repository": "https://github.com/rust-phf/rust-phf",
@@ -3066,6 +3334,17 @@
       {
         "name": "phf_shared",
         "version": "0.11.3",
+        "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/rust-phf/rust-phf",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "phf_shared",
+        "version": "0.13.1",
         "license": "MIT",
         "licenseFile": null,
         "repository": "https://github.com/rust-phf/rust-phf",
@@ -3582,7 +3861,7 @@
       },
       {
         "name": "rustls",
-        "version": "0.23.38",
+        "version": "0.23.45",
         "license": "Apache-2.0 OR ISC OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/rustls/rustls",
@@ -3615,7 +3894,7 @@
       },
       {
         "name": "rustls-webpki",
-        "version": "0.103.13",
+        "version": "0.103.15",
         "license": "ISC",
         "licenseFile": null,
         "repository": "https://github.com/rustls/webpki",
@@ -3735,6 +4014,17 @@
         ]
       },
       {
+        "name": "selectors",
+        "version": "0.38.0",
+        "license": "MPL-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/stylo",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "semver",
         "version": "1.0.28",
         "license": "MIT OR Apache-2.0",
@@ -3835,7 +4125,7 @@
       },
       {
         "name": "serde_with",
-        "version": "3.18.0",
+        "version": "3.21.0",
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/jonasbb/serde_with/",
@@ -3846,7 +4136,7 @@
       },
       {
         "name": "serde_with_macros",
-        "version": "3.18.0",
+        "version": "3.21.0",
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/jonasbb/serde_with/",
@@ -3894,6 +4184,17 @@
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/servo/servo",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "servo_arc",
+        "version": "0.4.3",
+        "license": "MIT OR Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/stylo",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -4032,8 +4333,30 @@
         ]
       },
       {
+        "name": "string_cache",
+        "version": "0.9.0",
+        "license": "MIT OR Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/string-cache",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "string_cache_codegen",
         "version": "0.5.4",
+        "license": "MIT OR Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/string-cache",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "string_cache_codegen",
+        "version": "0.6.1",
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/servo/string-cache",
@@ -4066,7 +4389,7 @@
       },
       {
         "name": "swift-rs",
-        "version": "1.0.7",
+        "version": "1.0.9",
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/Brendonovich/swift-rs",
@@ -4121,7 +4444,7 @@
       },
       {
         "name": "tao",
-        "version": "0.34.8",
+        "version": "0.35.3",
         "license": "Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tao",
@@ -4143,7 +4466,7 @@
       },
       {
         "name": "tauri",
-        "version": "2.10.3",
+        "version": "2.11.1",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tauri",
@@ -4154,7 +4477,7 @@
       },
       {
         "name": "tauri-build",
-        "version": "2.5.6",
+        "version": "2.6.1",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tauri",
@@ -4165,7 +4488,7 @@
       },
       {
         "name": "tauri-codegen",
-        "version": "2.5.5",
+        "version": "2.7.1",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tauri",
@@ -4176,7 +4499,7 @@
       },
       {
         "name": "tauri-macros",
-        "version": "2.5.5",
+        "version": "2.6.1",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tauri",
@@ -4275,7 +4598,7 @@
       },
       {
         "name": "tauri-runtime",
-        "version": "2.10.1",
+        "version": "2.11.1",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tauri",
@@ -4286,7 +4609,7 @@
       },
       {
         "name": "tauri-runtime-wry",
-        "version": "2.10.1",
+        "version": "2.11.1",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tauri",
@@ -4297,7 +4620,7 @@
       },
       {
         "name": "tauri-utils",
-        "version": "2.8.3",
+        "version": "2.10.1",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tauri",
@@ -4334,6 +4657,17 @@
         "license": "MIT/Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/servo/tendril",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "tendril",
+        "version": "0.5.0",
+        "license": "MIT OR Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/html5ever",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -4638,7 +4972,7 @@
       },
       {
         "name": "tray-icon",
-        "version": "0.21.3",
+        "version": "0.23.1",
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tray-icon",
@@ -4675,61 +5009,6 @@
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/paholg/typenum",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "targets": [
-          "aarch64-apple-darwin"
-        ]
-      },
-      {
-        "name": "unic-char-property",
-        "version": "0.9.0",
-        "license": "MIT/Apache-2.0",
-        "licenseFile": null,
-        "repository": "https://github.com/open-i18n/rust-unic/",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "targets": [
-          "aarch64-apple-darwin"
-        ]
-      },
-      {
-        "name": "unic-char-range",
-        "version": "0.9.0",
-        "license": "MIT/Apache-2.0",
-        "licenseFile": null,
-        "repository": "https://github.com/open-i18n/rust-unic/",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "targets": [
-          "aarch64-apple-darwin"
-        ]
-      },
-      {
-        "name": "unic-common",
-        "version": "0.9.0",
-        "license": "MIT/Apache-2.0",
-        "licenseFile": null,
-        "repository": "https://github.com/open-i18n/rust-unic/",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "targets": [
-          "aarch64-apple-darwin"
-        ]
-      },
-      {
-        "name": "unic-ucd-ident",
-        "version": "0.9.0",
-        "license": "MIT/Apache-2.0",
-        "licenseFile": null,
-        "repository": "https://github.com/open-i18n/rust-unic/",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "targets": [
-          "aarch64-apple-darwin"
-        ]
-      },
-      {
-        "name": "unic-ucd-version",
-        "version": "0.9.0",
-        "license": "MIT/Apache-2.0",
-        "licenseFile": null,
-        "repository": "https://github.com/open-i18n/rust-unic/",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -4803,7 +5082,7 @@
       },
       {
         "name": "urlpattern",
-        "version": "0.3.0",
+        "version": "0.6.0",
         "license": "MIT",
         "licenseFile": null,
         "repository": "https://github.com/denoland/rust-urlpattern",
@@ -4895,6 +5174,28 @@
         "license": "MIT",
         "licenseFile": null,
         "repository": "https://github.com/seanmonstar/want",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "web_atoms",
+        "version": "0.2.4",
+        "license": "MIT OR Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/servo/html5ever",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "web-time",
+        "version": "1.1.0",
+        "license": "MIT OR Apache-2.0",
+        "licenseFile": null,
+        "repository": "https://github.com/daxpedda/web-time",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -5001,7 +5302,7 @@
       },
       {
         "name": "wry",
-        "version": "0.54.4",
+        "version": "0.55.1",
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/wry",
