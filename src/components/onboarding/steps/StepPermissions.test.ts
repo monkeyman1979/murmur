@@ -16,65 +16,132 @@ async function render() {
   wrapper = mount(Step, { global: { plugins: [createI18n({ legacy: false, locale: "en", messages: { en } })] } });
 }
 
+const AX = "Keyboard shortcut & text insertion · Accessibility";
+const IM = "Keyboard shortcut · Input Monitoring";
+const granted = { microphone: "granted", input_monitoring: "granted", accessibility: "granted" } as const;
+
 describe("StepPermissions", () => {
-  it("shows neutral checking for all three permissions and login hydration", async () => {
+  it("shows neutral checking for the required permissions and login hydration", async () => {
     state.isEnabled.mockReturnValue(new Promise(() => {}));
     await render();
     expect(wrapper.findAll("button").filter((button) => button.text() === "Allow")).toHaveLength(0);
-    expect(wrapper.text().match(/Checking/g)).toHaveLength(4);
+    expect(wrapper.text().match(/Checking/g)).toHaveLength(3);
     expect(wrapper.get('[role="switch"]').attributes("disabled")).toBeDefined();
   });
-  it("requests native access first and shows Input Monitoring steps if a grant is still missing", async () => {
-    state.permissions.value = { microphone: "granted", input_monitoring: "not-determined", accessibility: "denied" };
-    await render(); await flushPromises();
-    expect(wrapper.text()).not.toContain("Relaunch");
-    await wrapper.get('[aria-label="Allow: Keyboard shortcut · Input Monitoring"]').trigger("click");
-    await wrapper.get('[aria-label="Allow: Text insertion · Accessibility"]').trigger("click");
-    await flushPromises();
-    expect(state.invoke.mock.calls).toEqual([
-      ["request_input_monitoring_prompt"],
-      ["request_accessibility_prompt"],
-    ]);
-    expect(wrapper.get('[data-testid="input-monitoring-fallback"]').text()).toContain("click + and choose the app you opened");
-    const help = wrapper.findAll('[data-testid="permission-row"] details');
-    expect(help).toHaveLength(1);
-    expect(help[0].get('summary').text()).toBe("Need help?");
-    expect((help[0].element as HTMLDetailsElement).open).toBe(false);
-    expect(help[0].text()).toContain("turn on Murmur, then come back");
-    await help[0].get('summary').trigger('click');
-    expect((help[0].element as HTMLDetailsElement).open).toBe(true);
-    expect(wrapper.text()).not.toContain("Relaunch");
-    await wrapper.get('[aria-label="Open Settings: Keyboard shortcut · Input Monitoring"]').trigger("click");
-    await wrapper.get('[aria-label="Open Settings: Text insertion · Accessibility"]').trigger("click");
-    await flushPromises();
-    expect(state.invoke.mock.calls).toEqual([
-      ["request_input_monitoring_prompt"],
-      ["request_accessibility_prompt"],
-      ["open_privacy_pane", { pane: "input-monitoring" }],
-      ["open_privacy_pane", { pane: "accessibility" }],
-    ]);
-    expect(wrapper.text()).toContain("Relaunch");
-    state.permissions.value = { microphone: "granted", input_monitoring: "granted", accessibility: "granted" };
-    await flushPromises();
-    expect(wrapper.text().match(/Granted/g)).toHaveLength(3);
-    expect(wrapper.findAll('[data-testid="permission-row"] details')).toHaveLength(0);
-    expect(wrapper.find('[data-testid="input-monitoring-fallback"]').exists()).toBe(false);
-    expect(wrapper.text()).not.toContain("Relaunch");
+  it("asks for Accessibility for the shortcut and never shows Input Monitoring while Accessibility is missing", async () => {
+    vi.useFakeTimers();
+    try {
+      state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "denied" };
+      state.invoke.mockResolvedValueOnce(false);
+      await render(); await flushPromises();
+      expect(wrapper.findAll('[data-testid="permission-row"]')).toHaveLength(2);
+      expect(wrapper.text()).not.toContain(IM);
+      await wrapper.get(`[aria-label="Allow: ${AX}"]`).trigger("click");
+      await flushPromises();
+      expect(state.invoke.mock.calls).toEqual([["request_accessibility_prompt"]]);
+      const help = wrapper.findAll('[data-testid="permission-row"] details');
+      expect(help).toHaveLength(1);
+      expect(help[0].get("summary").text()).toBe("Need help?");
+      expect(help[0].text()).toContain("turn on Murmur, then come back");
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(wrapper.text()).not.toContain(IM);
+      expect(wrapper.text()).not.toContain("click +");
+      expect(wrapper.text()).not.toContain("Relaunch");
+      await wrapper.get(`[aria-label="Open Settings: ${AX}"]`).trigger("click");
+      await flushPromises();
+      expect(state.invoke).toHaveBeenLastCalledWith("open_privacy_pane", { pane: "accessibility" });
+      expect(wrapper.text()).toContain("Relaunch");
+      state.permissions.value = { ...granted };
+      await flushPromises();
+      expect(wrapper.text().match(/Granted/g)).toHaveLength(2);
+      expect(wrapper.findAll('[data-testid="permission-row"] details')).toHaveLength(0);
+      expect(wrapper.text()).not.toContain("Relaunch");
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(wrapper.text()).not.toContain(IM);
+    } finally { vi.useRealTimers(); }
   });
-  it("tries native Input Monitoring registration even if macOS reports denied before the first click", async () => {
-    state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "granted" };
-    await render(); await flushPromises();
-    await wrapper.get('[aria-label="Allow: Keyboard shortcut · Input Monitoring"]').trigger("click");
-    await flushPromises();
-    expect(state.invoke.mock.calls).toEqual([["request_input_monitoring_prompt"]]);
-    expect(wrapper.find('[aria-label="Open Settings: Keyboard shortcut · Input Monitoring"]').exists()).toBe(true);
-    expect(wrapper.get('[data-testid="input-monitoring-fallback"]').text()).toContain("click +");
-    expect(wrapper.text()).not.toContain("Relaunch");
+  it("gives the shortcut listener time to start before offering the Input Monitoring fallback", async () => {
+    vi.useFakeTimers();
+    try {
+      state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "denied" };
+      await render(); await flushPromises();
+      state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "granted" };
+      await flushPromises();
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(wrapper.text()).not.toContain(IM);
+      state.permissions.value = { ...granted };
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(wrapper.text()).not.toContain(IM);
+      expect(wrapper.text()).not.toContain("Relaunch");
+    } finally { vi.useRealTimers(); }
   });
-  it("shows only the three setup permissions, not the optional meeting-audio Settings link", async () => {
-    state.permissions.value = { microphone: "granted", input_monitoring: "granted", accessibility: "granted" };
+  it("cancels the fallback delay on Accessibility revoke and restarts it on re-grant", async () => {
+    vi.useFakeTimers();
+    try {
+      state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "granted" };
+      await render(); await flushPromises();
+      await vi.advanceTimersByTimeAsync(5_000);
+      state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "denied" };
+      await flushPromises();
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(wrapper.text()).not.toContain(IM);
+      state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "granted" };
+      await flushPromises();
+      await vi.advanceTimersByTimeAsync(5_999);
+      expect(wrapper.text()).not.toContain(IM);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(wrapper.text()).toContain(IM);
+    } finally { vi.useRealTimers(); }
+  });
+  it("clears its pending fallback timer when the step unmounts", async () => {
+    vi.useFakeTimers();
+    try {
+      state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "granted" };
+      await render(); await flushPromises();
+      expect(vi.getTimerCount()).toBe(1);
+      wrapper.unmount();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally { vi.useRealTimers(); }
+  });
+  it("offers an Input Monitoring fallback with Relaunch help, without + instructions, if listening is still missing", async () => {
+    vi.useFakeTimers();
+    try {
+      state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "granted" };
+      state.invoke.mockResolvedValueOnce("denied");
+      await render(); await flushPromises();
+      expect(wrapper.text()).not.toContain(IM);
+      await vi.advanceTimersByTimeAsync(6_000);
+      expect(wrapper.findAll('[data-testid="permission-row"]')).toHaveLength(3);
+      expect(wrapper.text()).toContain("Relaunch");
+      await wrapper.get(`[aria-label="Allow: ${IM}"]`).trigger("click");
+      await flushPromises();
+      expect(state.invoke.mock.calls).toEqual([["request_input_monitoring_prompt"]]);
+      expect(wrapper.find(`[aria-label="Open Settings: ${IM}"]`).exists()).toBe(true);
+      expect(wrapper.text()).not.toContain("click +");
+      expect(state.invoke).not.toHaveBeenCalledWith("open_privacy_pane", { pane: "input-monitoring" });
+      state.permissions.value = { ...granted };
+      await flushPromises();
+      expect(wrapper.text()).not.toContain(IM);
+      expect(wrapper.text()).not.toContain("Relaunch");
+    } finally { vi.useRealTimers(); }
+  });
+  it("keeps Allow instead of flipping to Open Settings when the native request grants", async () => {
+    vi.useFakeTimers();
+    try {
+      state.permissions.value = { microphone: "granted", input_monitoring: "denied", accessibility: "granted" };
+      state.invoke.mockResolvedValueOnce("granted");
+      await render(); await vi.advanceTimersByTimeAsync(6_000);
+      await wrapper.get(`[aria-label="Allow: ${IM}"]`).trigger("click");
+      await flushPromises();
+      expect(wrapper.find(`[aria-label="Allow: ${IM}"]`).exists()).toBe(true);
+      expect(wrapper.find(`[aria-label="Open Settings: ${IM}"]`).exists()).toBe(false);
+      expect(wrapper.findAll('[data-testid="permission-row"] details')).toHaveLength(0);
+    } finally { vi.useRealTimers(); }
+  });
+  it("shows only the required setup permissions, not the optional meeting-audio Settings link", async () => {
+    state.permissions.value = { ...granted };
     await render(); await flushPromises();
-    expect(wrapper.findAll('[data-testid="permission-row"]')).toHaveLength(3);
+    expect(wrapper.findAll('[data-testid="permission-row"]')).toHaveLength(2);
     expect(wrapper.text()).not.toContain("System Audio Recording");
     expect(wrapper.find('[data-testid="meeting-audio-info"]').exists()).toBe(false);
     expect(state.invoke).not.toHaveBeenCalled();
@@ -85,9 +152,9 @@ describe("StepPermissions", () => {
     await wrapper.get('[aria-label="Allow: Microphone"]').trigger("click");
     await flushPromises();
     expect(state.invoke.mock.calls).toEqual([["request_microphone_prompt"]]);
-    state.permissions.value = { microphone: "granted", input_monitoring: "granted", accessibility: "granted" };
+    state.permissions.value = { ...granted };
     await flushPromises();
-    expect(wrapper.text().match(/Granted/g)).toHaveLength(3);
+    expect(wrapper.text().match(/Granted/g)).toHaveLength(2);
     expect(state.invoke).not.toHaveBeenCalledWith("open_privacy_pane", { pane: "microphone" });
   });
   it("offers Settings after a microphone denial without repeating the native prompt", async () => {
@@ -130,60 +197,64 @@ describe("StepPermissions", () => {
     expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("false");
     expect(wrapper.text()).toContain("Could not update Launch at login");
     expect(wrapper.text()).not.toContain("Relaunch");
-    await wrapper.get('[aria-label="Allow: Text insertion · Accessibility"]').trigger("click");
+    await wrapper.get(`[aria-label="Allow: ${AX}"]`).trigger("click");
     await flushPromises();
-    await wrapper.get('[aria-label="Open Settings: Text insertion · Accessibility"]').trigger("click");
+    await wrapper.get(`[aria-label="Open Settings: ${AX}"]`).trigger("click");
     await flushPromises();
     const relaunch = wrapper.findAll("button").find((button) => button.text().includes("Relaunch"))!;
     await relaunch.trigger("click");
     expect(state.invoke).toHaveBeenCalledWith("restart_murmur");
   });
   it("does not open Settings or stack permission requests while a native request is pending", async () => {
-    let complete!: (value: string) => void;
-    state.permissions.value = { microphone: "granted", input_monitoring: "not-determined", accessibility: "denied" };
-    state.invoke.mockImplementationOnce(() => new Promise<string>((resolve) => { complete = resolve; }));
+    let complete!: (value: boolean) => void;
+    state.permissions.value = { microphone: "not-determined", input_monitoring: "denied", accessibility: "denied" };
+    state.invoke.mockImplementationOnce(() => new Promise<boolean>((resolve) => { complete = resolve; }));
     await render(); await flushPromises();
-    await wrapper.get('[aria-label="Allow: Keyboard shortcut · Input Monitoring"]').trigger("click");
+    await wrapper.get(`[aria-label="Allow: ${AX}"]`).trigger("click");
     await flushPromises();
-    expect(wrapper.get('[aria-label="Open Settings: Keyboard shortcut · Input Monitoring"]').attributes("disabled")).toBeDefined();
-    expect(wrapper.get('[aria-label="Allow: Text insertion · Accessibility"]').attributes("disabled")).toBeDefined();
+    expect(wrapper.get(`[aria-label="Allow: ${AX}"]`).attributes("disabled")).toBeDefined();
+    expect(wrapper.get('[aria-label="Allow: Microphone"]').attributes("disabled")).toBeDefined();
     expect(wrapper.findAll('[data-testid="permission-row"] details')).toHaveLength(0);
-    expect(wrapper.find('[data-testid="input-monitoring-fallback"]').exists()).toBe(false);
-    expect(state.invoke.mock.calls).toEqual([["request_input_monitoring_prompt"]]);
-    complete("not-determined"); await flushPromises();
-    expect(wrapper.get('[data-testid="input-monitoring-fallback"]').text()).toContain("click +");
-    expect(wrapper.get('[aria-label="Open Settings: Keyboard shortcut · Input Monitoring"]').attributes("disabled")).toBeUndefined();
-    expect(state.invoke).not.toHaveBeenCalledWith("open_privacy_pane", { pane: "input-monitoring" });
+    expect(state.invoke.mock.calls).toEqual([["request_accessibility_prompt"]]);
+    complete(false); await flushPromises();
+    expect(wrapper.get(`[aria-label="Open Settings: ${AX}"]`).attributes("disabled")).toBeUndefined();
+    expect(wrapper.findAll('[data-testid="permission-row"] details')).toHaveLength(1);
+    expect(state.invoke).not.toHaveBeenCalledWith("open_privacy_pane", { pane: "accessibility" });
   });
   it("does not suggest relaunching if opening Settings fails", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     state.permissions.value = { microphone: "granted", input_monitoring: "granted", accessibility: "denied" };
     state.invoke.mockResolvedValueOnce(false).mockRejectedValueOnce(new Error("Settings unavailable"));
     await render(); await flushPromises();
-    await wrapper.get('[aria-label="Allow: Text insertion · Accessibility"]').trigger("click");
+    await wrapper.get(`[aria-label="Allow: ${AX}"]`).trigger("click");
     await flushPromises();
-    await wrapper.get('[aria-label="Open Settings: Text insertion · Accessibility"]').trigger("click");
+    await wrapper.get(`[aria-label="Open Settings: ${AX}"]`).trigger("click");
     await flushPromises();
     expect(wrapper.text()).not.toContain("Relaunch");
-    expect(wrapper.get('[role="alert"]').text()).toContain("In Privacy & Security, find Text insertion · Accessibility");
-    await wrapper.get('[aria-label="Open Settings: Text insertion · Accessibility"]').trigger("click");
+    expect(wrapper.get('[role="alert"]').text()).toContain(`In Privacy & Security, find ${AX}`);
+    await wrapper.get(`[aria-label="Open Settings: ${AX}"]`).trigger("click");
     await flushPromises();
     expect(wrapper.find('[role="alert"]').exists()).toBe(false);
   });
-  it("uses intrinsic, bounded action buttons for all three permissions", async () => {
-    state.permissions.value = { microphone: "denied", input_monitoring: "denied", accessibility: "denied" };
-    await render(); await flushPromises();
-    const rows = wrapper.findAll('[data-testid="permission-row"]');
-    expect(rows).toHaveLength(3);
-    for (const row of rows) {
-      expect(row.classes()).toContain("items-center");
-      expect(row.classes()).toContain("grid-cols-[1.25rem_minmax(0,1fr)_auto]");
-      expect(row.get("p").classes()).toContain("text-balance");
-      const button = row.get("button");
-      expect(button.classes()).toEqual(expect.arrayContaining(["w-fit", "max-w-full", "min-h-9", "whitespace-normal", "justify-self-end"]));
-      expect(button.classes()).not.toContain("w-28");
-    }
-    expect(rows[0].get("p").text()).toBe("For microphone checks, dictation, and meetings you choose to record.");
+  it("uses intrinsic, bounded action buttons for every permission row", async () => {
+    vi.useFakeTimers();
+    try {
+      state.permissions.value = { microphone: "denied", input_monitoring: "denied", accessibility: "granted" };
+      await render(); await vi.advanceTimersByTimeAsync(6_000);
+      const rows = wrapper.findAll('[data-testid="permission-row"]');
+      expect(rows).toHaveLength(3);
+      for (const row of rows) {
+        expect(row.classes()).toContain("items-center");
+        expect(row.classes()).toContain("grid-cols-[1.25rem_minmax(0,1fr)_auto]");
+        expect(row.get("p").classes()).toContain("text-balance");
+      }
+      for (const row of [rows[0], rows[2]]) {
+        const button = row.get("button");
+        expect(button.classes()).toEqual(expect.arrayContaining(["w-fit", "max-w-full", "min-h-9", "whitespace-normal", "justify-self-end"]));
+        expect(button.classes()).not.toContain("w-28");
+      }
+      expect(rows[0].get("p").text()).toBe("For microphone checks, dictation, and meetings you choose to record.");
+    } finally { vi.useRealTimers(); }
   });
   it.each([true, false])("keeps status text blank and layout stable through the write and confirmation when toggling to %s", async (target) => {
     let finishWrite!: () => void;

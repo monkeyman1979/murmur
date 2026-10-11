@@ -421,12 +421,11 @@
       "action": { "allow": "Permitir", "openSettings": "Abrir Ajustes", "granted": "Concedido" },
       "microphone": { "title": "Micrófono", "body": "Para comprobar el micrófono, dictar y grabar las reuniones que elijas." },
       "inputMonitoring": { "title": "Atajo de teclado · Monitorización de entrada", "body": "Comprueba códigos de teclas y modificadores para reconocer el atajo o cancelar la grabación. Otros eventos de teclado no se convierten en texto, no se conservan ni se registran." },
-      "accessibility": { "title": "Inserción de texto · Accesibilidad", "body": "Pega el texto transcrito en la app activa y restaura el portapapeles cuando es seguro hacerlo." },
+      "accessibility": { "title": "Atajo de teclado e inserción de texto · Accesibilidad", "body": "Reconoce tu atajo y pega el texto transcrito en la app activa, restaurando el portapapeles cuando es seguro hacerlo. Las demás pulsaciones no se convierten en texto, no se guardan ni se registran." },
       "allSet": "Se han concedido todos los permisos. Puedes continuar.",
       "relaunch": { "body": "Si concediste acceso en Ajustes del Sistema y todavía aparece como necesario, reinicia Murmur para aplicar el permiso.", "button": "Reiniciar" },
       "autostart": { "title": "Abrir al iniciar sesión", "body": "Iniciar Murmur automáticamente al entrar en tu cuenta. Opcional.", "unknown": "No se pudo comprobar", "error": "No se pudo cambiar Abrir al iniciar sesión. El interruptor muestra el último estado verificado." },
       "helpLabel": "¿Necesitas ayuda?", "settingsFallback": "Si macOS te lo pide, selecciona Permitir. Si no, abre Ajustes, activa Murmur y vuelve aquí. Comprobaremos el acceso automáticamente.",
-      "inputSettingsFallback": "¿No aparece el aviso de macOS? Abre Ajustes. Si Murmur no figura en la lista, pulsa + y selecciona la app que abriste; después, autentícate y actívala. Puede que macOS te pida cerrarla y volver a abrirla.",
       "settingsError": "No se pudo abrir Ajustes. En Privacidad y seguridad, busca {permission} y activa Murmur.",
       "relaunchHelp": "¿Activaste el acceso pero aún no se detecta? Reinicia Murmur; tu progreso está guardado. Si macOS cierra la app sin volver a abrirla, ábrela tú desde la misma ubicación.",
       "relaunchError": "No se pudo reiniciar. Cierra y vuelve a abrir Murmur para aplicar el acceso."

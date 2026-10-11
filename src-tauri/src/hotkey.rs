@@ -22,6 +22,7 @@
 //! transitions live in `step_activation` / `step_timeout` for
 //! unit-testing without a live event loop.
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
@@ -373,9 +374,24 @@ where
         .expect("spawn hotkey thread");
 }
 
-#[cfg(target_os = "macos")]
-pub fn request_input_monitoring_registration() {
-    mac::request_input_monitoring_registration();
+/// Whether the permanent keyboard tap is installed and enabled. Updated on
+/// the owning run-loop thread, including disable notifications and a periodic
+/// native enabled-state check. This supplies live readiness when the macOS 27
+/// preflight still reports its earlier, cached answer.
+static LISTENER_ACTIVE: AtomicBool = AtomicBool::new(false);
+
+pub fn listener_active() -> bool {
+    LISTENER_ACTIVE.load(Ordering::Relaxed)
+}
+
+/// Whether to attempt the permanent tap. On macOS 27, TCC resolves event
+/// listening through its composition chain (ListenEvent → PostEvent →
+/// Accessibility), so an Accessibility grant alone authorizes a listen-only
+/// keyboard tap. Never attempt with neither grant: an unpermissioned attempt
+/// can open System Settings before onboarding is visible.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+fn should_attempt_tap(accessibility_trusted: bool, listen_preflight: bool) -> bool {
+    accessibility_trusted || listen_preflight
 }
 
 #[cfg(target_os = "macos")]
@@ -402,6 +418,7 @@ mod mac {
     const LISTEN_EVENT_MASK: u64 = (1u64 << KCG_EVENT_KEY_DOWN)
         | (1u64 << KCG_EVENT_KEY_UP)
         | (1u64 << KCG_EVENT_FLAGS_CHANGED);
+    const TAP_RETRY_INTERVAL: std::time::Duration = std::time::Duration::from_secs(2);
 
     // Keyboard event field id for the virtual keycode.
     const KCG_KEYBOARD_EVENT_KEYCODE: u32 = 9;
@@ -435,6 +452,7 @@ mod mac {
     #[link(name = "CoreFoundation", kind = "framework")]
     extern "C" {
         static kCFRunLoopCommonModes: CFStringRef;
+        static kCFRunLoopDefaultMode: CFStringRef;
 
         fn CFMachPortCreateRunLoopSource(
             alloc: CFAllocatorRef,
@@ -444,7 +462,8 @@ mod mac {
 
         fn CFRunLoopGetCurrent() -> CFRunLoopRef;
         fn CFRunLoopAddSource(rl: CFRunLoopRef, src: CFRunLoopSourceRef, mode: CFStringRef);
-        fn CFRunLoopRun();
+        fn CFRunLoopRemoveSource(rl: CFRunLoopRef, src: CFRunLoopSourceRef, mode: CFStringRef);
+        fn CFRunLoopRunInMode(mode: CFStringRef, seconds: f64, return_after_source: u8) -> i32;
         fn CFRelease(x: CFTypeRef);
     }
 
@@ -460,6 +479,7 @@ mod mac {
         ) -> CFMachPortRef;
 
         fn CGEventTapEnable(tap: CFMachPortRef, enable: bool);
+        fn CGEventTapIsEnabled(tap: CFMachPortRef) -> bool;
         fn CGEventGetFlags(event: CGEventRef) -> u64;
         fn CGEventGetIntegerValueField(event: CGEventRef, field: u32) -> i64;
     }
@@ -482,51 +502,17 @@ mod mac {
         binding_down: bool,
     }
 
-    // Request registration only in response to the onboarding button, not at
-    // launch. An unpermissioned event-tap creation attempt lets macOS add
-    // Murmur to Input Monitoring; CGRequestListenEventAccess alone returned a
-    // TCC denial without adding it on our macOS 27 first-run test. A probe
-    // tap is immediately released if created; the worker below owns the
-    // permanent tap once permission is granted.
-    pub(super) fn request_input_monitoring_registration() {
-        let port = unsafe {
-            CGEventTapCreate(
-                KCG_SESSION_EVENT_TAP,
-                KCG_HEAD_INSERT_EVENT_TAP,
-                KCG_EVENT_TAP_OPTION_LISTEN_ONLY,
-                LISTEN_EVENT_MASK,
-                registration_callback,
-                ptr::null_mut(),
-            )
-        };
-        if !port.is_null() {
-            unsafe { CFRelease(port as CFTypeRef) };
-        }
-    }
-
-    unsafe extern "C" fn registration_callback(
-        _proxy: CGEventTapProxy,
-        _etype: u32,
-        event: CGEventRef,
-        _user_info: *mut c_void,
-    ) -> CGEventRef {
-        event
-    }
-
     pub(super) fn run(state: Arc<HotkeyState>, tx: mpsc::Sender<ActivationSignal>) {
-        // Do not create a tap at launch: that can open System Settings before
-        // onboarding is visible. The user-initiated request above attempts
-        // the first tap, letting macOS register the app. Session taps for
-        // keyboard events also require Accessibility; avoid consuming our
-        // one permanent creation attempt before that permission is granted.
+        // Do not create a tap without a grant: an unpermissioned attempt can
+        // open System Settings before onboarding is visible. Accessibility is
+        // polled live, so the tap starts as soon as the user grants it, with
+        // no relaunch.
         if !hotkey_permissions_ready() {
-            crate::murmur_dev_log!(
-                "[murmur] hotkey: waiting for Input Monitoring and Accessibility"
-            );
+            crate::murmur_dev_log!("[murmur] hotkey: waiting for Accessibility");
             while !hotkey_permissions_ready() {
                 std::thread::sleep(std::time::Duration::from_secs(1));
             }
-            crate::murmur_dev_log!("[murmur] hotkey: permissions granted — creating tap");
+            crate::murmur_dev_log!("[murmur] hotkey: permission granted — creating tap");
         }
 
         let initial_binding = state.binding.read().clone();
@@ -542,26 +528,34 @@ mod mac {
 
         // Listen for key down, key up, and flags changed. KEY_UP is
         // needed to detect chord releases for `KeyCombo` bindings;
-        // `ModifierOnly` drives off FLAGS_CHANGED.
-        let tap_port = unsafe {
-            CGEventTapCreate(
-                KCG_SESSION_EVENT_TAP,
-                KCG_HEAD_INSERT_EVENT_TAP,
-                KCG_EVENT_TAP_OPTION_LISTEN_ONLY,
-                LISTEN_EVENT_MASK,
-                tap_callback,
-                ctx_ptr as *mut c_void,
-            )
+        // `ModifierOnly` drives off FLAGS_CHANGED. A null tap is retried
+        // rather than ending the thread, so a grant that lands a moment
+        // after the check (or a revoke and re-grant) doesn't leave the
+        // shortcut dead until Murmur restarts.
+        let mut logged_null = false;
+        let tap_port = loop {
+            let port = unsafe {
+                CGEventTapCreate(
+                    KCG_SESSION_EVENT_TAP,
+                    KCG_HEAD_INSERT_EVENT_TAP,
+                    KCG_EVENT_TAP_OPTION_LISTEN_ONLY,
+                    LISTEN_EVENT_MASK,
+                    tap_callback,
+                    ctx_ptr as *mut c_void,
+                )
+            };
+            if !port.is_null() {
+                break port;
+            }
+            if !logged_null {
+                crate::murmur_dev_log!("[murmur] CGEventTapCreate returned null — retrying");
+                logged_null = true;
+            }
+            std::thread::sleep(TAP_RETRY_INTERVAL);
+            while !hotkey_permissions_ready() {
+                std::thread::sleep(TAP_RETRY_INTERVAL);
+            }
         };
-
-        if tap_port.is_null() {
-            crate::murmur_dev_log!(
-                "[murmur] CGEventTapCreate returned null — is Input Monitoring granted?"
-            );
-            // Reclaim the box so we don't leak when bailing out.
-            let _ = unsafe { Box::from_raw(ctx_ptr) };
-            return;
-        }
 
         // Stash the port so the callback can re-enable after a tap-disable.
         unsafe { (*ctx_ptr).tap_port = tap_port };
@@ -574,20 +568,43 @@ mod mac {
                 let _ = Box::from_raw(ctx_ptr);
                 return;
             }
-            CFRunLoopAddSource(CFRunLoopGetCurrent(), source, kCFRunLoopCommonModes);
+            let run_loop = CFRunLoopGetCurrent();
+            CFRunLoopAddSource(run_loop, source, kCFRunLoopCommonModes);
             CGEventTapEnable(tap_port, true);
-            CFRelease(source as CFTypeRef);
+            super::LISTENER_ACTIVE.store(CGEventTapIsEnabled(tap_port), super::Ordering::Relaxed);
 
-            // Blocks for the life of the process. Don't release tap_port or
-            // reclaim ctx_ptr — both are borrowed by the run loop forever.
-            CFRunLoopRun();
+            loop {
+                // Process callbacks normally, but wake once per second to
+                // detect a disabled tap even when no keys are arriving.
+                let result = CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1.0, 0);
+                if result == 1 || result == 2 {
+                    // kCFRunLoopRunFinished / kCFRunLoopRunStopped.
+                    break;
+                }
+                if !CGEventTapIsEnabled(tap_port) && hotkey_permissions_ready() {
+                    CGEventTapEnable(tap_port, true);
+                }
+                let enabled = CGEventTapIsEnabled(tap_port);
+                if super::LISTENER_ACTIVE.swap(enabled, super::Ordering::Relaxed) && !enabled {
+                    let _ = (*ctx_ptr).signal_tx.send(ActivationSignal::Rebind);
+                }
+            }
+
+            super::LISTENER_ACTIVE.store(false, super::Ordering::Relaxed);
+            let _ = (*ctx_ptr).signal_tx.send(ActivationSignal::Rebind);
+            CFRunLoopRemoveSource(run_loop, source, kCFRunLoopCommonModes);
+            CGEventTapEnable(tap_port, false);
+            CFRelease(source as CFTypeRef);
+            CFRelease(tap_port as CFTypeRef);
+            let _ = Box::from_raw(ctx_ptr);
         }
     }
 
     fn hotkey_permissions_ready() -> bool {
-        crate::permissions::input_monitoring_status()
-            == crate::permissions::PermissionState::Granted
-            && crate::insertion::is_trusted()
+        super::should_attempt_tap(
+            crate::insertion::is_trusted(),
+            crate::permissions::listen_event_preflight(),
+        )
     }
 
     /// What edge (if any) the current event represents for the
@@ -652,9 +669,14 @@ mod mac {
             || etype == KCG_EVENT_TAP_DISABLED_BY_USER_INPUT
         {
             crate::murmur_dev_log!("[murmur] event tap disabled (code {etype:#x}), re-enabling");
+            super::LISTENER_ACTIVE.store(false, super::Ordering::Relaxed);
             ctx.binding_down = false;
             let _ = ctx.signal_tx.send(ActivationSignal::Rebind);
-            CGEventTapEnable(ctx.tap_port, true);
+            if hotkey_permissions_ready() {
+                CGEventTapEnable(ctx.tap_port, true);
+            }
+            super::LISTENER_ACTIVE
+                .store(CGEventTapIsEnabled(ctx.tap_port), super::Ordering::Relaxed);
             return event;
         }
 
@@ -715,7 +737,10 @@ mod mac {
                     | (1u64 << KCG_EVENT_KEY_UP)
                     | (1u64 << KCG_EVENT_FLAGS_CHANGED)
             );
-            let _: CGEventTapCallBack = registration_callback;
+            let _: CGEventTapCallBack = tap_callback;
+            let _: unsafe extern "C" fn(CFMachPortRef) -> bool = CGEventTapIsEnabled;
+            // CoreFoundation Boolean is UInt8, not an ObjC BOOL.
+            let _: unsafe extern "C" fn(CFStringRef, f64, u8) -> i32 = CFRunLoopRunInMode;
         }
 
         #[test]
@@ -814,6 +839,18 @@ mod tests {
         let mut fired = Vec::new();
         let next = step_timeout(state, &mut |e| fired.push(e));
         (next, fired)
+    }
+
+    #[test]
+    fn tap_attempt_needs_accessibility_or_listen_access() {
+        // Accessibility alone authorizes a listen-only tap on macOS 27
+        // (TCC composes ListenEvent → PostEvent → Accessibility).
+        assert!(should_attempt_tap(true, false));
+        assert!(should_attempt_tap(false, true));
+        assert!(should_attempt_tap(true, true));
+        // Never attempt unpermissioned: it can open Settings unprompted.
+        assert!(!should_attempt_tap(false, false));
+        assert!(!listener_active());
     }
 
     #[test]
