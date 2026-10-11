@@ -2,7 +2,8 @@
 //! the deep-link command that opens System Settings at the right pane.
 //!
 //! - **Microphone** — `AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeAudio)`.
-//! - **Input Monitoring** — `IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)`.
+//! - **Input Monitoring** — `CGPreflightListenEventAccess()` for the
+//!   CoreGraphics event tap used by the hotkey listener.
 //! - **Accessibility** — reuses `insertion::is_trusted()`.
 //!
 //! A background task polls all three every 2 s and emits
@@ -149,10 +150,9 @@ pub fn request_microphone_prompt() {
     request_mic_access();
 }
 
-/// Tauri command — ask macOS to add this app to Input Monitoring.
-/// Opening Settings alone can show an empty picker/list because the app
-/// has not registered an IOHID access request yet. This call is the
-/// equivalent of the native prompt/registration step for ListenEvent.
+/// Tauri command — ask macOS for event-listening access used by our
+/// `CGEventTap`. Opening Settings alone can show an empty app list; request
+/// through CoreGraphics first so macOS can present its native prompt.
 #[tauri::command]
 pub fn request_input_monitoring_prompt() -> PermissionState {
     request_input_monitoring_access()
@@ -225,19 +225,14 @@ mod mac {
     #[link(name = "AVFoundation", kind = "framework")]
     extern "C" {}
 
-    // Raw FFI into IOKit for input-monitoring status. Available since
-    // macOS 10.15, which is our declared minimum.
-    #[link(name = "IOKit", kind = "framework")]
+    // The hotkey listens with a CoreGraphics CGEventTap, not an IOHIDManager
+    // or IOHIDDevice. Use CoreGraphics' matching event-listening TCC API;
+    // the IOKit request is for a different kind of event listener.
+    #[link(name = "CoreGraphics", kind = "framework")]
     extern "C" {
-        fn IOHIDCheckAccess(request_type: u32) -> u32;
-        fn IOHIDRequestAccess(request_type: u32) -> bool;
+        fn CGPreflightListenEventAccess() -> bool;
+        fn CGRequestListenEventAccess() -> bool;
     }
-
-    const IOHID_REQUEST_TYPE_LISTEN_EVENT: u32 = 1;
-    const IOHID_ACCESS_TYPE_GRANTED: u32 = 0;
-    const IOHID_ACCESS_TYPE_DENIED: u32 = 1;
-    // Any other return is treated as "not determined" — the API doesn't
-    // always report a concrete granted/denied on first call.
 
     // AVAuthorizationStatus enum values, from AVCaptureDevice.h.
     const AV_STATUS_NOT_DETERMINED: isize = 0;
@@ -264,24 +259,22 @@ mod mac {
         }
     }
 
-    fn input_monitoring_state_from_raw(status: u32) -> PermissionState {
-        match status {
-            IOHID_ACCESS_TYPE_GRANTED => PermissionState::Granted,
-            IOHID_ACCESS_TYPE_DENIED => PermissionState::Denied,
-            _ => PermissionState::NotDetermined,
+    fn input_monitoring_state_from_preflight(granted: bool) -> PermissionState {
+        if granted {
+            PermissionState::Granted
+        } else {
+            // CoreGraphics returns only a bool; it cannot distinguish a
+            // previous denial from a first-time request.
+            PermissionState::Denied
         }
     }
 
     pub(super) fn input_monitoring_status() -> PermissionState {
-        input_monitoring_state_from_raw(unsafe {
-            IOHIDCheckAccess(IOHID_REQUEST_TYPE_LISTEN_EVENT)
-        })
+        input_monitoring_state_from_preflight(unsafe { CGPreflightListenEventAccess() })
     }
 
     pub(super) fn request_input_monitoring_access() -> PermissionState {
-        // RequestAccess returns a bool, not IOHIDAccessType: interpreting true
-        // as the enum's 1 would invert a successful grant into Denied.
-        unsafe { IOHIDRequestAccess(IOHID_REQUEST_TYPE_LISTEN_EVENT) };
+        unsafe { CGRequestListenEventAccess() };
         input_monitoring_status()
     }
 
@@ -320,19 +313,22 @@ mod mac {
         use super::*;
 
         #[test]
-        fn input_monitoring_status_uses_access_enum_values() {
-            assert_eq!(input_monitoring_state_from_raw(0), PermissionState::Granted);
-            assert_eq!(input_monitoring_state_from_raw(1), PermissionState::Denied);
+        fn input_monitoring_status_uses_coregraphics_preflight() {
             assert_eq!(
-                input_monitoring_state_from_raw(2),
-                PermissionState::NotDetermined
+                input_monitoring_state_from_preflight(true),
+                PermissionState::Granted
+            );
+            assert_eq!(
+                input_monitoring_state_from_preflight(false),
+                PermissionState::Denied
             );
         }
 
         #[test]
         fn input_monitoring_request_has_boolean_abi() {
-            // Compile-time signature check; never opens a permission prompt in tests.
-            let _: unsafe extern "C" fn(u32) -> bool = IOHIDRequestAccess;
+            // Compile-time signatures only; never prompt in tests.
+            let _: unsafe extern "C" fn() -> bool = CGPreflightListenEventAccess;
+            let _: unsafe extern "C" fn() -> bool = CGRequestListenEventAccess;
         }
     }
 }

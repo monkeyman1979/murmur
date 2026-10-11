@@ -24,7 +24,7 @@ describe("StepPermissions", () => {
     expect(wrapper.text().match(/Checking/g)).toHaveLength(4);
     expect(wrapper.get('[role="switch"]').attributes("disabled")).toBeDefined();
   });
-  it("requests native access first and offers Settings only on a second, explicit click", async () => {
+  it("requests native access first and shows Input Monitoring steps if a grant is still missing", async () => {
     state.permissions.value = { microphone: "granted", input_monitoring: "not-determined", accessibility: "denied" };
     await render(); await flushPromises();
     expect(wrapper.text()).not.toContain("Relaunch");
@@ -35,12 +35,12 @@ describe("StepPermissions", () => {
       ["request_input_monitoring_prompt"],
       ["request_accessibility_prompt"],
     ]);
+    expect(wrapper.get('[data-testid="input-monitoring-fallback"]').text()).toContain("click + and choose the app you opened");
     const help = wrapper.findAll('[data-testid="permission-row"] details');
-    expect(help).toHaveLength(2);
-    expect(help.map((item) => item.get('summary').text())).toEqual(["Need help?", "Need help?"]);
-    expect(help.every((item) => !(item.element as HTMLDetailsElement).open)).toBe(true);
-    expect(help[0].text()).toContain("click + and choose the app you opened");
-    expect(help[1].text()).toContain("turn on Murmur, then come back");
+    expect(help).toHaveLength(1);
+    expect(help[0].get('summary').text()).toBe("Need help?");
+    expect((help[0].element as HTMLDetailsElement).open).toBe(false);
+    expect(help[0].text()).toContain("turn on Murmur, then come back");
     await help[0].get('summary').trigger('click');
     expect((help[0].element as HTMLDetailsElement).open).toBe(true);
     expect(wrapper.text()).not.toContain("Relaunch");
@@ -58,6 +58,7 @@ describe("StepPermissions", () => {
     await flushPromises();
     expect(wrapper.text().match(/Granted/g)).toHaveLength(3);
     expect(wrapper.findAll('[data-testid="permission-row"] details')).toHaveLength(0);
+    expect(wrapper.find('[data-testid="input-monitoring-fallback"]').exists()).toBe(false);
     expect(wrapper.text()).not.toContain("Relaunch");
   });
   it("tries native Input Monitoring registration even if macOS reports denied before the first click", async () => {
@@ -67,6 +68,7 @@ describe("StepPermissions", () => {
     await flushPromises();
     expect(state.invoke.mock.calls).toEqual([["request_input_monitoring_prompt"]]);
     expect(wrapper.find('[aria-label="Open Settings: Keyboard shortcut · Input Monitoring"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="input-monitoring-fallback"]').text()).toContain("click +");
     expect(wrapper.text()).not.toContain("Relaunch");
   });
   it("shows only the three setup permissions, not the optional meeting-audio Settings link", async () => {
@@ -146,8 +148,10 @@ describe("StepPermissions", () => {
     expect(wrapper.get('[aria-label="Open Settings: Keyboard shortcut · Input Monitoring"]').attributes("disabled")).toBeDefined();
     expect(wrapper.get('[aria-label="Allow: Text insertion · Accessibility"]').attributes("disabled")).toBeDefined();
     expect(wrapper.findAll('[data-testid="permission-row"] details')).toHaveLength(0);
+    expect(wrapper.find('[data-testid="input-monitoring-fallback"]').exists()).toBe(false);
     expect(state.invoke.mock.calls).toEqual([["request_input_monitoring_prompt"]]);
     complete("not-determined"); await flushPromises();
+    expect(wrapper.get('[data-testid="input-monitoring-fallback"]').text()).toContain("click +");
     expect(wrapper.get('[aria-label="Open Settings: Keyboard shortcut · Input Monitoring"]').attributes("disabled")).toBeUndefined();
     expect(state.invoke).not.toHaveBeenCalledWith("open_privacy_pane", { pane: "input-monitoring" });
   });

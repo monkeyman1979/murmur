@@ -145,9 +145,12 @@ async function requestPermission(pane: Pane): Promise<void> {
         <span v-else-if="isGranted(row.state)" class="text-center text-xs font-medium text-success">{{ t("onboarding.permissions.status.granted") }}</span>
         <Button v-else size="sm" variant="outline" class="h-auto min-h-9 w-fit max-w-full justify-self-end whitespace-normal break-words px-3 py-2 text-center leading-5 border-input bg-background" :disabled="requesting !== null" :aria-label="`${buttonLabel(row.pane)}: ${t(`onboarding.permissions.${row.key}.title`)}`" @click="requestPermission(row.pane)">{{ buttonLabel(row.pane) }}</Button>
         <p v-if="settingsError === row.pane && !isGranted(row.state)" class="col-span-2 col-start-2 text-xs leading-5 text-destructive" role="alert">{{ t('onboarding.permissions.settingsError', { permission: t(`onboarding.permissions.${row.key}.title`) }) }}</p>
+        <p v-else-if="row.pane === 'input-monitoring' && hasTriedPrompt(row.pane) && !isGranted(row.state) && requesting !== row.pane" data-testid="input-monitoring-fallback" class="col-span-2 col-start-2 min-w-0 text-balance text-xs leading-5 text-muted-foreground">
+          {{ t('onboarding.permissions.inputSettingsFallback') }}
+        </p>
         <details v-else-if="hasTriedPrompt(row.pane) && !isGranted(row.state) && requesting !== row.pane" class="col-span-2 col-start-2 min-w-0 text-xs leading-5 text-muted-foreground">
           <summary class="w-fit cursor-pointer underline underline-offset-4">{{ t('onboarding.permissions.helpLabel') }}</summary>
-          <p class="mt-2 text-balance">{{ t(row.pane === 'input-monitoring' ? 'onboarding.permissions.inputSettingsFallback' : 'onboarding.permissions.settingsFallback') }}</p>
+          <p class="mt-2 text-balance">{{ t('onboarding.permissions.settingsFallback') }}</p>
         </details>
       </div>
     </div>
