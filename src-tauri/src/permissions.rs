@@ -3,7 +3,8 @@
 //!
 //! - **Microphone** — `AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeAudio)`.
 //! - **Input Monitoring** — `CGPreflightListenEventAccess()` for the
-//!   CoreGraphics event tap used by the hotkey listener.
+//!   CoreGraphics event tap used by the hotkey listener. On user action,
+//!   attempt a short-lived listen-only session tap to register the app.
 //! - **Accessibility** — reuses `insertion::is_trusted()`.
 //!
 //! A background task polls all three every 2 s and emits
@@ -152,7 +153,9 @@ pub fn request_microphone_prompt() {
 
 /// Tauri command — ask macOS for event-listening access used by our
 /// `CGEventTap`. Opening Settings alone can show an empty app list; request
-/// through CoreGraphics first so macOS can present its native prompt.
+/// by attempting the same listen-only session tap as the actual hotkey
+/// listener, but only after the user clicks Allow. This lets macOS register
+/// Murmur without launching a tap (or System Settings) before onboarding.
 #[tauri::command]
 pub fn request_input_monitoring_prompt() -> PermissionState {
     request_input_monitoring_access()
@@ -226,12 +229,13 @@ mod mac {
     extern "C" {}
 
     // The hotkey listens with a CoreGraphics CGEventTap, not an IOHIDManager
-    // or IOHIDDevice. Use CoreGraphics' matching event-listening TCC API;
-    // the IOKit request is for a different kind of event listener.
+    // or IOHIDDevice. Use the matching CoreGraphics preflight for its state.
+    // On macOS 27 CGRequestListenEventAccess() returned a composed TCC denial
+    // without registering Murmur; the on-click session tap attempt in
+    // hotkey.rs performs the actual request instead.
     #[link(name = "CoreGraphics", kind = "framework")]
     extern "C" {
         fn CGPreflightListenEventAccess() -> bool;
-        fn CGRequestListenEventAccess() -> bool;
     }
 
     // AVAuthorizationStatus enum values, from AVCaptureDevice.h.
@@ -274,7 +278,9 @@ mod mac {
     }
 
     pub(super) fn request_input_monitoring_access() -> PermissionState {
-        unsafe { CGRequestListenEventAccess() };
+        if input_monitoring_status() != PermissionState::Granted {
+            crate::hotkey::request_input_monitoring_registration();
+        }
         input_monitoring_status()
     }
 
@@ -325,10 +331,9 @@ mod mac {
         }
 
         #[test]
-        fn input_monitoring_request_has_boolean_abi() {
-            // Compile-time signatures only; never prompt in tests.
+        fn input_monitoring_preflight_has_boolean_abi() {
+            // Compile-time signature only; never prompt in tests.
             let _: unsafe extern "C" fn() -> bool = CGPreflightListenEventAccess;
-            let _: unsafe extern "C" fn() -> bool = CGRequestListenEventAccess;
         }
     }
 }

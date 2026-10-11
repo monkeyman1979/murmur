@@ -374,6 +374,11 @@ where
 }
 
 #[cfg(target_os = "macos")]
+pub fn request_input_monitoring_registration() {
+    mac::request_input_monitoring_registration();
+}
+
+#[cfg(target_os = "macos")]
 mod mac {
     use super::{ActivationSignal, HotkeyBinding, HotkeyState, KEYCODE_ESCAPE};
     use std::os::raw::c_void;
@@ -388,10 +393,15 @@ mod mac {
     const KCG_EVENT_TAP_DISABLED_BY_TIMEOUT: u32 = 0xFFFF_FFFE;
     const KCG_EVENT_TAP_DISABLED_BY_USER_INPUT: u32 = 0xFFFF_FFFF;
 
-    // CGEventTap placement / options.
-    const KCG_HID_EVENT_TAP: u32 = 0;
+    // CGEventTap placement / options. The Xcode 27 CGEvent.h specifies that
+    // kCGHIDEventTap (0) requires root; a global keyboard listener running
+    // as the signed app's normal user must use kCGSessionEventTap (1).
+    const KCG_SESSION_EVENT_TAP: u32 = 1;
     const KCG_HEAD_INSERT_EVENT_TAP: u32 = 0;
     const KCG_EVENT_TAP_OPTION_LISTEN_ONLY: u32 = 1;
+    const LISTEN_EVENT_MASK: u64 = (1u64 << KCG_EVENT_KEY_DOWN)
+        | (1u64 << KCG_EVENT_KEY_UP)
+        | (1u64 << KCG_EVENT_FLAGS_CHANGED);
 
     // Keyboard event field id for the virtual keycode.
     const KCG_KEYBOARD_EVENT_KEYCODE: u32 = 9;
@@ -472,34 +482,51 @@ mod mac {
         binding_down: bool,
     }
 
+    // Request registration only in response to the onboarding button, not at
+    // launch. An unpermissioned event-tap creation attempt lets macOS add
+    // Murmur to Input Monitoring; CGRequestListenEventAccess alone returned a
+    // TCC denial without adding it on our macOS 27 first-run test. A probe
+    // tap is immediately released if created; the worker below owns the
+    // permanent tap once permission is granted.
+    pub(super) fn request_input_monitoring_registration() {
+        let port = unsafe {
+            CGEventTapCreate(
+                KCG_SESSION_EVENT_TAP,
+                KCG_HEAD_INSERT_EVENT_TAP,
+                KCG_EVENT_TAP_OPTION_LISTEN_ONLY,
+                LISTEN_EVENT_MASK,
+                registration_callback,
+                ptr::null_mut(),
+            )
+        };
+        if !port.is_null() {
+            unsafe { CFRelease(port as CFTypeRef) };
+        }
+    }
+
+    unsafe extern "C" fn registration_callback(
+        _proxy: CGEventTapProxy,
+        _etype: u32,
+        event: CGEventRef,
+        _user_info: *mut c_void,
+    ) -> CGEventRef {
+        event
+    }
+
     pub(super) fn run(state: Arc<HotkeyState>, tx: mpsc::Sender<ActivationSignal>) {
-        // Wait for Input Monitoring permission before calling
-        // `CGEventTapCreate`. macOS treats a tap-create attempt from an
-        // unpermissioned process as an implicit registration: it adds
-        // Murmur to System Settings → Privacy & Security → Input
-        // Monitoring AND auto-opens that pane to nudge the user. That's
-        // jarring during onboarding — the OS Settings window pops up
-        // *before* our welcome screen has even rendered. Polling here
-        // until the permission is granted keeps the tap dormant on
-        // first launch (and after a `tccutil reset`); the 2 s
-        // permissions watcher in `permissions::spawn_watcher` is what
-        // surfaces the live state to the UI in the meantime.
-        //
-        // Mirrors the deliberate Accessibility-prompt deferral noted
-        // in `lib.rs::setup` — same principle: no native prompts or
-        // OS-level UI before the user has interacted with onboarding.
-        if crate::permissions::input_monitoring_status()
-            != crate::permissions::PermissionState::Granted
-        {
+        // Do not create a tap at launch: that can open System Settings before
+        // onboarding is visible. The user-initiated request above attempts
+        // the first tap, letting macOS register the app. Session taps for
+        // keyboard events also require Accessibility; avoid consuming our
+        // one permanent creation attempt before that permission is granted.
+        if !hotkey_permissions_ready() {
             crate::murmur_dev_log!(
-                "[murmur] hotkey: waiting for Input Monitoring permission before creating tap"
+                "[murmur] hotkey: waiting for Input Monitoring and Accessibility"
             );
-            while crate::permissions::input_monitoring_status()
-                != crate::permissions::PermissionState::Granted
-            {
+            while !hotkey_permissions_ready() {
                 std::thread::sleep(std::time::Duration::from_secs(1));
             }
-            crate::murmur_dev_log!("[murmur] hotkey: Input Monitoring granted — creating tap");
+            crate::murmur_dev_log!("[murmur] hotkey: permissions granted — creating tap");
         }
 
         let initial_binding = state.binding.read().clone();
@@ -514,18 +541,14 @@ mod mac {
         let ctx_ptr = Box::into_raw(ctx);
 
         // Listen for key down, key up, and flags changed. KEY_UP is
-        // Phase-2 new — needed to detect chord releases for
-        // `KeyCombo` bindings. `ModifierOnly` drives off FLAGS_CHANGED.
-        let mask: u64 = (1u64 << KCG_EVENT_KEY_DOWN)
-            | (1u64 << KCG_EVENT_KEY_UP)
-            | (1u64 << KCG_EVENT_FLAGS_CHANGED);
-
+        // needed to detect chord releases for `KeyCombo` bindings;
+        // `ModifierOnly` drives off FLAGS_CHANGED.
         let tap_port = unsafe {
             CGEventTapCreate(
-                KCG_HID_EVENT_TAP,
+                KCG_SESSION_EVENT_TAP,
                 KCG_HEAD_INSERT_EVENT_TAP,
                 KCG_EVENT_TAP_OPTION_LISTEN_ONLY,
-                mask,
+                LISTEN_EVENT_MASK,
                 tap_callback,
                 ctx_ptr as *mut c_void,
             )
@@ -559,6 +582,12 @@ mod mac {
             // reclaim ctx_ptr — both are borrowed by the run loop forever.
             CFRunLoopRun();
         }
+    }
+
+    fn hotkey_permissions_ready() -> bool {
+        crate::permissions::input_monitoring_status()
+            == crate::permissions::PermissionState::Granted
+            && crate::insertion::is_trusted()
     }
 
     /// What edge (if any) the current event represents for the
@@ -673,6 +702,22 @@ mod mac {
     #[cfg(test)]
     mod edge_tests {
         use super::*;
+
+        #[test]
+        fn session_listen_only_tap_matches_sdk_and_hotkey_mask() {
+            // The installed macOS SDK declares session location 1 and
+            // listen-only option 1; location 0 (HID) requires root.
+            assert_eq!(KCG_SESSION_EVENT_TAP, 1);
+            assert_eq!(KCG_EVENT_TAP_OPTION_LISTEN_ONLY, 1);
+            assert_eq!(
+                LISTEN_EVENT_MASK,
+                (1u64 << KCG_EVENT_KEY_DOWN)
+                    | (1u64 << KCG_EVENT_KEY_UP)
+                    | (1u64 << KCG_EVENT_FLAGS_CHANGED)
+            );
+            let _: CGEventTapCallBack = registration_callback;
+        }
+
         #[test]
         fn modifier_only_down_up_and_unrelated_keys() {
             let binding = HotkeyBinding::default();
