@@ -501,8 +501,8 @@
     },
     "steps": {
       "permissions": {
-        "title": "Give Murmur what it needs.",
-        "subtitle": "These permissions let Murmur hear your voice, recognize the shortcut, and place text where you're working."
+        "title": "Set up permissions.",
+        "subtitle": "Allow access to get started."
       },
       "microphone": {
         "title": "Check your microphone.",
@@ -543,15 +543,16 @@
       },
       "microphone": {
         "title": "Microphone",
-        "body": "For microphone checks, dictation, and meetings you choose to record."
+        "body": "Record audio for dictation and meetings."
       },
       "inputMonitoring": {
-        "title": "Keyboard shortcut · Input Monitoring",
-        "body": "Checks keycodes and modifiers to recognize your shortcut or cancel recording. Other key events are not turned into text, retained, or logged."
+        "title": "Input Monitoring",
+        "body": "Detect your keyboard shortcut."
       },
       "accessibility": {
-        "title": "Keyboard shortcut & text insertion · Accessibility",
-        "body": "Recognizes your shortcut and pastes transcribed text into the active app, restoring your clipboard when safe. Other key events are not turned into text, retained, or logged."
+        "title": "Accessibility",
+        "body": "Use your shortcut and paste text into apps.",
+        "settingsHint": "In System Settings, turn on Murmur."
       },
       "allSet": "All permissions are granted. You can continue.",
       "relaunch": {
@@ -560,14 +561,14 @@
       },
       "autostart": {
         "title": "Launch at login",
-        "body": "Start Murmur automatically when you log in. Optional.",
+        "body": "Start automatically at login. Optional.",
         "unknown": "Could not verify",
         "error": "Could not update Launch at login. The switch reflects the last verified state."
       },
       "helpLabel": "Need help?",
-      "settingsFallback": "If macOS asks, choose Allow. Otherwise, open Settings, turn on Murmur, then come back. We'll check automatically.",
+      "settingsFallback": "Open System Settings → Privacy & Security → {permission}, turn on Murmur, then return here.",
       "settingsError": "Could not open Settings. In Privacy & Security, find {permission} and turn on Murmur.",
-      "relaunchHelp": "Access enabled but still not detected? Relaunch Murmur; your progress is saved. If macOS quits without reopening it, open the same app again yourself.",
+      "relaunchHelp": "Already enabled but not detected? Relaunch Murmur. Your progress is saved.",
       "relaunchError": "Could not relaunch. Quit and reopen Murmur to apply access."
     },
     "microphone": {

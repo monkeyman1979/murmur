@@ -3,6 +3,9 @@ import { ref, type Ref } from "vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createI18n } from "vue-i18n";
 import en from "@/locales/en.json";
+import es from "@/locales/es.json";
+import fr from "@/locales/fr.json";
+import ru from "@/locales/ru.json";
 import type { PermissionSnapshot } from "@/composables/useMurmurEvents";
 const state = vi.hoisted(() => ({ permissions: null as unknown as Ref<PermissionSnapshot | null>, invoke: vi.fn(), isEnabled: vi.fn(), enable: vi.fn(), disable: vi.fn() }));
 vi.mock("@/composables/useMurmurEvents", () => ({ useMurmurEvents: () => ({ permissions: state.permissions }) }));
@@ -11,16 +14,35 @@ vi.mock("@tauri-apps/plugin-autostart", () => ({ isEnabled: state.isEnabled, ena
 let wrapper: VueWrapper;
 beforeEach(() => { vi.resetModules(); vi.resetAllMocks(); state.permissions = ref(null); state.isEnabled.mockResolvedValue(false); state.invoke.mockResolvedValue(undefined); });
 afterEach(() => { wrapper?.unmount(); vi.restoreAllMocks(); });
-async function render() {
+async function render(catalog = en) {
   const Step = (await import("./StepPermissions.vue")).default;
-  wrapper = mount(Step, { global: { plugins: [createI18n({ legacy: false, locale: "en", messages: { en } })] } });
+  wrapper = mount(Step, { global: { plugins: [createI18n({ legacy: false, locale: "en", messages: { en: catalog } })] } });
 }
 
-const AX = "Keyboard shortcut & text insertion · Accessibility";
-const IM = "Keyboard shortcut · Input Monitoring";
+const AX = "Accessibility";
+const IM = "Input Monitoring";
 const granted = { microphone: "granted", input_monitoring: "granted", accessibility: "granted" } as const;
 
 describe("StepPermissions", () => {
+  it.each([en, es, fr, ru])("keeps permission purposes short and the Settings switch instruction visible", async (catalog) => {
+    state.permissions.value = { microphone: "not-determined", input_monitoring: "denied", accessibility: "denied" };
+    await render(catalog); await flushPromises();
+    const rows = wrapper.findAll('[data-testid="permission-row"]');
+    expect(rows).toHaveLength(2);
+    expect(rows[0].get("h2").text()).toBe(catalog.onboarding.permissions.microphone.title);
+    expect(rows[0].get("p").text()).toBe(catalog.onboarding.permissions.microphone.body);
+    expect(rows[1].get("h2").text()).toBe(catalog.onboarding.permissions.accessibility.title);
+    expect(rows[1].get("p").text()).toBe(catalog.onboarding.permissions.accessibility.body);
+    expect(rows[1].get('[data-testid="accessibility-settings-hint"]').text()).toBe(catalog.onboarding.permissions.accessibility.settingsHint);
+    expect(rows[1].find("details").exists()).toBe(false);
+    expect(catalog.onboarding.permissions.microphone.body.split(/[.!?]/).filter(Boolean)).toHaveLength(1);
+    expect(catalog.onboarding.permissions.accessibility.body.split(/[.!?]/).filter(Boolean)).toHaveLength(1);
+    expect(catalog.onboarding.permissions.accessibility.title).not.toContain(" · ");
+    state.permissions.value = { ...granted };
+    await flushPromises();
+    expect(wrapper.find('[data-testid="accessibility-settings-hint"]').exists()).toBe(false);
+  });
+
   it("shows neutral checking for the required permissions and login hydration", async () => {
     state.isEnabled.mockReturnValue(new Promise(() => {}));
     await render();
@@ -42,7 +64,9 @@ describe("StepPermissions", () => {
       const help = wrapper.findAll('[data-testid="permission-row"] details');
       expect(help).toHaveLength(1);
       expect(help[0].get("summary").text()).toBe("Need help?");
-      expect(help[0].text()).toContain("turn on Murmur, then come back");
+      expect(help[0].text()).toContain("System Settings → Privacy & Security → Accessibility");
+      expect(help[0].text()).toContain("turn on Murmur, then return here");
+      expect(help[0].text()).not.toContain("{permission}");
       await vi.advanceTimersByTimeAsync(60_000);
       expect(wrapper.text()).not.toContain(IM);
       expect(wrapper.text()).not.toContain("click +");
@@ -253,7 +277,7 @@ describe("StepPermissions", () => {
         expect(button.classes()).toEqual(expect.arrayContaining(["w-fit", "max-w-full", "min-h-9", "whitespace-normal", "justify-self-end"]));
         expect(button.classes()).not.toContain("w-28");
       }
-      expect(rows[0].get("p").text()).toBe("For microphone checks, dictation, and meetings you choose to record.");
+      expect(rows[0].get("p").text()).toBe("Record audio for dictation and meetings.");
     } finally { vi.useRealTimers(); }
   });
   it.each([true, false])("keeps status text blank and layout stable through the write and confirmation when toggling to %s", async (target) => {

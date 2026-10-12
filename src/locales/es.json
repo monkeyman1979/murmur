@@ -408,7 +408,7 @@
     "stepLabel": "Paso {current} de {total}",
     "cta": { "back": "Atrás", "continue": "Continuar", "next": "Siguiente", "getStarted": "Empezar", "done": "Listo", "grantRequired": "Conceder permisos necesarios", "connectMicrophone": "Conectar un micrófono", "completeDemos": "Completar este gesto", "openMurmur": "Abrir Murmur" },
     "steps": {
-      "permissions": { "title": "Dale a Murmur lo que necesita.", "subtitle": "Estos permisos permiten a Murmur escucharte, reconocer el atajo e insertar texto donde estés trabajando." },
+      "permissions": { "title": "Configura los permisos.", "subtitle": "Permite el acceso para empezar." },
       "microphone": { "title": "Comprueba tu micrófono.", "subtitle": "Murmur comprueba automáticamente la entrada. Si está lista, continúa para probar el dictado." },
       "requiredModel": { "title": "Una descarga. Dictado sin conexión.", "subtitle": "Murmur necesita un modelo de voz local. Una vez instalado, la transcripción se realiza en este Mac sin recurrir a servidores." },
       "tryIt": { "title": "Aprende el atajo.", "subtitle": "Prueba las dos formas de dictar con el atajo configurado." },
@@ -419,15 +419,15 @@
     "permissions": {
       "status": { "granted": "Concedido", "denied": "Necesario", "notDetermined": "Necesario", "checking": "Comprobando…" },
       "action": { "allow": "Permitir", "openSettings": "Abrir Ajustes", "granted": "Concedido" },
-      "microphone": { "title": "Micrófono", "body": "Para comprobar el micrófono, dictar y grabar las reuniones que elijas." },
-      "inputMonitoring": { "title": "Atajo de teclado · Monitorización de entrada", "body": "Comprueba códigos de teclas y modificadores para reconocer el atajo o cancelar la grabación. Otros eventos de teclado no se convierten en texto, no se conservan ni se registran." },
-      "accessibility": { "title": "Atajo de teclado e inserción de texto · Accesibilidad", "body": "Reconoce tu atajo y pega el texto transcrito en la app activa, restaurando el portapapeles cuando es seguro hacerlo. Las demás pulsaciones no se convierten en texto, no se guardan ni se registran." },
+      "microphone": { "title": "Micrófono", "body": "Graba audio para dictados y reuniones." },
+      "inputMonitoring": { "title": "Monitorización de entrada", "body": "Reconoce tu atajo de teclado." },
+      "accessibility": { "title": "Accesibilidad", "body": "Usa tu atajo y pega texto en otras apps.", "settingsHint": "En Ajustes del Sistema, activa Murmur." },
       "allSet": "Se han concedido todos los permisos. Puedes continuar.",
       "relaunch": { "body": "Si concediste acceso en Ajustes del Sistema y todavía aparece como necesario, reinicia Murmur para aplicar el permiso.", "button": "Reiniciar" },
-      "autostart": { "title": "Abrir al iniciar sesión", "body": "Iniciar Murmur automáticamente al entrar en tu cuenta. Opcional.", "unknown": "No se pudo comprobar", "error": "No se pudo cambiar Abrir al iniciar sesión. El interruptor muestra el último estado verificado." },
-      "helpLabel": "¿Necesitas ayuda?", "settingsFallback": "Si macOS te lo pide, selecciona Permitir. Si no, abre Ajustes, activa Murmur y vuelve aquí. Comprobaremos el acceso automáticamente.",
+      "autostart": { "title": "Abrir al iniciar sesión", "body": "Iniciar automáticamente al entrar. Opcional.", "unknown": "No se pudo comprobar", "error": "No se pudo cambiar Abrir al iniciar sesión. El interruptor muestra el último estado verificado." },
+      "helpLabel": "¿Necesitas ayuda?", "settingsFallback": "Abre Ajustes del Sistema → Privacidad y seguridad → {permission}, activa Murmur y vuelve aquí.",
       "settingsError": "No se pudo abrir Ajustes. En Privacidad y seguridad, busca {permission} y activa Murmur.",
-      "relaunchHelp": "¿Activaste el acceso pero aún no se detecta? Reinicia Murmur; tu progreso está guardado. Si macOS cierra la app sin volver a abrirla, ábrela tú desde la misma ubicación.",
+      "relaunchHelp": "¿Ya lo activaste pero no se detecta? Reinicia Murmur. Tu progreso está guardado.",
       "relaunchError": "No se pudo reiniciar. Cierra y vuelve a abrir Murmur para aplicar el acceso."
     },
     "microphone": {

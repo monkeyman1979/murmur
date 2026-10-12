@@ -170,6 +170,7 @@ const rows = computed(() => [
         <div class="flex min-w-0 flex-1 flex-col gap-1">
           <h2 class="text-sm font-semibold">{{ t(`onboarding.permissions.${row.key}.title`) }}</h2>
           <p class="text-balance text-xs leading-5 text-muted-foreground">{{ t(`onboarding.permissions.${row.key}.body`) }}</p>
+          <p v-if="row.pane === 'accessibility' && stillNeedsAccess(row.state)" class="text-balance text-xs leading-5" data-testid="accessibility-settings-hint">{{ t('onboarding.permissions.accessibility.settingsHint') }}</p>
         </div>
         <span v-if="row.state === null || row.state === 'unknown'" class="text-center text-xs text-muted-foreground">{{ t("onboarding.permissions.status.checking") }}</span>
         <span v-else-if="isGranted(row.state)" class="text-center text-xs font-medium text-success">{{ t("onboarding.permissions.status.granted") }}</span>
@@ -177,7 +178,7 @@ const rows = computed(() => [
         <p v-if="settingsError === row.pane && !isGranted(row.state)" class="col-span-2 col-start-2 text-xs leading-5 text-destructive" role="alert">{{ t('onboarding.permissions.settingsError', { permission: t(`onboarding.permissions.${row.key}.title`) }) }}</p>
         <details v-else-if="hasTriedPrompt(row.pane) && !isGranted(row.state) && requesting !== row.pane" class="col-span-2 col-start-2 min-w-0 text-xs leading-5 text-muted-foreground">
           <summary class="w-fit cursor-pointer underline underline-offset-4">{{ t('onboarding.permissions.helpLabel') }}</summary>
-          <p class="mt-2 text-balance">{{ t('onboarding.permissions.settingsFallback') }}</p>
+          <p class="mt-2 text-balance">{{ t('onboarding.permissions.settingsFallback', { permission: t(`onboarding.permissions.${row.key}.title`) }) }}</p>
         </details>
       </div>
     </div>
