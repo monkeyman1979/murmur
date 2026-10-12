@@ -291,14 +291,23 @@ async function handleTrayStop(): Promise<void> {
 
 const trayUnlisteners: UnlistenFn[] = [];
 onMounted(() => {
-  // Keep the webview mounted while hidden so tray actions and hotkeys still
-  // hydrate. macOS's native Login Item passes no launch argument, so the
-  // persisted onboarding state (not the launch mechanism) controls visibility.
-  if (shouldOpenMainWindow(onboardingCompleted.value)) {
-    void invoke("show_main_window").catch((error) => {
-      console.error("[murmur] onboarding window could not be shown", error);
+  // Keep the webview hydrated on quiet login startup, but show it for an
+  // explicit Finder/Spotlight cold launch. Rust caches the initial launch
+  // source before IPC runs; merely enabling login startup must not hide a
+  // manual launch. If source inspection fails, don't trap the user in the tray.
+  void invoke<boolean>("startup_launch_at_login")
+    .catch((error) => {
+      console.error("[murmur] startup launch source could not be checked", error);
+      return false;
+    })
+    .then((launchedAtLogin) => {
+      if (shouldOpenMainWindow(onboardingCompleted.value, launchedAtLogin)) {
+        return invoke("show_main_window");
+      }
+    })
+    .catch((error) => {
+      console.error("[murmur] startup window could not be shown", error);
     });
-  }
   void invoke<CaptureStoreHealth>("capture_store_health")
     .then((health) => { captureStoreHealth.value = health; })
     .catch(() => {

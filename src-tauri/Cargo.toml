@@ -128,7 +128,7 @@ coreaudio-sys = "0.2"
 core-foundation = "0.10"
 objc2 = "0.6"
 objc2-app-kit = "0.3"
-objc2-foundation = "0.3"
+objc2-foundation = { version = "0.3", features = ["objc2-core-services"] }
 # Needed for AVCaptureDevice.requestAccess completion-handler block.
 # Only pulled in on macOS since it's the only platform with TCC.
 block2 = "0.6"
