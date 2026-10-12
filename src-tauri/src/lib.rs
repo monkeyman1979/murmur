@@ -21,6 +21,7 @@ pub mod native_notifications;
 pub mod notify;
 pub mod permissions;
 pub mod sound;
+mod startup_window;
 pub mod stt;
 pub mod support_diagnostics;
 pub mod tray;
@@ -279,10 +280,11 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         // Launch-at-login is opt-in from Settings. LaunchAgent
         // on macOS writes a per-user plist to ~/Library/LaunchAgents; the
-        // plugin handles create/remove/query for us.
+        // plugin handles create/remove/query for us. Mark its launches so a
+        // Finder/Spotlight cold launch can show the window independently.
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            None,
+            Some(vec![startup_window::AUTOSTART_ARGUMENT]),
         ))
         .plugin(tauri_plugin_dialog::init())
         // Native OS notifications — fires on the first real error so macOS
@@ -388,6 +390,7 @@ pub fn run() {
             tray::set_tray_meeting_state,
             tray::set_app_language,
             tray::show_main_window,
+            startup_window::startup_launch_at_login,
             tray::tray_read_latest_ai_handoff_context,
             tray::tray_read_latest_transcript,
             tray::tray_copy_text,
@@ -406,6 +409,7 @@ pub fn run() {
         .manage(Arc::clone(&meeting_settings))
         .manage(Arc::new(update_install::UpdateInstallGate::default()))
         .setup(|app| {
+            app.manage(startup_window::StartupLaunch::detect());
             // Tauri defaults to a regular macOS activation policy even when
             // the bundle declares LSUIElement. Apply accessory at runtime too
             // so LaunchServices and the running app both stay out of the Dock.
@@ -724,7 +728,8 @@ pub fn run() {
         .expect("error while building tauri application")
         // Finder / Dock reopening an already-running app is an explicit
         // request to show its window, even if AppKit considers it visible but
-        // minimized or not focused. Keep native Login Item startup separate.
+        // minimized or not focused. This explicit request must show it even
+        // when this process originally started quietly at login.
         .run(|app_handle, event| {
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Reopen { .. } = event {

@@ -170,7 +170,7 @@
       },
       {
         "name": "@tauri-apps/api",
-        "version": "2.10.1",
+        "version": "2.11.1",
         "license": "Apache-2.0 OR MIT",
         "homepage": "https://github.com/tauri-apps/tauri#readme",
         "repository": "git+https://github.com/tauri-apps/tauri.git"
@@ -612,7 +612,7 @@
     ]
   },
   "rust": {
-    "packageCount": 438,
+    "packageCount": 440,
     "packages": [
       {
         "name": "adler2",
@@ -2947,6 +2947,17 @@
         ]
       },
       {
+        "name": "objc2-core-services",
+        "version": "0.3.2",
+        "license": "Zlib OR Apache-2.0 OR MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/madsmtm/objc2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "objc2-core-text",
         "version": "0.3.2",
         "license": "Zlib OR Apache-2.0 OR MIT",
@@ -3025,6 +3036,17 @@
       },
       {
         "name": "objc2-quartz-core",
+        "version": "0.3.2",
+        "license": "Zlib OR Apache-2.0 OR MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/madsmtm/objc2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "objc2-security",
         "version": "0.3.2",
         "license": "Zlib OR Apache-2.0 OR MIT",
         "licenseFile": null,

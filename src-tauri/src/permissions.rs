@@ -2,8 +2,25 @@
 //! the deep-link command that opens System Settings at the right pane.
 //!
 //! - **Microphone** — `AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeAudio)`.
-//! - **Input Monitoring** — `IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)`.
+//! - **Input Monitoring** — event listening for the hotkey's CoreGraphics
+//!   tap: `CGPreflightListenEventAccess()`, or a live tap.
 //! - **Accessibility** — reuses `insertion::is_trusted()`.
+//!
+//! On the macOS 27.0.1 installed-app test, TCC resolved event listening
+//! through a composition chain
+//! (ListenEvent → PostEvent → Accessibility). An app with no Input
+//! Monitoring record inherits its Accessibility decision, so:
+//!
+//! - granting Accessibility also authorizes the listen-only keyboard tap,
+//!   without an Input Monitoring entry; and
+//! - once Accessibility is recorded as off (macOS records that the first
+//!   time an untrusted process touches the AX API), an Input Monitoring
+//!   request is answered from that record — no prompt, no Settings row.
+//!
+//! Onboarding therefore asks for Accessibility and treats Input Monitoring
+//! as a fallback. In that test, `CGPreflightListenEventAccess` retained its
+//! earlier answer after a grant, so an installed, enabled tap
+//! (`hotkey::listener_active`) also counts.
 //!
 //! A background task polls all three every 2 s and emits
 //! `murmur://permissions` when anything changes, so the Permissions
@@ -78,11 +95,33 @@ fn mic_status() -> PermissionState {
 
 #[cfg(target_os = "macos")]
 pub fn input_monitoring_status() -> PermissionState {
-    mac::input_monitoring_status()
+    input_monitoring_state(listen_event_preflight(), crate::hotkey::listener_active())
 }
 #[cfg(not(target_os = "macos"))]
 pub fn input_monitoring_status() -> PermissionState {
     PermissionState::Unknown
+}
+
+/// Raw `CGPreflightListenEventAccess()`. The hotkey listener uses this
+/// rather than [`input_monitoring_status`], which also counts its own tap.
+#[cfg(target_os = "macos")]
+pub fn listen_event_preflight() -> bool {
+    mac::listen_event_preflight()
+}
+#[cfg(not(target_os = "macos"))]
+pub fn listen_event_preflight() -> bool {
+    false
+}
+
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+fn input_monitoring_state(preflight: bool, listener_active: bool) -> PermissionState {
+    if preflight || listener_active {
+        PermissionState::Granted
+    } else {
+        // CoreGraphics returns only a bool; it cannot distinguish a
+        // previous denial from a first-time request.
+        PermissionState::Denied
+    }
 }
 
 #[cfg(target_os = "macos")]
@@ -149,10 +188,10 @@ pub fn request_microphone_prompt() {
     request_mic_access();
 }
 
-/// Tauri command — ask macOS to add this app to Input Monitoring.
-/// Opening Settings alone can show an empty picker/list because the app
-/// has not registered an IOHID access request yet. This call is the
-/// equivalent of the native prompt/registration step for ListenEvent.
+/// Tauri command — ask macOS for event-listening access used by our
+/// `CGEventTap`. Onboarding only offers this as a fallback after
+/// Accessibility is granted; on macOS 27 the Accessibility grant normally
+/// covers listening already (see the module docs).
 #[tauri::command]
 pub fn request_input_monitoring_prompt() -> PermissionState {
     request_input_monitoring_access()
@@ -225,19 +264,13 @@ mod mac {
     #[link(name = "AVFoundation", kind = "framework")]
     extern "C" {}
 
-    // Raw FFI into IOKit for input-monitoring status. Available since
-    // macOS 10.15, which is our declared minimum.
-    #[link(name = "IOKit", kind = "framework")]
+    // The hotkey listens with a CoreGraphics CGEventTap, not an IOHIDManager
+    // or IOHIDDevice, so use the matching CoreGraphics pair (CGEvent.h).
+    #[link(name = "CoreGraphics", kind = "framework")]
     extern "C" {
-        fn IOHIDCheckAccess(request_type: u32) -> u32;
-        fn IOHIDRequestAccess(request_type: u32) -> bool;
+        fn CGPreflightListenEventAccess() -> bool;
+        fn CGRequestListenEventAccess() -> bool;
     }
-
-    const IOHID_REQUEST_TYPE_LISTEN_EVENT: u32 = 1;
-    const IOHID_ACCESS_TYPE_GRANTED: u32 = 0;
-    const IOHID_ACCESS_TYPE_DENIED: u32 = 1;
-    // Any other return is treated as "not determined" — the API doesn't
-    // always report a concrete granted/denied on first call.
 
     // AVAuthorizationStatus enum values, from AVCaptureDevice.h.
     const AV_STATUS_NOT_DETERMINED: isize = 0;
@@ -264,25 +297,18 @@ mod mac {
         }
     }
 
-    fn input_monitoring_state_from_raw(status: u32) -> PermissionState {
-        match status {
-            IOHID_ACCESS_TYPE_GRANTED => PermissionState::Granted,
-            IOHID_ACCESS_TYPE_DENIED => PermissionState::Denied,
-            _ => PermissionState::NotDetermined,
-        }
-    }
-
-    pub(super) fn input_monitoring_status() -> PermissionState {
-        input_monitoring_state_from_raw(unsafe {
-            IOHIDCheckAccess(IOHID_REQUEST_TYPE_LISTEN_EVENT)
-        })
+    pub(super) fn listen_event_preflight() -> bool {
+        unsafe { CGPreflightListenEventAccess() }
     }
 
     pub(super) fn request_input_monitoring_access() -> PermissionState {
-        // RequestAccess returns a bool, not IOHIDAccessType: interpreting true
-        // as the enum's 1 would invert a successful grant into Denied.
-        unsafe { IOHIDRequestAccess(IOHID_REQUEST_TYPE_LISTEN_EVENT) };
-        input_monitoring_status()
+        if super::input_monitoring_status() != PermissionState::Granted {
+            // "Potentially prompting" per CGEvent.h. Its return value is
+            // potentially the same cached answer as the preflight, so
+            // re-read status, which also checks the running listener.
+            unsafe { CGRequestListenEventAccess() };
+        }
+        super::input_monitoring_status()
     }
 
     pub(super) fn request_mic_access() {
@@ -320,19 +346,10 @@ mod mac {
         use super::*;
 
         #[test]
-        fn input_monitoring_status_uses_access_enum_values() {
-            assert_eq!(input_monitoring_state_from_raw(0), PermissionState::Granted);
-            assert_eq!(input_monitoring_state_from_raw(1), PermissionState::Denied);
-            assert_eq!(
-                input_monitoring_state_from_raw(2),
-                PermissionState::NotDetermined
-            );
-        }
-
-        #[test]
-        fn input_monitoring_request_has_boolean_abi() {
-            // Compile-time signature check; never opens a permission prompt in tests.
-            let _: unsafe extern "C" fn(u32) -> bool = IOHIDRequestAccess;
+        fn listen_access_pair_has_boolean_abi() {
+            // Compile-time signatures only; never prompt in tests.
+            let _: unsafe extern "C" fn() -> bool = CGPreflightListenEventAccess;
+            let _: unsafe extern "C" fn() -> bool = CGRequestListenEventAccess;
         }
     }
 }
@@ -340,6 +357,24 @@ mod mac {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn input_monitoring_counts_preflight_or_live_listener() {
+        assert_eq!(
+            input_monitoring_state(true, false),
+            PermissionState::Granted
+        );
+        // Preflight is cached from launch; a tap created after an
+        // Accessibility grant still proves listening is authorized.
+        assert_eq!(
+            input_monitoring_state(false, true),
+            PermissionState::Granted
+        );
+        assert_eq!(
+            input_monitoring_state(false, false),
+            PermissionState::Denied
+        );
+    }
 
     #[test]
     fn meeting_audio_capture_pane_is_allowlisted() {

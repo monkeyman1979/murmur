@@ -1,6 +1,6 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { defineComponent, onMounted, ref, type Ref } from "vue";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createI18n } from "vue-i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { createMemoryHistory, createRouter } from "vue-router";
@@ -12,11 +12,19 @@ import OnboardingFrame from "@/components/onboarding/OnboardingFrame.vue";
 const state = vi.hoisted(() => ({
   completed: null as unknown as Ref<boolean>,
   storeHealth: { kind: "durable" } as { kind: string; reason?: string },
+  launchedAtLogin: false,
+  launchSourceError: null as Error | null,
   listeners: new Map<string, () => void>(),
 }));
 vi.mock("@/composables/useOnboarding", () => ({ useOnboarding: () => ({ completed: state.completed }) }));
 vi.mock("@tauri-apps/api/core", () => ({
-  invoke: vi.fn(async (command: string) => command === "capture_store_health" ? state.storeHealth : undefined),
+  invoke: vi.fn(async (command: string) => {
+    if (command === "startup_launch_at_login") {
+      if (state.launchSourceError) throw state.launchSourceError;
+      return state.launchedAtLogin;
+    }
+    return command === "capture_store_health" ? state.storeHealth : undefined;
+  }),
 }));
 vi.mock("@tauri-apps/api/event", () => ({ listen: vi.fn(async (name, callback) => { state.listeners.set(name, callback); return () => state.listeners.delete(name); }) }));
 vi.mock("@/composables/useTheme", () => ({ useTheme: () => ({ effectiveMode: ref("light") }) }));
@@ -32,14 +40,24 @@ vi.mock("@/composables/useMuteWhileDictating", () => ({ useMuteWhileDictating: v
 vi.mock("@/composables/useMeetingAudioRetention", () => ({ useMeetingAudioRetention: vi.fn() }));
 vi.mock("@/composables/useMeetingTranscriptRetention", () => ({ useMeetingTranscriptRetention: vi.fn() }));
 
-afterEach(() => { document.body.innerHTML = ""; });
+beforeEach(() => {
+  vi.clearAllMocks();
+  state.launchSourceError = null;
+  state.listeners.clear();
+});
+afterEach(() => {
+  document.body.innerHTML = "";
+  vi.restoreAllMocks();
+});
 
 async function render(
   completed = false,
   storeHealth: { kind: string; reason?: string } = { kind: "durable" },
+  launchedAtLogin = false,
 ) {
     state.completed = ref(completed);
     state.storeHealth = storeHealth;
+    state.launchedAtLogin = launchedAtLogin;
     const router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/", component: { template: '<p>Home content</p><Teleport defer to="#page-header-actions"><button>Home action</button></Teleport>' }, meta: { title: "Home" } }, { path: "/settings", component: { template: "<p>Settings content</p>" } }, ...["history", "captures", "dictionary"].map((name) => ({ path: `/${name}`, name, component: { template: `<p>${name} content</p>` } }))] });
     await router.push("/");
     await router.isReady();
@@ -63,6 +81,38 @@ async function render(
     await flushPromises();
     return { wrapper, router };
 }
+
+describe("App startup visibility", () => {
+  it("shows a returning user's deliberate cold launch", async () => {
+    const { wrapper } = await render(true);
+    expect(invoke).toHaveBeenCalledWith("startup_launch_at_login");
+    expect(vi.mocked(invoke).mock.calls.filter(([command]) => command === "show_main_window")).toHaveLength(1);
+    wrapper.unmount();
+  });
+
+  it("keeps login startup quiet after onboarding", async () => {
+    const { wrapper } = await render(true, undefined, true);
+    expect(invoke).toHaveBeenCalledWith("startup_launch_at_login");
+    expect(invoke).not.toHaveBeenCalledWith("show_main_window");
+    expect(wrapper.findComponent(AppEntrance).exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("shows unfinished onboarding even when launched at login", async () => {
+    const { wrapper } = await render(false, undefined, true);
+    expect(invoke).toHaveBeenCalledWith("show_main_window");
+    wrapper.unmount();
+  });
+
+  it("shows rather than trapping the user in the tray if launch-source lookup fails", async () => {
+    state.launchSourceError = new Error("launch source unavailable");
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { wrapper } = await render(true, undefined, true);
+    expect(error).toHaveBeenCalledWith("[murmur] startup launch source could not be checked", state.launchSourceError);
+    expect(invoke).toHaveBeenCalledWith("show_main_window");
+    wrapper.unmount();
+  });
+});
 
 describe("App onboarding completion focus", () => {
   it("clears a legacy forced dictation language without changing the App language", async () => {

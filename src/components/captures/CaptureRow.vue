@@ -86,6 +86,12 @@ const wordUnit = computed(() => {
   return t(`captureRow.${category === 'one' ? 'word' : category === 'few' ? 'wordsFew' : category === 'many' ? 'wordsMany' : 'words'}`);
 });
 const audioLabel = computed(() => audioRetentionLabel(props.summary, Date.now(), t, locale.value));
+// This row has a persisted checkpoint, not the live sidebar/controller clock.
+// Use this meeting's status: another recording must not hide historical durations.
+const showsSavedDuration = computed(() => ![
+  "draft", "selecting_source", "starting", "recording",
+  "pausing", "paused", "resuming", "stopping",
+].includes(props.summary.status));
 const showsProgress = computed(
   () =>
     Boolean(props.summary.processing) &&
@@ -184,10 +190,12 @@ function openMeeting(event: MouseEvent): void {
           </span>
           <span aria-hidden="true">·</span>
         </template>
-        <span class="tabular-nums">
-          {{ formatMeetingDuration(summary.active_duration_ms) }}
-        </span>
-        <span aria-hidden="true">·</span>
+        <template v-if="showsSavedDuration">
+          <span class="tabular-nums" data-testid="capture-duration">
+            {{ formatMeetingDuration(summary.active_duration_ms) }}
+          </span>
+          <span aria-hidden="true">·</span>
+        </template>
         <time :datetime="new Date(summary.started_at ?? summary.created_at).toISOString()">
           {{ formatCaptureDate(summary.started_at ?? summary.created_at, locale) }}
         </time>

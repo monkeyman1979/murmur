@@ -93,6 +93,7 @@
     "allow-set-tray-meeting-state",
     "allow-set-app-language",
     "allow-show-main-window",
+    "allow-startup-launch-at-login",
     "allow-tray-read-latest-ai-handoff-context",
     "allow-tray-copy-text",
     "allow-set-hotkey-binding",

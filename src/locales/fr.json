@@ -408,7 +408,7 @@
     "stepLabel": "Étape {current} sur {total}",
     "cta": { "back": "Retour", "continue": "Continuer", "next": "Suivant", "getStarted": "Commencer", "done": "Terminé", "grantRequired": "Accorder les autorisations requises", "connectMicrophone": "Connecter un microphone", "completeDemos": "Terminer ce geste", "openMurmur": "Ouvrir Murmur" },
     "steps": {
-      "permissions": { "title": "Donnez à Murmur les accès nécessaires.", "subtitle": "Ces autorisations permettent à Murmur de vous entendre, de reconnaître le raccourci et d’insérer le texte dans votre application." },
+      "permissions": { "title": "Configurez les autorisations.", "subtitle": "Autorisez l’accès pour commencer." },
       "microphone": { "title": "Vérifiez votre microphone.", "subtitle": "Murmur vérifie automatiquement l’entrée audio. Si elle fonctionne, essayez la dictée." },
       "requiredModel": { "title": "Téléchargez une fois. Dictez hors ligne.", "subtitle": "Murmur nécessite un modèle vocal local. Une fois installé, la transcription s’effectue sur ce Mac, sans recours à un serveur." },
       "tryIt": { "title": "Apprenez le raccourci.", "subtitle": "Essayez les deux méthodes de dictée avec le raccourci configuré." },
@@ -419,16 +419,15 @@
     "permissions": {
       "status": { "granted": "Accordé", "denied": "Requis", "notDetermined": "Requis", "checking": "Vérification…" },
       "action": { "allow": "Autoriser", "openSettings": "Ouvrir Réglages", "granted": "Accordé" },
-      "microphone": { "title": "Microphone", "body": "Pour vérifier le microphone, dicter et enregistrer les réunions de votre choix." },
-      "inputMonitoring": { "title": "Raccourci clavier · Surveillance de l’entrée", "body": "Vérifie les codes et modificateurs des touches afin de reconnaître le raccourci ou d’annuler l’enregistrement. Les autres frappes ne sont ni converties en texte, ni conservées, ni consignées." },
-      "accessibility": { "title": "Insertion de texte · Accessibilité", "body": "Colle le texte transcrit dans l’application active et restaure le presse-papiers lorsque cela ne présente pas de risque." },
+      "microphone": { "title": "Microphone", "body": "Enregistrez l’audio pour la dictée et les réunions." },
+      "inputMonitoring": { "title": "Surveillance de l’entrée", "body": "Détectez votre raccourci clavier." },
+      "accessibility": { "title": "Accessibilité", "body": "Utilisez votre raccourci et collez du texte dans les apps.", "settingsHint": "Dans Réglages Système, activez Murmur." },
       "allSet": "Toutes les autorisations sont accordées. Vous pouvez continuer.",
       "relaunch": { "body": "Si vous avez accordé l’accès dans Réglages Système mais qu’il apparaît encore comme requis, redémarrez Murmur pour appliquer l’autorisation.", "button": "Redémarrer" },
-      "autostart": { "title": "Ouvrir à la connexion", "body": "Lancer Murmur automatiquement à l’ouverture de session. Facultatif.", "unknown": "Vérification impossible", "error": "Impossible de modifier le démarrage à la connexion. Le bouton indique le dernier état vérifié." },
-      "helpLabel": "Besoin d’aide ?", "settingsFallback": "Si macOS vous le demande, choisissez Autoriser. Sinon, ouvrez Réglages, activez Murmur, puis revenez ici. Nous vérifierons automatiquement.",
-      "inputSettingsFallback": "Aucune demande de macOS ? Ouvrez Réglages. Si Murmur n’est pas dans la liste, cliquez sur + et sélectionnez l’app ouverte, puis authentifiez-vous et activez-la. macOS peut demander de quitter et rouvrir l’app.",
+      "autostart": { "title": "Ouvrir à la connexion", "body": "Démarrage automatique à la connexion. Facultatif.", "unknown": "Vérification impossible", "error": "Impossible de modifier le démarrage à la connexion. Le bouton indique le dernier état vérifié." },
+      "helpLabel": "Besoin d’aide ?", "settingsFallback": "Ouvrez Réglages Système → Confidentialité et sécurité → {permission}, activez Murmur, puis revenez ici.",
       "settingsError": "Impossible d’ouvrir Réglages. Dans Confidentialité et sécurité, trouvez {permission} et activez Murmur.",
-      "relaunchHelp": "Accès activé mais non détecté ? Redémarrez Murmur ; votre progression est enregistrée. Si macOS ferme l’app sans la rouvrir, ouvrez-la vous-même au même emplacement.",
+      "relaunchHelp": "Déjà activé mais non détecté ? Redémarrez Murmur. Votre progression est enregistrée.",
       "relaunchError": "Impossible de redémarrer. Quittez puis rouvrez Murmur pour appliquer l’accès."
     },
     "microphone": {

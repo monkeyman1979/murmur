@@ -2,7 +2,7 @@ import "@/test/installEnglishI18n";
 import { shallowMount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CaptureSummary } from "@/lib/captures";
+import type { CaptureState, CaptureSummary } from "@/lib/captures";
 
 const pushMock = vi.hoisted(() => vi.fn());
 
@@ -59,6 +59,73 @@ function mountRow() {
     global: { stubs },
   });
 }
+
+describe("CaptureRow saved duration", () => {
+  it.each([
+    "draft", "selecting_source", "starting", "recording",
+    "pausing", "paused", "resuming", "stopping",
+  ] satisfies CaptureState[])("hides checkpoint duration during %s without leaving a separator", async (status) => {
+    const wrapper = shallowMount(CaptureRow, {
+      props: { summary: { ...summary, status, ended_at: null, active_duration_ms: 0 } },
+      global: { stubs },
+    });
+
+    expect(wrapper.text()).not.toContain("00:00");
+    expect(wrapper.find('[data-testid="capture-duration"]').exists()).toBe(false);
+    expect(wrapper.get("time").attributes("datetime")).toBe(new Date(2).toISOString());
+    expect(wrapper.get("time").element.previousElementSibling).toBeNull();
+    expect(wrapper.find('[data-test="status"]').exists()).toBe(true);
+
+    // A persisted checkpoint is still not a live timer, even when nonzero.
+    await wrapper.setProps({ summary: { ...summary, status, ended_at: null, active_duration_ms: 120_000 } });
+    expect(wrapper.text()).not.toContain("02:00");
+    expect(wrapper.find('[data-testid="capture-duration"]').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  it.each([
+    "transcribing", "finalizing", "completed", "interrupted", "capture_failed",
+    "transcription_failed", "finalization_failed", "cancelled", "cleanup_failed",
+  ] satisfies CaptureState[])("shows saved duration after recording in %s", (status) => {
+    const wrapper = shallowMount(CaptureRow, {
+      props: { summary: { ...summary, status, active_duration_ms: 32_000 } },
+      global: { stubs },
+    });
+
+    expect(wrapper.get('[data-testid="capture-duration"]').text()).toBe("00:32");
+    expect(wrapper.get("time").element.previousElementSibling?.textContent).toBe("·");
+    if (status === "completed") expect(wrapper.text()).toContain("10 words");
+    wrapper.unmount();
+  });
+
+  it("reveals duration only after the stop transition, without remounting", async () => {
+    const wrapper = shallowMount(CaptureRow, {
+      props: { summary: { ...summary, status: "recording", ended_at: null, active_duration_ms: 0 } },
+      global: { stubs },
+    });
+
+    expect(wrapper.find('[data-testid="capture-duration"]').exists()).toBe(false);
+    await wrapper.setProps({ summary: { ...summary, status: "stopping", ended_at: null, active_duration_ms: 19_000 } });
+    expect(wrapper.find('[data-testid="capture-duration"]').exists()).toBe(false);
+    await wrapper.setProps({ summary: { ...summary, status: "transcribing", active_duration_ms: 32_000 } });
+    expect(wrapper.get('[data-testid="capture-duration"]').text()).toBe("00:32");
+    await wrapper.setProps({ summary: { ...summary, status: "completed", active_duration_ms: 32_000 } });
+    expect(wrapper.get('[data-testid="capture-duration"]').text()).toBe("00:32");
+    expect(wrapper.text()).toContain("10 words");
+    wrapper.unmount();
+  });
+
+  it("keeps historical durations visible while a different meeting is recording", () => {
+    const wrapper = shallowMount(CaptureRow, {
+      props: { summary: { ...summary, active_duration_ms: 32_000 }, recordingActive: true },
+      global: { stubs },
+    });
+
+    expect(wrapper.get('[data-testid="capture-duration"]').text()).toBe("00:32");
+    expect(wrapper.text()).toContain("10 words");
+    wrapper.unmount();
+  });
+});
 
 describe("CaptureRow navigation", () => {
   beforeEach(() => {

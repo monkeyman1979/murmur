@@ -1,9 +1,10 @@
-// Preserve hidden startup for completed installations, including the owner's
-// existing native Login Item. A fresh Finder launch reaches this same path:
-// macOS provides no verified launch-source signal here. Do not show all
-// returning users on startup until login and manual launches can be separated
-// without breaking the existing silent-login behavior. Reopen of an already
-// running app is handled in Rust; unfinished onboarding must open.
-export function shouldOpenMainWindow(onboardingCompleted: boolean): boolean {
-  return !onboardingCompleted;
+// Only automatic login startup stays in the menu bar. A deliberate cold
+// launch from Finder/Spotlight must show the window even after onboarding.
+// Rust supplies the launch source; the saved login preference is not a
+// launch-source signal. Reopen of an already-running app is handled in Rust.
+export function shouldOpenMainWindow(
+  onboardingCompleted: boolean,
+  launchedAtLogin: boolean,
+): boolean {
+  return !onboardingCompleted || !launchedAtLogin;
 }
