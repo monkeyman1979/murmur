@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { ref, watch } from "vue";
 import { i18n } from "@/i18n";
+import { useMurmurEvents } from "@/composables/useMurmurEvents";
 
 export interface AudioInputDevice {
   name: string;
@@ -41,6 +42,7 @@ const devices = ref<AudioInputDevice[]>([]);
 const selected = ref<string | null>(loadStoredSelection());
 
 let initialized = false;
+let microphoneAllowed = false;
 
 function acceptDevices(value: AudioInputDevice[]) {
   devices.value = value;
@@ -53,9 +55,15 @@ async function refresh() {
   const request = ++enumeration;
   state.value = "loading";
   error.value = null;
+  // Rust deliberately returns [] before microphone consent. That is not an
+  // absent device and must not clear a saved selection or stick after grant.
+  if (!microphoneAllowed) {
+    devices.value = [];
+    return;
+  }
   try {
     const value = await invoke<AudioInputDevice[]>("list_input_devices");
-    if (request === enumeration) acceptDevices(value);
+    if (request === enumeration && microphoneAllowed) acceptDevices(value);
   } catch {
     if (request !== enumeration) return;
     state.value = "error";
@@ -93,11 +101,30 @@ function init() {
     { immediate: true },
   );
 
-  void refresh();
+  const { permissions } = useMurmurEvents();
+  // This shared list is initialized by App.vue before first-run consent.
+  // Permission changes aren't physical CoreAudio device changes, so waiting
+  // for a hardware notification leaves the initial empty result cached.
+  watch(
+    () => permissions.value?.microphone === "granted",
+    (granted) => {
+      microphoneAllowed = granted;
+      if (granted) {
+        void refresh();
+      } else {
+        ++enumeration; // Discard any pre-revocation request still in flight.
+        devices.value = [];
+        state.value = "loading";
+        error.value = null;
+      }
+    },
+    { immediate: true, flush: "sync" },
+  );
 
   void listen<AudioInputDevicesChanged>(
     "murmur://input-devices-changed",
     (event) => {
+      if (!microphoneAllowed) return;
       ++enumeration;
       acceptDevices(event.payload.devices);
     },
