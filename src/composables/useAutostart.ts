@@ -1,4 +1,4 @@
-import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
+import { disable, enable, isEnabled } from "@/lib/launchAtLogin";
 import { computed, ref } from "vue";
 import { i18n } from "@/i18n";
 

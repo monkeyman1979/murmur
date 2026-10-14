@@ -27,10 +27,10 @@ Generated from:
 - installed package/crate license and notice files
 
 Summary:
-- 84 installed frontend dependency entries
-- 440 macOS normal/build Cargo dependency entries
+- 83 installed frontend dependency entries
+- 437 macOS normal/build Cargo dependency entries
 - 1 frontend entry without a packaged license file
-- 41 Rust entries without a packaged license file
+- 42 Rust entries without a packaged license file
 
 Downloaded model
 ----------------
@@ -7365,7 +7365,6 @@ SOFTWARE.
 ------------------------------------------------------------------------------
 
 Components:
-- @tauri-apps/plugin-autostart 2.5.1 — MIT OR Apache-2.0
 - @tauri-apps/plugin-dialog 2.7.2 — MIT OR Apache-2.0
 - @tauri-apps/plugin-opener 2.5.3 — MIT OR Apache-2.0
 - @tauri-apps/plugin-process 2.3.1 — MIT OR Apache-2.0
@@ -9973,34 +9972,6 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
-
-------------------------------------------------------------------------------
-
-Components:
-- auto-launch 0.5.0 — MIT
-
---- LICENSE ---
-MIT License
-
-Copyright (c) 2022 zzzgydi
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 
 ------------------------------------------------------------------------------
 
@@ -18133,9 +18104,7 @@ DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
 Components:
-- dirs 4.0.0 — MIT OR Apache-2.0
 - dirs 6.0.0 — MIT OR Apache-2.0
-- dirs-sys 0.3.7 — MIT OR Apache-2.0
 - dirs-sys 0.5.0 — MIT OR Apache-2.0
 
 --- LICENSE-APACHE ---
@@ -41236,7 +41205,6 @@ SOFTWARE.
 ------------------------------------------------------------------------------
 
 Components:
-- tauri-plugin-autostart 2.5.1 — Apache-2.0 OR MIT
 - tauri-plugin-dialog 2.7.2 — Apache-2.0 OR MIT
 - tauri-plugin-fs 2.5.1 — Apache-2.0 OR MIT
 - tauri-plugin-notification 2.3.3 — Apache-2.0 OR MIT
@@ -46739,6 +46707,7 @@ release review before these notices can be treated as final.
 - objc2-osa-kit 0.3.2 — Zlib OR Apache-2.0 OR MIT
 - objc2-quartz-core 0.3.2 — Zlib OR Apache-2.0 OR MIT
 - objc2-security 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- objc2-service-management 0.3.2 — Zlib OR Apache-2.0 OR MIT
 - objc2-web-kit 0.3.2 — Zlib OR Apache-2.0 OR MIT
 - phf 0.10.1 — MIT
 - phf 0.8.0 — MIT

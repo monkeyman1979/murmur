@@ -10,7 +10,7 @@ import type { PermissionSnapshot } from "@/composables/useMurmurEvents";
 const state = vi.hoisted(() => ({ permissions: null as unknown as Ref<PermissionSnapshot | null>, invoke: vi.fn(), isEnabled: vi.fn(), enable: vi.fn(), disable: vi.fn() }));
 vi.mock("@/composables/useMurmurEvents", () => ({ useMurmurEvents: () => ({ permissions: state.permissions }) }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: state.invoke }));
-vi.mock("@tauri-apps/plugin-autostart", () => ({ isEnabled: state.isEnabled, enable: state.enable, disable: state.disable }));
+vi.mock("@/lib/launchAtLogin", () => ({ isEnabled: state.isEnabled, enable: state.enable, disable: state.disable }));
 let wrapper: VueWrapper;
 beforeEach(() => { vi.resetModules(); vi.resetAllMocks(); state.permissions = ref(null); state.isEnabled.mockResolvedValue(false); state.invoke.mockResolvedValue(undefined); });
 afterEach(() => { wrapper?.unmount(); vi.restoreAllMocks(); });

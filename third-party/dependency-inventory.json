@@ -16,8 +16,8 @@
     "A package without an installed manifest remains in missingManifests but is excluded from the bundled notice until target-specific release review establishes that it ships."
   ],
   "frontend": {
-    "packageCount": 84,
-    "installedPackageCount": 84,
+    "packageCount": 83,
+    "installedPackageCount": 83,
     "missingManifestCount": 0,
     "missingManifests": [],
     "packages": [
@@ -174,13 +174,6 @@
         "license": "Apache-2.0 OR MIT",
         "homepage": "https://github.com/tauri-apps/tauri#readme",
         "repository": "git+https://github.com/tauri-apps/tauri.git"
-      },
-      {
-        "name": "@tauri-apps/plugin-autostart",
-        "version": "2.5.1",
-        "license": "MIT OR Apache-2.0",
-        "homepage": null,
-        "repository": "https://github.com/tauri-apps/plugins-workspace"
       },
       {
         "name": "@tauri-apps/plugin-dialog",
@@ -612,7 +605,7 @@
     ]
   },
   "rust": {
-    "packageCount": 440,
+    "packageCount": 437,
     "packages": [
       {
         "name": "adler2",
@@ -708,17 +701,6 @@
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/smol-rs/atomic-waker",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "targets": [
-          "aarch64-apple-darwin"
-        ]
-      },
-      {
-        "name": "auto-launch",
-        "version": "0.5.0",
-        "license": "MIT",
-        "licenseFile": null,
-        "repository": "https://github.com/zzzgydi/auto-launch.git",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -1408,32 +1390,10 @@
       },
       {
         "name": "dirs",
-        "version": "4.0.0",
-        "license": "MIT OR Apache-2.0",
-        "licenseFile": null,
-        "repository": "https://github.com/soc/dirs-rs",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "targets": [
-          "aarch64-apple-darwin"
-        ]
-      },
-      {
-        "name": "dirs",
         "version": "6.0.0",
         "license": "MIT OR Apache-2.0",
         "licenseFile": null,
         "repository": "https://github.com/soc/dirs-rs",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "targets": [
-          "aarch64-apple-darwin"
-        ]
-      },
-      {
-        "name": "dirs-sys",
-        "version": "0.3.7",
-        "license": "MIT OR Apache-2.0",
-        "licenseFile": null,
-        "repository": "https://github.com/dirs-dev/dirs-sys-rs",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
@@ -3057,6 +3017,17 @@
         ]
       },
       {
+        "name": "objc2-service-management",
+        "version": "0.3.2",
+        "license": "Zlib OR Apache-2.0 OR MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/madsmtm/objc2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
         "name": "objc2-web-kit",
         "version": "0.3.2",
         "license": "Zlib OR Apache-2.0 OR MIT",
@@ -4536,17 +4507,6 @@
         "license": "Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/tauri-apps/tauri",
-        "source": "registry+https://github.com/rust-lang/crates.io-index",
-        "targets": [
-          "aarch64-apple-darwin"
-        ]
-      },
-      {
-        "name": "tauri-plugin-autostart",
-        "version": "2.5.1",
-        "license": "Apache-2.0 OR MIT",
-        "licenseFile": null,
-        "repository": "https://github.com/tauri-apps/plugins-workspace",
         "source": "registry+https://github.com/rust-lang/crates.io-index",
         "targets": [
           "aarch64-apple-darwin"
