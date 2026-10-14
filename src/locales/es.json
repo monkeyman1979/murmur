@@ -35,8 +35,8 @@
     "reportError": "No se pudo abrir la página de informes. Vuelve a intentarlo más tarde.",
     "supportBody": "Genera un informe local sin contenido personal para ayudar a resolver problemas con Murmur. No se sube nada automáticamente y puedes ver el informe completo antes de copiarlo.",
     "title": "Acerca de Murmur", "version": "Versión", "bundle": "Identificador de la aplicación", "madeBy": "Creado por", "sourceLicense": "Licencia del código fuente",
-    "body": "Murmur es una aplicación de dictado de voz local creada con Tauri 2, whisper.cpp y cpal. Los dictados, las transcripciones de reuniones, el historial, el vocabulario y las correcciones permanecen en este Mac. El acceso a la red se limita a las descargas de modelos y los enlaces externos que abras expresamente en esta versión preliminar del código fuente. Las actualizaciones automáticas están en pausa.",
-    "copyright": "© 2026 monkeyman1979. Versión preliminar; no es una descarga pública oficial.",
+    "body": "Murmur es una aplicación de dictado de voz local creada con Tauri 2, whisper.cpp y cpal. Los dictados, las transcripciones de reuniones, el historial, el vocabulario y las correcciones permanecen en este Mac. El acceso a la red se limita a las descargas de modelos y los enlaces que decidas abrir. Las actualizaciones automáticas están desactivadas; las nuevas versiones se publican en GitHub Releases.",
+    "copyright": "© 2026 monkeyman1979.",
     "acknowledgements": "Agradecimientos y licencias"
   },
   "historyPage": {
