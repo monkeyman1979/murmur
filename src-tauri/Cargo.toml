@@ -1,6 +1,6 @@
 [package]
 name = "murmur"
-version = "0.1.0"
+version = "0.1.1"
 description = "Murmur — local-first voice dictation for macOS"
 authors = ["monkeyman1979"]
 edition = "2021"
@@ -34,7 +34,6 @@ meeting-capture-debug = ["meeting-capture", "tauri/devtools"]
 [dependencies]
 tauri = { version = "=2.11.1", features = ["tray-icon", "image-png", "macos-private-api"] }
 tauri-plugin-opener = "=2.5.3"
-tauri-plugin-autostart = "=2.5.1"
 tauri-plugin-dialog = "=2.7.2"
 tauri-plugin-notification = "=2.3.3"
 serde = { version = "1", features = ["derive"] }
@@ -132,6 +131,9 @@ objc2-foundation = { version = "0.3", features = ["objc2-core-services"] }
 # Needed for AVCaptureDevice.requestAccess completion-handler block.
 # Only pulled in on macOS since it's the only platform with TCC.
 block2 = "0.6"
+# SMAppService.mainApp login item: listed in System Settings under the app's
+# own name instead of a LaunchAgent attributed to the signing team.
+objc2-service-management = { version = "0.3.2", default-features = false, features = ["std", "SMAppService", "objc2", "objc2-foundation"] }
 # Core Audio process taps (macOS 14.2+): CATapDescription,
 # AudioHardwareCreateProcessTap, AudioHardwareCreateAggregateDevice, IOProcs.
 objc2-core-audio = { version = "0.3.2", optional = true, default-features = false, features = ["std", "AudioHardware", "objc2", "objc2-foundation", "objc2-core-audio-types"] }

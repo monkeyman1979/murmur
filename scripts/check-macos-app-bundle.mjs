@@ -124,6 +124,31 @@ async function rejectIssuer(pathname) {
   }
 }
 
+// Whoever copies the app out of the DMG becomes its owner, so every other
+// account on the Mac relies on the group/other bits to read and launch it.
+export async function rejectPrivateModes(pathname, appPath = pathname) {
+  const metadata = await lstat(pathname);
+  if (metadata.isSymbolicLink()) return;
+
+  const mode = metadata.mode & 0o777;
+  const relative = path.relative(path.dirname(appPath), pathname);
+  if (mode & 0o022) {
+    throw new Error(`production app entry is group- or world-writable (${mode.toString(8)}): ${relative}`);
+  }
+  const executable = metadata.isDirectory() || (mode & 0o100) !== 0;
+  const required = executable ? 0o055 : 0o044;
+  if ((mode & required) !== required) {
+    throw new Error(
+      `production app entry is not readable${executable ? " and executable" : ""} by all users (${mode.toString(8)}): ${relative}`,
+    );
+  }
+  if (!metadata.isDirectory()) return;
+
+  for (const child of await readdir(pathname)) {
+    await rejectPrivateModes(path.join(pathname, child), appPath);
+  }
+}
+
 async function requireRealDirectory(pathname, description) {
   const metadata = await lstat(pathname);
   if (metadata.isSymbolicLink() || !metadata.isDirectory()) {
@@ -159,6 +184,7 @@ export async function checkApp(
   }
 
   await rejectIssuer(appPath);
+  await rejectPrivateModes(appPath);
 
   const noticesPath = path.join(
     contentsDirectory,

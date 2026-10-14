@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises } from "@vue/test-utils";
 const plugin = vi.hoisted(() => ({ enable: vi.fn(), disable: vi.fn(), isEnabled: vi.fn() }));
-vi.mock("@tauri-apps/plugin-autostart", () => plugin);
+vi.mock("@/lib/launchAtLogin", () => plugin);
 beforeEach(() => { vi.resetModules(); vi.resetAllMocks(); plugin.isEnabled.mockResolvedValue(false); });
 
 describe("useAutostart", () => {

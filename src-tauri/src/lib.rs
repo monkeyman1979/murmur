@@ -12,6 +12,7 @@ pub mod history;
 pub mod hotkey;
 pub mod indicator_native;
 pub mod insertion;
+mod login_item;
 pub mod meeting_capture;
 pub mod memory;
 pub mod model_download;
@@ -278,14 +279,6 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        // Launch-at-login is opt-in from Settings. LaunchAgent
-        // on macOS writes a per-user plist to ~/Library/LaunchAgents; the
-        // plugin handles create/remove/query for us. Mark its launches so a
-        // Finder/Spotlight cold launch can show the window independently.
-        .plugin(tauri_plugin_autostart::init(
-            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec![startup_window::AUTOSTART_ARGUMENT]),
-        ))
         .plugin(tauri_plugin_dialog::init())
         // Native OS notifications — fires on the first real error so macOS
         // shows its one-time "Allow Notifications" prompt at that point
@@ -391,6 +384,8 @@ pub fn run() {
             tray::set_app_language,
             tray::show_main_window,
             startup_window::startup_launch_at_login,
+            login_item::launch_at_login_enabled,
+            login_item::set_launch_at_login,
             tray::tray_read_latest_ai_handoff_context,
             tray::tray_read_latest_transcript,
             tray::tray_copy_text,
@@ -410,6 +405,9 @@ pub fn run() {
         .manage(Arc::new(update_install::UpdateInstallGate::default()))
         .setup(|app| {
             app.manage(startup_window::StartupLaunch::detect());
+            // Launch at login is opt-in from Settings and uses a main-app
+            // login item; carry a v0.1.0 LaunchAgent opt-in across once.
+            login_item::migrate_legacy_agent();
             // Tauri defaults to a regular macOS activation policy even when
             // the bundle declares LSUIElement. Apply accessory at runtime too
             // so LaunchServices and the running app both stay out of the Dock.

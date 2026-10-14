@@ -35,8 +35,8 @@
     "reportError": "Impossible d’ouvrir la page de signalement. Réessayez plus tard.",
     "supportBody": "Générez un rapport local sans contenu personnel pour aider à résoudre un problème avec Murmur. Rien n’est envoyé automatiquement, et vous pouvez lire l’intégralité du rapport avant de le copier.",
     "title": "À propos de Murmur", "version": "Version", "bundle": "Identifiant de l’application", "madeBy": "Créé par", "sourceLicense": "Licence du code source",
-    "body": "Murmur est une application de dictée vocale locale conçue avec Tauri 2, whisper.cpp et cpal. Les dictées, transcriptions de réunions, historiques, éléments de vocabulaire et corrections restent sur ce Mac. L’accès au réseau se limite aux téléchargements de modèles et aux liens externes que vous ouvrez explicitement dans cette version préliminaire distribuée sous forme de code source. Les mises à jour automatiques sont suspendues.",
-    "copyright": "© 2026 monkeyman1979. Version préliminaire — ceci n’est pas un téléchargement public officiel.",
+    "body": "Murmur est une application de dictée vocale locale conçue avec Tauri 2, whisper.cpp et cpal. Les dictées, transcriptions de réunions, historiques, éléments de vocabulaire et corrections restent sur ce Mac. L’accès au réseau se limite aux téléchargements de modèles et aux liens que vous choisissez d’ouvrir. Les mises à jour automatiques sont désactivées ; les nouvelles versions sont publiées sur GitHub Releases.",
+    "copyright": "© 2026 monkeyman1979.",
     "acknowledgements": "Remerciements et licences"
   },
   "historyPage": {

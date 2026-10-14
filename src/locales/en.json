@@ -46,8 +46,8 @@
     "bundle": "Bundle",
     "madeBy": "Made by",
     "sourceLicense": "Source license",
-    "body": "Murmur is a local-first voice dictation app built on Tauri 2, whisper.cpp, and cpal. Dictation, meeting transcription, history, vocabulary, and corrections stay on this Mac. Network access is limited to explicit model downloads and external links in this source-only candidate. Automatic updates are paused.",
-    "copyright": "© 2026 monkeyman1979. Pre-release build — not an official public download.",
+    "body": "Murmur is a local-first voice dictation app built on Tauri 2, whisper.cpp, and cpal. Dictation, meeting transcription, history, vocabulary, and corrections stay on this Mac. Network access is limited to model downloads and links you choose to open. Automatic updates are off; new versions are published on GitHub Releases.",
+    "copyright": "© 2026 monkeyman1979.",
     "acknowledgements": "Acknowledgements and licenses"
   },
   "searchField": { "clear": "Clear search" },
