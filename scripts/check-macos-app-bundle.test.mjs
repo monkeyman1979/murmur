@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
-import { checkApp, validateAppInfo } from "./check-macos-app-bundle.mjs";
+import { checkApp, rejectPrivateModes, validateAppInfo } from "./check-macos-app-bundle.mjs";
 
 test("app bundle contains the exact source MIT license alongside third-party notices", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "murmur-license-bundle-"));
@@ -30,6 +30,41 @@ test("app bundle contains the exact source MIT license alongside third-party not
     await writeFile(noticesPath, sourceNotices);
     await assert.doesNotReject(checkApp(app, options));
   } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("app bundle stays readable and launchable by every account on the Mac", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "murmur-mode-bundle-"));
+  const app = path.join(directory, "Murmur.app");
+  const contents = path.join(app, "Contents");
+  const executable = path.join(contents, "MacOS", "murmur");
+  const info = path.join(contents, "Info.plist");
+  try {
+    await mkdir(path.join(contents, "MacOS"), { recursive: true });
+    await writeFile(executable, "binary");
+    await writeFile(info, "fixture");
+    await chmod(app, 0o755);
+    await chmod(contents, 0o755);
+    await chmod(path.join(contents, "MacOS"), 0o755);
+    await chmod(executable, 0o755);
+    await chmod(info, 0o644);
+    await assert.doesNotReject(rejectPrivateModes(app));
+
+    await chmod(info, 0o600);
+    await assert.rejects(rejectPrivateModes(app), /not readable by all users \(600\): Murmur.app\/Contents\/Info.plist/);
+    await chmod(info, 0o664);
+    await assert.rejects(rejectPrivateModes(app), /group- or world-writable/);
+    await chmod(info, 0o644);
+
+    await chmod(executable, 0o744);
+    await assert.rejects(rejectPrivateModes(app), /not readable and executable by all users \(744\)/);
+    await chmod(executable, 0o755);
+
+    await chmod(contents, 0o700);
+    await assert.rejects(rejectPrivateModes(app), /not readable and executable by all users \(700\): Murmur.app\/Contents$/);
+  } finally {
+    await chmod(contents, 0o755).catch(() => {});
     await rm(directory, { recursive: true, force: true });
   }
 });
