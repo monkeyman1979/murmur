@@ -4,9 +4,9 @@ Murmur is a local-first macOS menu-bar app for voice dictation and meeting trans
 
 ## Download
 
-**[Download for Apple Silicon Mac (.dmg)](https://github.com/monkeyman1979/murmur/releases/download/v0.1.0/Murmur_0.1.0_aarch64.dmg)**
+**[Download for Apple Silicon Mac (.dmg)](https://github.com/monkeyman1979/murmur/releases/download/v0.1.1/Murmur_0.1.1_aarch64.dmg)**
 
-**Requires macOS 14.4 or later. Not compatible with Intel Macs.** Windows and Linux are not supported. The v0.1.0 installer is Developer ID–signed, Apple-notarized and stapled; its checksum is included in the [GitHub Release](https://github.com/monkeyman1979/murmur/releases/tag/v0.1.0).
+**Requires macOS 14.4 or later. Not compatible with Intel Macs.** Windows and Linux are not supported. The v0.1.1 installer is Developer ID–signed, Apple-notarized and stapled; its checksum is included in the [GitHub Release](https://github.com/monkeyman1979/murmur/releases/tag/v0.1.1).
 
 Installation and functional checks were performed on Apple Silicon with **macOS 27.0.1 (26A434)**. The macOS 14.4 floor is the configured requirement, not a claim that every older supported macOS version has been independently tested.
 
@@ -20,7 +20,7 @@ Murmur lives in the menu bar. Use its menu to open the window or **Quit Murmur**
 
 Meeting capture records your microphone and the Mac's system audio, not video. Ask participants for consent. The first meeting can trigger macOS **System Audio Recording** and **Documents** permission prompts; Markdown transcripts default to `Documents/Murmur/Meetings`. Microphone capture can begin while the first system-audio prompt is awaiting your answer. A folder-save failure offers another folder and retry, but denied-permission/recovery paths have not all been independently exercised.
 
-Automatic/manual in-app update checks are disabled in v0.1.0. Download updates from [GitHub Releases](https://github.com/monkeyman1979/murmur/releases) and replace the app manually. A retained-data update between the tested release candidates preserved local data and model files; migration from every historical development build and all interrupted-recording recovery cases has not been validated.
+Automatic/manual in-app update checks are disabled in v0.1.1. Download updates from [GitHub Releases](https://github.com/monkeyman1979/murmur/releases) and replace the app manually. A retained-data update between the tested release candidates preserved local data and model files; migration from every historical development build and all interrupted-recording recovery cases has not been validated.
 
 ## Languages
 
