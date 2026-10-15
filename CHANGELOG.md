@@ -2,6 +2,24 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.2] - Unreleased
+
+### Added
+
+- In-app updates. Murmur checks GitHub Releases at launch, at most once a day, and shows a new version in the sidebar above Settings, or as a download icon when the sidebar is collapsed. Settings → About can also check, download and restart to update. Each update is verified against Murmur's updater signing key, and the restart waits for any recording or transcription to finish.
+
+### Changed
+
+- Successful meeting audio is now kept for at most 7 days. **Keep successful meeting audio for** offers Delete immediately, After 24 hours (the default) or After 7 days; **Until deleted** and the per-meeting **Keep until deleted** action are gone. To keep a recording, use **Save audio copy**. Failed or interrupted recordings are still kept until you retry, save a copy or delete them.
+- Settings → General explains that meeting audio is stored privately inside Murmur, separate from your transcript folder. **Delete meeting history now** is now **Delete all meetings from Murmur**, and its description says it removes transcripts and audio inside Murmur but leaves your Markdown files and saved audio copies.
+- Settings → Permissions lists Microphone and Accessibility, and shows Input Monitoring only if your shortcut still isn't detected after Accessibility is granted. On macOS 27, Accessibility also covers the shortcut, so Input Monitoring no longer sends you to a System Settings pane without Murmur in it. The permission descriptions are plainer.
+- The meeting actions menu (⋯) widens to fit its longest item, so Spanish, French and Russian labels no longer crowd.
+
+### If you're updating from v0.1.1
+
+- v0.1.1 can't check for updates. Download v0.1.2 from GitHub Releases and replace the app; later versions can update from inside Murmur.
+- If you chose **Until deleted** for meeting audio, Murmur switches it to After 7 days, and audio you kept is deleted 7 days after its recording ended. Before updating, use **Save audio copy** on any recording you want to keep.
+
 ## [0.1.1] - 2026-10-14
 
 ### Fixed
@@ -27,5 +45,6 @@ sudo chown -R root:admin /Applications/Murmur.app && sudo chmod -R u+rwX,go+rX,g
 
 First public release: a Developer ID–signed, notarized DMG for Apple Silicon Macs running macOS 14.4 or later.
 
+[0.1.2]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.2
 [0.1.1]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.1
 [0.1.0]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.0
