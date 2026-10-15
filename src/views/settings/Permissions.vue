@@ -2,6 +2,7 @@
 import PermissionRow from "@/components/settings/PermissionRow.vue";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useInputMonitoringFallback } from "@/composables/useInputMonitoringFallback";
 import { useMurmurEvents } from "@/composables/useMurmurEvents";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -20,6 +21,11 @@ const inputMonitoring = computed(
 const accessibility = computed(
   () => permissions.value?.accessibility ?? null,
 );
+// Accessibility covers the hotkey listener on macOS 27, and Murmur has no
+// Input Monitoring record to show in System Settings until it is needed.
+// Offer that row only as onboarding does: when listening is still missing
+// after Accessibility is granted.
+const showInputMonitoring = useInputMonitoringFallback(accessibility, inputMonitoring);
 </script>
 
 <template>
@@ -39,18 +45,20 @@ const accessibility = computed(
         />
         <Separator />
         <PermissionRow
-          :title="t('permissionSettings.inputMonitoring')"
-          :description="t('permissionSettings.inputHelp')"
-          :state="inputMonitoring"
-          pane="input-monitoring"
-        />
-        <Separator />
-        <PermissionRow
           :title="t('permissionSettings.accessibility')"
           :description="t('permissionSettings.accessibilityHelp')"
           :state="accessibility"
           pane="accessibility"
         />
+        <template v-if="showInputMonitoring">
+          <Separator />
+          <PermissionRow
+            :title="t('permissionSettings.inputMonitoring')"
+            :description="t('permissionSettings.inputHelp')"
+            :state="inputMonitoring"
+            pane="input-monitoring"
+          />
+        </template>
       </CardContent>
     </Card>
 

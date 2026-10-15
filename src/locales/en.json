@@ -327,10 +327,10 @@
     "redownload": "Re-download model", "reveal": "Show in Finder", "deleteModel": "Delete model"
   },
   "permissionSettings": {
-    "heading": "System permissions", "microphone": "Microphone", "microphoneHelp": "Capture audio while you hold the hotkey.",
-    "inputMonitoring": "Input Monitoring", "inputHelp": "Detect your dictation hotkey system-wide via our CGEventTap listener.",
-    "accessibility": "Accessibility", "accessibilityHelp": "Synthesize the ⌘V keystroke that pastes transcribed text into your focused app.",
-    "refreshHelp": "Status refreshes every couple of seconds, so grants or revokes in System Settings show up here without a relaunch. “Open Settings” deep-links to the exact Privacy pane for each permission.",
+    "heading": "System permissions", "microphone": "Microphone", "microphoneHelp": "Record audio for dictation and meetings.",
+    "inputMonitoring": "Input Monitoring", "inputHelp": "Detect your keyboard shortcut.",
+    "accessibility": "Accessibility", "accessibilityHelp": "Use your shortcut and paste text into apps.",
+    "refreshHelp": "Status updates every few seconds, so changes you make in System Settings show up here without relaunching. Accessibility also lets Murmur detect your shortcut, so Input Monitoring only appears if your Mac needs it separately.",
     "granted": "Granted", "denied": "Not granted", "notDetermined": "Not yet prompted", "unknown": "Unknown", "checking": "Checking…",
     "grant": "Grant", "openSettings": "Open Settings"
   },

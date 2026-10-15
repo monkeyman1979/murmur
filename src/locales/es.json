@@ -301,10 +301,10 @@
     "redownload": "Volver a descargar el modelo", "reveal": "Mostrar en Finder", "deleteModel": "Eliminar modelo"
   },
   "permissionSettings": {
-    "heading": "Permisos del sistema", "microphone": "Micrófono", "microphoneHelp": "Grabar audio mientras mantienes pulsado el atajo.",
-    "inputMonitoring": "Monitorización de entrada", "inputHelp": "Detectar el atajo de dictado en todo el sistema mediante CGEventTap.",
-    "accessibility": "Accesibilidad", "accessibilityHelp": "Simular ⌘V para pegar el texto transcrito en la app activa.",
-    "refreshHelp": "El estado se actualiza cada pocos segundos. Los permisos concedidos o revocados en Ajustes del Sistema aparecen aquí sin reiniciar. «Abrir Ajustes» abre la sección de privacidad correspondiente.",
+    "heading": "Permisos del sistema", "microphone": "Micrófono", "microphoneHelp": "Graba audio para dictados y reuniones.",
+    "inputMonitoring": "Monitorización de entrada", "inputHelp": "Reconoce tu atajo de teclado.",
+    "accessibility": "Accesibilidad", "accessibilityHelp": "Usa tu atajo y pega texto en otras apps.",
+    "refreshHelp": "El estado se actualiza cada pocos segundos, así que los cambios que hagas en Ajustes del Sistema aparecen aquí sin reiniciar. Accesibilidad también permite a Murmur reconocer tu atajo, así que Monitorización de entrada solo aparece si tu Mac la necesita por separado.",
     "granted": "Concedido", "denied": "No concedido", "notDetermined": "Aún no solicitado", "unknown": "Desconocido", "checking": "Comprobando…",
     "grant": "Conceder", "openSettings": "Abrir Ajustes"
   },
