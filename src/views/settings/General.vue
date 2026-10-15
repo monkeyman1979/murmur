@@ -55,7 +55,6 @@ import {
 } from "@/composables/useMeetingTranscriptRetention";
 import { useMuteWhileDictating } from "@/composables/useMuteWhileDictating";
 import { useSoundCues } from "@/composables/useSoundCues";
-import { useUpdater } from "@/composables/useUpdater";
 import {
   retentionChangeRequiresConfirmation,
 } from "@/lib/retention";
@@ -86,16 +85,6 @@ const {
 } = useInputDevices();
 const { enabled: soundCuesEnabled } = useSoundCues();
 const { enabled: muteWhileDictatingEnabled } = useMuteWhileDictating();
-const updater = useUpdater();
-const updateStatus = computed<string>(() => {
-  if (updater.phase.value === "checking") return t('generalSettings.checking');
-  if (updater.phase.value === "up-to-date") return t('generalSettings.upToDate');
-  if (["available", "downloading", "ready", "installing"].includes(updater.phase.value)) {
-    return updater.version.value ? t('generalSettings.versionAvailable', { version: updater.version.value }) : t('generalSettings.updateAvailable');
-  }
-  if (updater.phase.value === "error") return updater.errorMessage.value ?? t('generalSettings.updateFailed');
-  return t('generalSettings.updateHelp');
-});
 const { days: retentionDays } = useHistoryRetention();
 const { retention: meetingAudioRetention } = useMeetingAudioRetention();
 const { days: meetingTranscriptRetentionDays } = useMeetingTranscriptRetention();
@@ -423,24 +412,6 @@ function confirmMeetingAiPromptRestore(): void {
         </SettingRow>
 
         <Separator />
-
-        <SettingRow
-          v-if="updater.enabled"
-          :title="t('generalSettings.updates')"
-          :description="updateStatus"
-        >
-          <Button
-            size="sm"
-            variant="outline"
-            :disabled="updater.phase.value === 'checking' || updater.phase.value === 'downloading' || updater.phase.value === 'installing'"
-            @click="updater.checkForUpdates({ manual: true })"
-          >
-            <RefreshCw :class="['size-3.5', updater.phase.value === 'checking' ? 'animate-spin' : '']" aria-hidden="true" />
-            {{ t('generalSettings.checkUpdates') }}
-          </Button>
-        </SettingRow>
-
-        <Separator v-if="updater.enabled" />
 
         <SettingRow
           :title="t('generalSettings.sound')"

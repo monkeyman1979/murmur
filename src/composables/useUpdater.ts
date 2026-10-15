@@ -203,6 +203,13 @@ function dismissUpdate(): void {
   phase.value = "dismissed";
 }
 
+/** Settings → About can still install a version dismissed from the sidebar. */
+function resumeDismissedUpdate(): void {
+  if (phase.value !== "dismissed" || !availableUpdate) return;
+  writeStorage(DISMISSED_VERSION_KEY, null);
+  phase.value = "available";
+}
+
 function initializeUpdater(): void {
   if (initialized) return;
   initialized = true;
@@ -234,5 +241,6 @@ export function useUpdater() {
     installAndRestart,
     retryRelaunch,
     dismissUpdate,
+    resumeDismissedUpdate,
   };
 }

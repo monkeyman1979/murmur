@@ -301,9 +301,9 @@ fn production_updates_use_the_github_release_feed() {
     assert!(updater
         .contains("UPDATES_ENABLED = import.meta.env.PROD || import.meta.env.MODE === \"test\""));
     assert!(updater.contains("if (!UPDATES_ENABLED) return;"));
-    let settings = std::fs::read_to_string(repository.join("src/views/settings/General.vue"))
-        .expect("read General settings");
-    assert!(settings.contains("v-if=\"updater.enabled\""));
+    let about = std::fs::read_to_string(repository.join("src/views/settings/About.vue"))
+        .expect("read About settings");
+    assert!(about.contains("v-if=\"updater.enabled\""));
 }
 
 #[test]

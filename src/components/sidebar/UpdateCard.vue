@@ -2,49 +2,18 @@
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { IconTooltip } from "@/components/ui/tooltip";
-import { useCaptures } from "@/composables/useCaptures";
-import { useMurmurEvents } from "@/composables/useMurmurEvents";
-import { useUpdater } from "@/composables/useUpdater";
+import { useUpdateActions } from "@/composables/useUpdateActions";
 import { Download, RefreshCw, X } from "lucide-vue-next";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-const updater = useUpdater();
+const { updater, restartBlocked, statusLabel, actionLabel, runAction } = useUpdateActions();
 const { state: sidebarState, isMobile } = useSidebar();
-const { isRecording, isProcessingDictation } = useMurmurEvents();
-const { inProgress, hasActiveMutation } = useCaptures();
 
 const visible = computed(() => updater.enabled && updater.sidebarVisible.value);
 const compact = computed(() => sidebarState.value === "collapsed" && !isMobile.value);
-const restartBlocked = computed(() =>
-  isRecording.value || isProcessingDictation.value || inProgress.value.length > 0 || hasActiveMutation.value,
-);
-const statusLabel = computed(() => {
-  if (updater.phase.value === "available") return t('updatesCard.availableVersion', { version: updater.version.value ?? '' });
-  if (updater.phase.value === "downloading") return t('updatesCard.downloading');
-  if (updater.phase.value === "ready") {
-    if (restartBlocked.value) return t('updatesCard.readyBlocked');
-    return updater.errorMessage.value ?? t('updatesCard.ready');
-  }
-  if (updater.phase.value === "installing") return t('updatesCard.installing');
-  return updater.errorMessage.value ?? t('updatesCard.unavailable');
-});
-const actionLabel = computed(() => {
-  if (updater.phase.value === "available") return t('updatesCard.update');
-  if (updater.phase.value === "ready") return t(restartBlocked.value ? 'updatesCard.finishFirst' : 'updatesCard.restartUpdate');
-  if (updater.phase.value === "error" && updater.errorSource.value === "restart") return t('updatesCard.restart');
-  if (updater.phase.value === "error") return t('updatesCard.retry');
-  return null;
-});
-
-function runAction(): void {
-  if (updater.phase.value === "available") void updater.downloadUpdate();
-  else if (updater.phase.value === "ready") void updater.installAndRestart(restartBlocked.value);
-  else if (updater.phase.value === "error" && updater.errorSource.value === "restart") void updater.retryRelaunch();
-  else if (updater.phase.value === "error") void updater.checkForUpdates({ manual: true });
-}
 </script>
 
 <template>
