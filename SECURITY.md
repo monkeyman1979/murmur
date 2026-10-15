@@ -1,6 +1,6 @@
 # Security policy
 
-Murmur v0.1.1 is distributed as a Developer ID–signed, Apple-notarized DMG for Apple Silicon macOS. It requires macOS 14.4 or later; installed functional testing was performed on macOS 27.0.1, not every version in that range. Intel Macs, Windows and Linux are not supported. Report issues against the latest GitHub release; no fixed support lifetime or security-response deadline is promised. Starting with v0.1.2, in-app updates are offered from GitHub Releases and verified against Murmur's updater signing key before installing; earlier versions must be updated manually.
+Murmur v0.1.2 is distributed as a Developer ID–signed, Apple-notarized DMG for Apple Silicon macOS. It requires macOS 14.4 or later; installed functional testing was performed on macOS 27.0.1, not every version in that range. Intel Macs, Windows and Linux are not supported. Report issues against the latest GitHub release; no fixed support lifetime or security-response deadline is promised. Starting with v0.1.2, in-app updates are offered from GitHub Releases and verified against Murmur's updater signing key before installing; earlier versions must be updated manually.
 
 **Do not open a public issue for a vulnerability.** Issues, comments and attachments are public. Never post transcripts, recordings, API keys, signing material, logs containing personal data, or details that expose someone else's system. Do not upload a diagnostic report without reading and redacting it yourself.
 

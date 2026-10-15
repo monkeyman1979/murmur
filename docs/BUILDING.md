@@ -1,6 +1,6 @@
 # Build from source (macOS)
 
-For the official signed/notarized installer, use the download link in [README.md](../README.md). Commands here create development builds; they do not automatically establish trusted release artifacts. Murmur v0.1.1 requires Apple Silicon macOS 14.4+. Installed release checks were performed on macOS 27.0.1; older versions in that range remain unverified. Intel Macs, Windows and Linux are not supported; portable Rust checks on Linux do not establish app support.
+For the official signed/notarized installer, use the download link in [README.md](../README.md). Commands here create development builds; they do not automatically establish trusted release artifacts. Murmur v0.1.2 requires Apple Silicon macOS 14.4+. Installed release checks were performed on macOS 27.0.1; older versions in that range remain unverified. Intel Macs, Windows and Linux are not supported; portable Rust checks on Linux do not establish app support.
 
 Requirements: full Xcode with command-line tools, Rust 1.95.0 (`rust-toolchain.toml`), Node 22 or 24 (Node 24 used for the full local unit suite), Corepack and pnpm 10.32.0 (`packageManager` in `package.json`). Install the target/toolchain and native dependencies required by Tauri 2 and whisper.cpp/Metal. On macOS run:
 
