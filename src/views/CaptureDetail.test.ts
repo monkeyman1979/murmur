@@ -6,7 +6,6 @@ const captureMocks = vi.hoisted(() => ({
   route: null as unknown as { params: { captureId: string }; fullPath: string },
   getDetail: vi.fn(),
   saveAudioCopy: vi.fn(),
-  keepAudio: vi.fn(),
   deleteAudio: vi.fn(),
   refreshOne: vi.fn(),
 }));
@@ -29,7 +28,6 @@ vi.mock("@/composables/useCaptures", async () => {
       getDetail: captureMocks.getDetail,
       stateFor: () => ({ loading: false, error: null }),
       saveAudioCopy: captureMocks.saveAudioCopy,
-      keepAudio: captureMocks.keepAudio,
       deleteAudio: captureMocks.deleteAudio,
       refreshOne: captureMocks.refreshOne,
     }),
@@ -96,7 +94,6 @@ describe("CaptureDetail meeting actions and retained audio", () => {
         audio_retention: "temporary",
         audio_delete_at: Date.now() + 18 * 3_600_000,
         audio_bytes: 1_073_741_824,
-        audio_kept: false,
       },
       source_kind: null,
       source_bundle: null,
@@ -115,23 +112,18 @@ describe("CaptureDetail meeting actions and retained audio", () => {
     expect(actions.attributes("data-actions")!.split(",")).toContain("copy_path");
     expect(wrapper.text()).toContain("Audio retained for recovery · deletes in 18 hours · 1.0 GB");
     expect(wrapper.text()).toContain("Save audio copy");
-    expect(wrapper.text()).toContain("Keep until deleted");
+    expect(wrapper.text()).not.toContain("Keep until deleted");
     expect(wrapper.text()).toContain("Delete audio");
 
     const buttons = wrapper.findAll("button");
     const saveAudioButton = buttons.find((button) => button.text() === "Save audio copy")!;
-    const keepAudioButton = buttons.find((button) => button.text() === "Keep until deleted")!;
     const deleteAudioButton = buttons.find((button) => button.text() === "Delete audio")!;
     expect(saveAudioButton.classes()).toContain("cursor-pointer");
-    expect(keepAudioButton.classes()).toContain("cursor-pointer");
     expect(deleteAudioButton.classes()).toContain("cursor-pointer");
     await saveAudioButton.trigger("click");
-    await keepAudioButton.trigger("click");
     await deleteAudioButton.trigger("click");
     await flushPromises();
     expect(captureMocks.saveAudioCopy).toHaveBeenCalledWith(expect.objectContaining({ id: 42 }));
-    expect(captureMocks.keepAudio).toHaveBeenCalledWith(42);
-    expect(captureMocks.refreshOne).toHaveBeenCalledWith(42);
     expect(captureMocks.deleteAudio).not.toHaveBeenCalled();
 
     vi.useRealTimers();
@@ -180,7 +172,6 @@ describe("CaptureDetail meeting actions and retained audio", () => {
         audio_retention: "failure_preserved",
         audio_delete_at: null,
         audio_bytes: 128,
-        audio_kept: false,
       },
       source_kind: null,
       source_bundle: null,
@@ -219,7 +210,6 @@ describe("CaptureDetail meeting actions and retained audio", () => {
         audio_retention: null,
         audio_delete_at: null,
         audio_bytes: 0,
-        audio_kept: false,
       },
       source_kind: null,
       source_bundle: null,

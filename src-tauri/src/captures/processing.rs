@@ -841,8 +841,9 @@ impl MeetingTranscriptionCoordinator {
                 return Err(error);
             }
         };
+        // Debug audio validation keeps recordings for the longest window.
         let retention = if retain_meeting_audio_enabled() {
-            SuccessfulAudioRetention::Keep
+            SuccessfulAudioRetention::After7Days
         } else {
             self.audio_retention.snapshot()
         };

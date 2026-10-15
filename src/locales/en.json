@@ -135,7 +135,7 @@
     "cancel_transcription": "Cancel transcription", "retry_finalization": "Retry saving",
     "choose_folder": "Choose another folder", "retry_cleanup": "Retry cleanup",
     "cleanup_audio": "Retry temporary-audio cleanup", "save_audio": "Save audio copy",
-    "keep_audio": "Keep until deleted", "delete_audio": "Delete audio", "regenerate": "Regenerate Markdown",
+    "delete_audio": "Delete audio", "regenerate": "Regenerate Markdown",
     "copy_transcript": "Copy transcript", "copy_for_ai": "Copy for AI", "copy_path": "Copy file path",
     "reveal": "Reveal in Finder", "stopping": "Stopping…", "working": "Working…",
     "more": "More meeting actions", "view": "View transcript"
@@ -179,7 +179,7 @@
     "notFound": "Meeting not found.", "details": "Details", "created": "Created", "started": "Started",
     "ended": "Ended", "notStarted": "Not started", "inProgress": "In progress", "language": "Language",
     "automatic": "Automatic", "words": "Words", "retainedAudio": "Retained audio",
-    "noAudio": "No retained audio", "kept": "Kept until deleted", "retained": "Retained",
+    "noAudio": "No retained audio", "retained": "Retained",
     "activeRecording": "Meeting recording", "finishTranscribe": "Finish & transcribe",
     "transcript": "Transcript", "segments": "Transcript segments", "overlapping": "Overlapping speech at {time}",
     "unavailable": "The durable transcript is not available to display."
@@ -203,7 +203,7 @@
       "retry_transcription": "Transcription retry wasn't started", "pause_transcription": "Transcription wasn't paused", "resume_transcription": "Transcription wasn't resumed", "cancel_transcription": "Transcription wasn't cancelled",
       "retry_finalization": "Saving retry wasn't started", "choose_folder": "Folder wasn't updated",
       "retry_cleanup": "Cleanup retry failed", "cleanup_audio": "Temporary audio wasn't cleaned up",
-      "save_audio": "Audio copy wasn't saved", "keep_audio": "Audio retention wasn't updated",
+      "save_audio": "Audio copy wasn't saved",
       "delete_audio": "Retained audio wasn't deleted", "regenerate": "Markdown wasn't restored",
       "copy_transcript": "Transcript wasn't copied", "copy_for_ai": "Prompt and transcript weren't copied",
       "copy_path": "File path wasn't copied", "reveal": "Transcript couldn't be revealed"
@@ -211,7 +211,7 @@
     "titleUpdated": "Title updated", "retryStarted": "Transcription retry started",
     "transcriptionStopped": "Transcription cancelled", "transcriptionPaused": "Transcription paused", "transcriptionResumed": "Transcription resumed", "savingRetry": "Saving retry started",
     "markdownRestored": "Markdown restored", "audioCleaned": "Temporary audio cleaned up",
-    "audioKept": "Meeting audio kept", "audioDeleted": "Retained audio deleted",
+    "audioDeleted": "Retained audio deleted",
     "folderUpdated": "Transcript folder updated", "audioSaved": "Audio copy saved",
     "captureDeleted": "Capture deleted", "meetingDeleted": "Meeting deleted",
     "meetingsDeleted": "{count} meetings deleted", "meetingHistoryFailed": "Meeting history wasn't deleted",
@@ -241,7 +241,7 @@
     "markdownMissing": "The transcript is safe in Murmur; its Markdown copy is missing."
   },
   "captureAudio": {
-    "kept": "Audio kept{size}", "preserved": "Audio preserved{size}",
+    "preserved": "Audio preserved{size}",
     "cleanupPending": "Audio cleanup pending{size}", "retained": "Audio retained{size}",
     "recoveryCountdown": "Audio retained for recovery · deletes in {duration}{size}",
     "hours": "{count} {unit}", "days": "{count} {unit}"
@@ -385,10 +385,10 @@
     "meetingCaptures": "Meeting captures", "keepMeetings": "Keep meeting transcripts for",
     "meetingRetentionHelp": "Completed meetings older than this window are removed automatically. Shortening the window applies immediately after confirmation. Failed, interrupted, active, and processing meetings are kept.",
     "meetingRetentionLabel": "Meeting transcript retention window", "keepAudio": "Keep successful meeting audio for",
-    "audioRetentionHelp": "Successful recordings stay local for a recovery grace period. Failed or interrupted audio is preserved until you retry, save a copy, or explicitly delete it.",
-    "audioRetentionLabel": "Successful meeting audio retention", "deleteMeetings": "Delete meeting history now",
-    "deleteMeetingsHelp": "Permanently delete stored meetings from Murmur, including retained meeting audio and recovery checkpoints. Active and processing meetings are left alone.",
-    "deleting": "Deleting…", "deleteAllMeetings": "Delete all meeting history?",
+    "audioRetentionHelp": "Recordings are kept privately inside Murmur on this Mac, separate from your transcript folder, and deleted after this period. To keep one, use Save audio copy on the meeting. Failed or interrupted recordings stay until you retry, save a copy, or delete them.",
+    "audioRetentionLabel": "Successful meeting audio retention", "deleteMeetings": "Delete all meetings from Murmur",
+    "deleteMeetingsHelp": "Permanently deletes every stored meeting from Murmur, including transcripts and any audio still kept. Markdown files in your transcript folder and audio copies you saved stay on your Mac. Active and processing meetings are left alone.",
+    "deleting": "Deleting…", "deleteAllMeetings": "Delete all meetings from Murmur?",
     "meetingsDeletedHelp": "This permanently removes every stored meeting that is not active or processing, including failed or interrupted captures, retained audio, and recovery checkpoints.",
     "savedCopiesSafe": "Markdown or audio copies you saved elsewhere stay on disk.",
     "confirmDeleteMeetings": "Delete all meetings",
@@ -404,7 +404,7 @@
     "dictationChangeHelp": "Any existing dictations older than {period} will be permanently deleted immediately.",
     "keepCurrent": "Keep current setting", "changeTo": "Change to {period}",
     "retentionForever": "Keep forever", "retentionDays": "{count} days", "retentionYear": "1 year",
-    "audioImmediately": "Delete immediately", "audioAfterHours": "After 24 hours", "audioAfterDays": "After 7 days", "audioUntilDeleted": "Until deleted",
+    "audioImmediately": "Delete immediately", "audioAfterHours": "After 24 hours", "audioAfterDays": "After 7 days",
     "dictationsForeverToast": "Dictations will be kept forever.", "meetingsForeverToast": "Meeting transcripts will be kept forever.",
     "dictationsAfterToast": "Dictations will be deleted after {period}.", "meetingsAfterToast": "Meeting transcripts will be deleted after {period}.",
     "aiPromptMissing": "Include {placeholder} exactly once.", "aiPromptRepeated": "Use {placeholder} only once.",

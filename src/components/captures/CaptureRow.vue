@@ -61,7 +61,7 @@ const actions = computed(() => {
     props.recordingActive,
     props.summary.transcription_queued,
   ).actions.filter(
-    (action) => action !== "rename" && !(action === "keep_audio" && props.summary.audio_kept),
+    (action): boolean => action !== "rename",
   );
   return props.allowedActions
     ? available.filter((action) => props.allowedActions!.includes(action))

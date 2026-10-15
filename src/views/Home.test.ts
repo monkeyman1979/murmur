@@ -11,7 +11,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const captureMocks = vi.hoisted(() => ({
   copyForAi: vi.fn(),
   saveAudioCopy: vi.fn(),
-  keepAudio: vi.fn(),
   deleteAudio: vi.fn(),
   pauseTranscription: vi.fn(),
   resumeTranscription: vi.fn(),
@@ -57,7 +56,6 @@ vi.mock("@/composables/useCaptures", () => {
       deleteCapture: vi.fn(),
       deleteAudio: captureMocks.deleteAudio,
       saveAudioCopy: captureMocks.saveAudioCopy,
-      keepAudio: captureMocks.keepAudio,
       cancelTranscription: vi.fn(),
       pauseTranscription: captureMocks.pauseTranscription,
       resumeTranscription: captureMocks.resumeTranscription,
@@ -90,7 +88,6 @@ const stubs = {
       <button data-test="resume-transcription" @click="$emit('action', 'resume_transcription', summary)">Resume transcription</button>
       <button data-test="copy-for-ai" @click="$emit('action', 'copy_for_ai', summary)">Copy for AI</button>
       <button data-test="save-audio" @click="$emit('action', 'save_audio', summary)">Save audio</button>
-      <button data-test="keep-audio" @click="$emit('action', 'keep_audio', summary)">Keep audio</button>
       <button data-test="delete-audio" @click="$emit('action', 'delete_audio', summary)">Delete audio</button>
     </div>`,
   },
@@ -159,7 +156,6 @@ describe("Home", () => {
     captureMocks.resumeTranscription.mockReset();
     captureMocks.copyForAi.mockReset();
     captureMocks.saveAudioCopy.mockReset();
-    captureMocks.keepAudio.mockReset();
     captureMocks.deleteAudio.mockReset();
   });
 
@@ -259,15 +255,14 @@ describe("Home", () => {
     const actions = (actionsAttribute ?? "").split(",");
     expect(actions).toEqual(expect.arrayContaining([
       "copy_for_ai", "copy_transcript", "copy_path", "reveal",
-      "save_audio", "keep_audio", "delete_audio", "regenerate", "delete",
+      "save_audio", "delete_audio", "regenerate", "delete",
     ]));
     expect(actions).not.toContain("open");
+    expect(actions).not.toContain("keep_audio");
 
     await wrapper.get('[data-test="save-audio"]').trigger("click");
-    await wrapper.get('[data-test="keep-audio"]').trigger("click");
     await wrapper.get('[data-test="delete-audio"]').trigger("click");
     expect(captureMocks.saveAudioCopy).toHaveBeenCalledWith(expect.objectContaining({ id: 42 }));
-    expect(captureMocks.keepAudio).toHaveBeenCalledWith(42);
     expect(captureMocks.deleteAudio).not.toHaveBeenCalled();
   });
 });
