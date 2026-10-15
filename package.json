@@ -27,6 +27,8 @@
     "build": "vue-tsc --noEmit && vite build && node scripts/check-production-bundle.mjs",
     "test:unit": "vitest run",
     "test:release-metadata": "node --test scripts/release-metadata.test.mjs",
+    "test:update-package": "node --test scripts/package-update.test.mjs",
+    "release:update-package": "node scripts/package-update.mjs",
     "check:release-metadata": "node scripts/check-release-metadata.mjs",
     "check:release-metadata:release": "node scripts/check-release-metadata.mjs --release",
     "legal:inventory": "node scripts/generate-third-party-inventory.mjs",

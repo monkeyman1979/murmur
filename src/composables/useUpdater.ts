@@ -4,9 +4,10 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { computed, ref } from "vue";
 import { i18n } from "@/i18n";
 
-// Source-only production builds must not contact an unverified update endpoint.
-// Keep the updater flow exercised by unit tests until a signed release is validated.
-export const UPDATES_ENABLED = import.meta.env.MODE === "test";
+// Release builds check the GitHub release feed (tauri.conf.json). Each update
+// is verified against the bundled updater public key before installation.
+// Development builds stay quiet so `tauri dev` never offers to replace itself.
+export const UPDATES_ENABLED = import.meta.env.PROD || import.meta.env.MODE === "test";
 const LAST_CHECK_KEY = "murmur:update-last-check";
 const DISMISSED_VERSION_KEY = "murmur:update-dismissed-version";
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1_000;
@@ -202,6 +203,13 @@ function dismissUpdate(): void {
   phase.value = "dismissed";
 }
 
+/** Settings → About can still install a version dismissed from the sidebar. */
+function resumeDismissedUpdate(): void {
+  if (phase.value !== "dismissed" || !availableUpdate) return;
+  writeStorage(DISMISSED_VERSION_KEY, null);
+  phase.value = "available";
+}
+
 function initializeUpdater(): void {
   if (initialized) return;
   initialized = true;
@@ -233,5 +241,6 @@ export function useUpdater() {
     installAndRestart,
     retryRelaunch,
     dismissUpdate,
+    resumeDismissedUpdate,
   };
 }

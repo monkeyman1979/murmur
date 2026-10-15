@@ -20,7 +20,7 @@ Murmur lives in the menu bar. Use its menu to open the window or **Quit Murmur**
 
 Meeting capture records your microphone and the Mac's system audio, not video. Ask participants for consent. The first meeting can trigger macOS **System Audio Recording** and **Documents** permission prompts; Markdown transcripts default to `Documents/Murmur/Meetings`. Microphone capture can begin while the first system-audio prompt is awaiting your answer. A folder-save failure offers another folder and retry, but denied-permission/recovery paths have not all been independently exercised.
 
-Automatic/manual in-app update checks are disabled in v0.1.1. Download updates from [GitHub Releases](https://github.com/monkeyman1979/murmur/releases) and replace the app manually. A retained-data update between the tested release candidates preserved local data and model files; migration from every historical development build and all interrupted-recording recovery cases has not been validated.
+Starting with v0.1.2, Murmur checks [GitHub Releases](https://github.com/monkeyman1979/murmur/releases) for a new version at launch, at most once a day, and shows it in the sidebar above Settings. Settings → About can also check, download and restart to update, even with the sidebar collapsed. Downloading and restarting remain your choice, and each update is verified against Murmur's updater signing key before it installs. v0.1.1 and earlier cannot check for updates; download v0.1.2 or later from GitHub Releases and replace the app manually. A retained-data update between the tested release candidates preserved local data and model files; migration from every historical development build and all interrupted-recording recovery cases has not been validated.
 
 ## Languages
 
@@ -36,6 +36,6 @@ Transcription runs locally after model download. Microphone and Accessibility pe
 
 ## Participate
 
-[CONTRIBUTING.md](CONTRIBUTING.md) explains tests, safe bug reports and contribution expectations. [SECURITY.md](SECURITY.md) explains private vulnerability reporting. Settings → About points to the [bug-report form](https://github.com/monkeyman1979/murmur/issues/new?template=bug_report.yml). The onboarding privacy link opens [docs/PRIVACY.md](docs/PRIVACY.md) on GitHub in a browser; it is not an offline in-app page. Automatic/manual in-app update checks and updater artifacts are disabled for this release; use GitHub Releases for manual downloads.
+[CONTRIBUTING.md](CONTRIBUTING.md) explains tests, safe bug reports and contribution expectations. [SECURITY.md](SECURITY.md) explains private vulnerability reporting. Settings → About points to the [bug-report form](https://github.com/monkeyman1979/murmur/issues/new?template=bug_report.yml). The onboarding privacy link opens [docs/PRIVACY.md](docs/PRIVACY.md) on GitHub in a browser; it is not an offline in-app page. In-app updates come from GitHub Releases, which also hosts manual downloads.
 
 Original Murmur material is [MIT licensed](LICENSE). Third-party components retain their own terms: see [bundled notices](src-tauri/resources/THIRD-PARTY-NOTICES.txt) and the [dependency inventory](third-party/dependency-inventory.json). Complete license texts stay in those separate files, not the in-app Acknowledgements summary. The downloaded speech model is separate from the installer and retains its own license.
