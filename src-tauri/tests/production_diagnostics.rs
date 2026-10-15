@@ -237,13 +237,15 @@ fn local_signed_build_does_not_require_production_updater_secrets() {
 }
 
 #[test]
-fn source_only_build_pauses_public_updates() {
+fn production_updates_use_the_github_release_feed() {
     let repository = manifest_path("..");
     let config: serde_json::Value = serde_json::from_str(
         &std::fs::read_to_string(manifest_path("tauri.conf.json"))
             .expect("read production Tauri config"),
     )
     .expect("parse production Tauri config");
+    // Update archives are built from the notarized app by
+    // scripts/package-update.mjs, never from the unsigned bundle.
     assert_eq!(
         config
             .pointer("/bundle/createUpdaterArtifacts")
@@ -254,7 +256,7 @@ fn source_only_build_pauses_public_updates() {
         config
             .pointer("/plugins/updater/endpoints/0")
             .and_then(serde_json::Value::as_str),
-        Some("https://releases.seedtoshelves.com/murmur/stable/latest.json")
+        Some("https://github.com/monkeyman1979/murmur/releases/latest/download/latest.json")
     );
     assert!(config
         .pointer("/plugins/updater/pubkey")
@@ -296,7 +298,8 @@ fn source_only_build_pauses_public_updates() {
 
     let updater = std::fs::read_to_string(repository.join("src/composables/useUpdater.ts"))
         .expect("read updater composable");
-    assert!(updater.contains("UPDATES_ENABLED = import.meta.env.MODE === \"test\""));
+    assert!(updater
+        .contains("UPDATES_ENABLED = import.meta.env.PROD || import.meta.env.MODE === \"test\""));
     assert!(updater.contains("if (!UPDATES_ENABLED) return;"));
     let settings = std::fs::read_to_string(repository.join("src/views/settings/General.vue"))
         .expect("read General settings");
