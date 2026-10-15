@@ -301,10 +301,10 @@
     "redownload": "Télécharger à nouveau le modèle", "reveal": "Afficher dans le Finder", "deleteModel": "Supprimer le modèle"
   },
   "permissionSettings": {
-    "heading": "Autorisations système", "microphone": "Microphone", "microphoneHelp": "Enregistrer l’audio lorsque vous maintenez le raccourci.",
-    "inputMonitoring": "Surveillance de l’entrée", "inputHelp": "Détecter le raccourci de dictée dans tout le système grâce à CGEventTap.",
-    "accessibility": "Accessibilité", "accessibilityHelp": "Simuler ⌘V pour coller le texte transcrit dans l’application active.",
-    "refreshHelp": "L’état s’actualise toutes les quelques secondes. Les autorisations accordées ou retirées dans Réglages Système apparaissent ici sans redémarrage. « Ouvrir Réglages » mène directement à la section de confidentialité correspondante.",
+    "heading": "Autorisations système", "microphone": "Microphone", "microphoneHelp": "Enregistrez l’audio pour la dictée et les réunions.",
+    "inputMonitoring": "Surveillance de l’entrée", "inputHelp": "Détectez votre raccourci clavier.",
+    "accessibility": "Accessibilité", "accessibilityHelp": "Utilisez votre raccourci et collez du texte dans les apps.",
+    "refreshHelp": "L’état s’actualise toutes les quelques secondes : les modifications effectuées dans Réglages Système apparaissent ici sans redémarrage. Accessibilité permet aussi à Murmur de détecter votre raccourci, donc Surveillance de l’entrée n’apparaît que si votre Mac en a besoin séparément.",
     "granted": "Accordé", "denied": "Non accordé", "notDetermined": "Pas encore demandé", "unknown": "Inconnu", "checking": "Vérification…",
     "grant": "Accorder", "openSettings": "Ouvrir Réglages"
   },

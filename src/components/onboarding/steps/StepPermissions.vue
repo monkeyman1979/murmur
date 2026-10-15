@@ -8,8 +8,9 @@ import {
   Mic,
 } from "lucide-vue-next";
 import { invoke } from "@tauri-apps/api/core";
-import { computed, onBeforeUnmount, reactive, ref, watch } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useInputMonitoringFallback } from "@/composables/useInputMonitoringFallback";
 import {
   type PermissionState,
   useMurmurEvents,
@@ -57,26 +58,7 @@ const accessState = computed<PermissionState | null>(
 const stillNeedsAccess = (state: PermissionState | null) =>
   state === "denied" || state === "not-determined";
 
-// On macOS 27 an Accessibility grant also authorizes the shortcut's
-// listen-only event tap, and an Input Monitoring request made while
-// Accessibility is off is answered silently (see permissions.rs). So the
-// Input Monitoring row is only a fallback: shown if listening is still
-// missing a few seconds after Accessibility is granted, which is long
-// enough for the hotkey tap to start and the 2 s watcher to report it.
-const INPUT_FALLBACK_DELAY_MS = 6000;
-const inputFallbackDue = ref(false);
-let inputFallbackTimer: ReturnType<typeof setTimeout> | undefined;
-watch(accessState, (state) => {
-  clearTimeout(inputFallbackTimer);
-  inputFallbackDue.value = false;
-  if (state === "granted") {
-    inputFallbackTimer = setTimeout(() => { inputFallbackDue.value = true; }, INPUT_FALLBACK_DELAY_MS);
-  }
-}, { immediate: true });
-onBeforeUnmount(() => clearTimeout(inputFallbackTimer));
-const showInputFallback = computed(() =>
-  inputFallbackDue.value && isGranted(accessState.value) && stillNeedsAccess(inputState.value),
-);
+const showInputFallback = useInputMonitoringFallback(accessState, inputState);
 
 const needsRelaunchHelp = computed(() =>
   showInputFallback.value
