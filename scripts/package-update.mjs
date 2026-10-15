@@ -20,6 +20,7 @@ import { parseCargoPackageVersion, validateReleaseMetadata } from "./release-met
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const REPOSITORY = "monkeyman1979/murmur";
 const PLATFORM = "darwin-aarch64";
+const KEYCHAIN_SERVICE = "murmur-updater-key";
 const ED25519_SPKI_PREFIX = Buffer.from("302a300506032b6570032100", "hex");
 
 export function updateArchiveName(version) {
@@ -89,6 +90,21 @@ function parseArgs(argv) {
   return options;
 }
 
+/**
+ * The updater key password lives in the login keychain, so signing needs no
+ * typed password; macOS may ask the owner to allow access.
+ */
+function keychainPassword() {
+  try {
+    return execFileSync("/usr/bin/security", ["find-generic-password", "-s", KEYCHAIN_SERVICE, "-w"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).replace(/\n$/, "");
+  } catch {
+    throw new Error(`No "${KEYCHAIN_SERVICE}" keychain item. Set TAURI_SIGNING_PRIVATE_KEY_PASSWORD or add the password to the keychain.`);
+  }
+}
+
 function plistValue(app, key) {
   return execFileSync("/usr/bin/plutil", ["-extract", key, "raw", "-o", "-", join(app, "Contents", "Info.plist")], { encoding: "utf8" }).trim();
 }
@@ -122,10 +138,12 @@ function main() {
 
   const key = options.key ?? process.env.TAURI_SIGNING_PRIVATE_KEY_PATH ?? join(homedir(), ".tauri", "murmur-updater.key");
   if (!existsSync(key)) throw new Error(`Updater private key not found at ${key}.`);
-  // The signer asks for the key password unless TAURI_SIGNING_PRIVATE_KEY_PASSWORD
-  // is set. An inline key in the environment would compete with the key file.
+  // An inline key in the environment would compete with the key file.
   const env = { ...process.env };
   delete env.TAURI_SIGNING_PRIVATE_KEY;
+  if (env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD === undefined) {
+    env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD = keychainPassword();
+  }
   const signed = spawnSync("corepack", ["pnpm", "--silent", "tauri", "signer", "sign", "--private-key-path", key, archive], {
     cwd: ROOT,
     stdio: "inherit",
