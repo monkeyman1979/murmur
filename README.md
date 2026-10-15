@@ -4,9 +4,9 @@ Murmur is a local-first macOS menu-bar app for voice dictation and meeting trans
 
 ## Download
 
-**[Download for Apple Silicon Mac (.dmg)](https://github.com/monkeyman1979/murmur/releases/download/v0.1.1/Murmur_0.1.1_aarch64.dmg)**
+**[Download for Apple Silicon Mac (.dmg)](https://github.com/monkeyman1979/murmur/releases/download/v0.1.2/Murmur_0.1.2_aarch64.dmg)**
 
-**Requires macOS 14.4 or later. Not compatible with Intel Macs.** Windows and Linux are not supported. The v0.1.1 installer is Developer ID–signed, Apple-notarized and stapled; its checksum is included in the [GitHub Release](https://github.com/monkeyman1979/murmur/releases/tag/v0.1.1).
+**Requires macOS 14.4 or later. Not compatible with Intel Macs.** Windows and Linux are not supported. The v0.1.2 installer is Developer ID–signed, Apple-notarized and stapled; its checksum is included in the [GitHub Release](https://github.com/monkeyman1979/murmur/releases/tag/v0.1.2).
 
 Installation and functional checks were performed on Apple Silicon with **macOS 27.0.1 (26A434)**. The macOS 14.4 floor is the configured requirement, not a claim that every older supported macOS version has been independently tested.
 
