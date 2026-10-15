@@ -33,8 +33,7 @@ vi.mock("@/composables/useCaptures", async () => {
     audio_retention: null,
     audio_delete_at: null,
     audio_bytes: 0,
-    audio_kept: false,
-  });
+    });
   const timestamp = (day: number, hour: number) =>
     new Date(2026, 8, day, hour).getTime();
   const completed = ref([

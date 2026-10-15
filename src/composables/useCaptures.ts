@@ -327,7 +327,6 @@ const cancelTranscription = (id: number) => mergeMutation(id, "cancel_transcript
 const retryFinalization = (id: number) => mergeMutation(id, "retry_finalization", "capture_ui_retry_finalization", { captureId: id }, "Saving retry started.", 'captureToasts.savingRetry');
 const regenerate = (id: number, overwrite = false) => mergeMutation(id, "regenerate", "capture_ui_regenerate_markdown", { captureId: id, overwrite }, "Markdown restored.", 'captureToasts.markdownRestored');
 const retryAudioCleanup = (id: number) => mergeMutation(id, "cleanup_audio", "capture_ui_retry_audio_cleanup", { captureId: id }, "Temporary audio cleaned up.", 'captureToasts.audioCleaned');
-const keepAudio = (id: number) => mergeMutation(id, "keep_audio", "capture_keep_audio", { captureId: id }, "Audio kept until you delete it.", 'captureToasts.audioKept');
 const deleteAudio = (id: number) => mergeMutation(id, "delete_audio", "capture_delete_audio", { captureId: id }, "Retained audio deleted. The transcript remains in Murmur.", 'captureToasts.audioDeleted');
 
 async function chooseFolderAndRetry(id: number): Promise<CaptureSummary | null> {
@@ -524,7 +523,7 @@ export function useCaptures() {
     query, loading, refreshing, loadingMore, hasMore, listError, outputDisclosure,
     details, actionStates, hasActiveMutation, stateFor, clearAction, getDetail, hydrate, refresh, refreshOne,
     loadMore, setQuery, rename, retryTranscription, retryFinalization, chooseFolderAndRetry,
-    regenerate, retryAudioCleanup, keepAudio, deleteAudio, saveAudioCopy, deleteCapture,
+    regenerate, retryAudioCleanup, deleteAudio, saveAudioCopy, deleteCapture,
     clearAllMeetings, pauseTranscription, resumeTranscription, cancelTranscription,
     retryDeleteCleanup, copyTranscript, copyForAi, copyPath, revealTranscript,
     captureErrorCopy,

@@ -140,7 +140,6 @@ async function handleMeetingAction(
   if (action === "resume_transcription") await captures.resumeTranscription(summary.id);
   if (action === "cancel_transcription") await captures.cancelTranscription(summary.id);
   if (action === "save_audio") await captures.saveAudioCopy(summary);
-  if (action === "keep_audio") await captures.keepAudio(summary.id);
   if (action === "copy_for_ai") await captures.copyForAi(summary.id);
   if (action === "copy_transcript") await captures.copyTranscript(summary.id);
   if (action === "copy_path") await captures.copyPath(summary.id);

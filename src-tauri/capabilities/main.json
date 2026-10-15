@@ -50,7 +50,6 @@
     "allow-set-meeting-audio-retention",
     "allow-set-meeting-transcript-retention",
     "allow-capture-clear-all-meetings",
-    "allow-capture-keep-audio",
     "allow-capture-delete-audio",
     "allow-capture-save-audio-copy",
     "allow-capture-ui-retry-finalization",

@@ -8,7 +8,7 @@ describe("CaptureActions", () => {
   it("renders transcript navigation before actions and keeps the primary action trailing", () => {
     const wrapper = shallowMount(CaptureActions, {
       props: {
-        actions: ["copy_for_ai", "keep_audio", "delete"],
+        actions: ["copy_for_ai", "save_audio", "delete"],
         primary: "copy_for_ai",
         primaryLast: true,
         detailTo: "/captures/42",
@@ -57,7 +57,7 @@ describe("CaptureActions", () => {
     expect(overflow.closest("[data-row-interactive]")).not.toBeNull();
     expect(primary.closest("[data-row-interactive]")).not.toBeNull();
     expect(primary.classList.contains("cursor-pointer")).toBe(true);
-    expect(wrapper.get('[data-test="menu"]').text()).toContain("Keep until deleted");
+    expect(wrapper.get('[data-test="menu"]').text()).toContain("Save audio copy");
   });
 
   it("uses the retry action token and reflects its actual pending state", async () => {

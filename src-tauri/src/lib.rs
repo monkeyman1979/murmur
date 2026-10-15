@@ -331,7 +331,6 @@ pub fn run() {
             captures::set_meeting_audio_retention,
             captures::set_meeting_transcript_retention,
             captures::capture_clear_all_meetings,
-            captures::capture_keep_audio,
             captures::capture_delete_audio,
             captures::capture_save_audio_copy,
             captures::capture_ui_retry_finalization,

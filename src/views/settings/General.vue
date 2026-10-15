@@ -126,7 +126,7 @@ function retentionLabel(days: number): string {
     : t('generalSettings.retentionDays', { count: days });
 }
 function audioRetentionLabel(value: string): string {
-  return t(`generalSettings.${({ delete_immediately: 'audioImmediately', after_24_hours: 'audioAfterHours', after_7_days: 'audioAfterDays', keep: 'audioUntilDeleted' } as Record<string, string>)[value]}`);
+  return t(`generalSettings.${({ delete_immediately: 'audioImmediately', after_24_hours: 'audioAfterHours', after_7_days: 'audioAfterDays' } as Record<string, string>)[value]}`);
 }
 const meetingAiHandoffDirty = computed(() =>
   meetingAiHandoffDraft.value !== meetingAiHandoffPrompt.value,
