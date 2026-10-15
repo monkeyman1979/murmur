@@ -41,8 +41,7 @@ export type MeetingAudioRetention =
   | "failure_preserved"
   | "delete_immediately"
   | "after_24_hours"
-  | "after_7_days"
-  | "keep";
+  | "after_7_days";
 
 export interface CaptureSummary {
   id: number;
@@ -68,7 +67,6 @@ export interface CaptureSummary {
   audio_retention: MeetingAudioRetention | null;
   audio_delete_at: number | null;
   audio_bytes: number;
-  audio_kept: boolean;
 }
 
 export interface CaptureDetail {
@@ -151,7 +149,6 @@ export type CaptureAction =
   | "retry_cleanup"
   | "cleanup_audio"
   | "save_audio"
-  | "keep_audio"
   | "delete_audio"
   | "regenerate"
   | "copy_transcript"
@@ -166,7 +163,7 @@ export const MEETING_DELETE_DESCRIPTION = "This removes the meeting and any reta
 export const CAPTURE_ACTIONS: CaptureAction[] = [
   "rename", "delete", "retry_transcription", "pause_transcription", "resume_transcription", "cancel_transcription",
   "retry_finalization", "choose_folder", "retry_cleanup", "cleanup_audio",
-  "save_audio", "keep_audio", "delete_audio", "regenerate", "copy_transcript",
+  "save_audio", "delete_audio", "regenerate", "copy_transcript",
   "copy_for_ai", "copy_path", "reveal",
 ];
 
@@ -262,7 +259,7 @@ function nullableNumber(value: unknown): number | null {
 
 function audioRetention(value: unknown): MeetingAudioRetention | null {
   return value === "failure_preserved" || value === "delete_immediately"
-    || value === "after_24_hours" || value === "after_7_days" || value === "keep"
+    || value === "after_24_hours" || value === "after_7_days"
     ? value
     : null;
 }
@@ -308,7 +305,6 @@ export function normalizeSummary(value: unknown): CaptureSummary {
     audio_retention: audioRetention(input.audio_retention),
     audio_delete_at: nullableNumber(input.audio_delete_at),
     audio_bytes: typeof input.audio_bytes === "number" ? Math.max(0, input.audio_bytes) : 0,
-    audio_kept: input.audio_kept === true,
   };
 }
 
@@ -509,7 +505,7 @@ export function statePresentation(
         ...(markdown === "available" || markdown === "missing" ? ["copy_path" as const] : []),
         ...(markdown === "available" ? ["reveal" as const] : []),
         ...(markdown === "missing" ? ["regenerate" as const] : []),
-        ...(hasRecoveryAudio ? ["save_audio" as const, "keep_audio" as const, "delete_audio" as const] : []),
+        ...(hasRecoveryAudio ? ["save_audio" as const, "delete_audio" as const] : []),
         "delete",
       ],
     };
@@ -621,7 +617,6 @@ export function audioRetentionLabel(summary: CaptureSummary, now = Date.now(), t
   if (!hasUsableRecoveryAudio(summary)) return null;
   const size = summary.audio_bytes > 0 ? ` · ${formatBytes(summary.audio_bytes)}` : "";
   if (translate) {
-    if (summary.audio_kept || summary.audio_retention === 'keep') return translate('captureAudio.kept', { size });
     if (summary.audio_retention === 'failure_preserved') return translate('captureAudio.preserved', { size });
     if (summary.audio_delete_at) {
       const remaining = summary.audio_delete_at - now;
@@ -634,7 +629,6 @@ export function audioRetentionLabel(summary: CaptureSummary, now = Date.now(), t
     }
     return translate('captureAudio.retained', { size });
   }
-  if (summary.audio_kept || summary.audio_retention === "keep") return `Audio kept${size}`;
   if (summary.audio_retention === "failure_preserved") return `Audio preserved${size}`;
   if (summary.audio_delete_at) {
     const remaining = summary.audio_delete_at - now;

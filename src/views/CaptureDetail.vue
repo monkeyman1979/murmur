@@ -17,7 +17,7 @@ import {
   parseTranscriptBlocks, primaryCaptureAction, statePresentation,
   type CaptureAction, type CaptureDetail, type CaptureError,
 } from "@/lib/captures";
-import { formatBytes, formatCaptureDate, formatInteger, formatMeetingDuration, formatTranscriptTimestamp } from "@/lib/format";
+import { formatCaptureDate, formatInteger, formatMeetingDuration, formatTranscriptTimestamp } from "@/lib/format";
 import { ArrowLeft, AudioLines, ChevronDown, Pause, Play, Square } from "lucide-vue-next";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
@@ -51,7 +51,7 @@ const usableRecoveryAudio = computed(() => summary.value
   : false);
 const actions = computed(() => summary.value
   ? statePresentation(summary.value.status, summary.value.markdown_status, usableRecoveryAudio.value, summary.value.error_code, summary.value.can_retry_transcription, summary.value.transcription_paused, !!meeting.activeCapture.value, summary.value.transcription_queued).actions
-      .filter((action) => action !== "rename" && !(action === "keep_audio" && summary.value?.audio_kept))
+      .filter((action): boolean => action !== "rename")
   : []);
 const primary = computed(() => summary.value ? primaryCaptureAction(summary.value) : null);
 const noticeActions = computed<CaptureAction[]>(() => {
@@ -72,10 +72,6 @@ const activePaused = computed(() => meeting.activeCapture.value?.status === "pau
 const audioLabel = computed(() => summary.value ? audioRetentionLabel(summary.value, Date.now(), t, locale.value) : null);
 const audioDetailLabel = computed(() => {
   if (!summary.value?.has_recovery_audio) return t('captureDetail.noAudio');
-  if (summary.value.audio_kept || summary.value.audio_retention === "keep") {
-    const size = summary.value.audio_bytes > 0 ? `${formatBytes(summary.value.audio_bytes)} · ` : "";
-    return `${size}${t('captureDetail.kept')}`;
-  }
   return audioLabel.value ?? t('captureDetail.retained');
 });
 const showAudioDetails = computed(() => usableRecoveryAudio.value);
@@ -124,7 +120,6 @@ async function handleAction(action: CaptureAction): Promise<void> {
   if (action === "choose_folder") return applySummary(() => captures.chooseFolderAndRetry(id));
   if (action === "cleanup_audio") return applySummary(() => captures.retryAudioCleanup(id));
   if (action === "save_audio") { await captures.saveAudioCopy(summary.value); return; }
-  if (action === "keep_audio") return applySummary(() => captures.keepAudio(id));
   if (action === "copy_transcript") { await captures.copyTranscript(id); return; }
   if (action === "copy_for_ai") { await captures.copyForAi(id); return; }
   if (action === "copy_path") { await captures.copyPath(id); return; }
@@ -243,7 +238,6 @@ async function finishMeeting(): Promise<void> { await meeting.stop(); }
                   </dt>
                   <dd v-if="summary.has_recovery_audio" class="flex flex-wrap items-center gap-2 sm:justify-end">
                     <Button v-if="hasAction('save_audio')" variant="outline" size="xs" class="cursor-pointer" :disabled="busyActions.includes('save_audio')" @click="handleAction('save_audio')">{{ t('captureActions.save_audio') }}</Button>
-                    <Button v-if="hasAction('keep_audio')" variant="outline" size="xs" class="cursor-pointer" :disabled="busyActions.includes('keep_audio')" @click="handleAction('keep_audio')">{{ t('captureActions.keep_audio') }}</Button>
                     <Button v-if="hasAction('delete_audio')" variant="ghost" size="xs" class="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive" :disabled="busyActions.includes('delete_audio')" @click="handleAction('delete_audio')">{{ t('captureActions.delete_audio') }}</Button>
                   </dd>
                 </div>

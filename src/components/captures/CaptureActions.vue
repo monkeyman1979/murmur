@@ -63,7 +63,7 @@ const actionLabel = (action: CaptureAction) => busy(action)
             <MoreHorizontal class="size-4" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" class="w-52">
+        <DropdownMenuContent align="end" class="w-max min-w-52">
           <DropdownMenuItem v-if="detailTo" as-child>
             <RouterLink :to="detailTo">{{ t('captureActions.view') }}</RouterLink>
           </DropdownMenuItem>

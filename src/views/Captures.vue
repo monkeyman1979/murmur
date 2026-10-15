@@ -93,7 +93,6 @@ async function handleAction(action: CaptureAction, summary: CaptureSummary): Pro
   if (action === "choose_folder") return run(() => captures.chooseFolderAndRetry(summary.id));
   if (action === "cleanup_audio") return run(() => captures.retryAudioCleanup(summary.id));
   if (action === "save_audio") return run(() => captures.saveAudioCopy(summary));
-  if (action === "keep_audio") return run(() => captures.keepAudio(summary.id));
   if (action === "copy_transcript") return run(() => captures.copyTranscript(summary.id));
   if (action === "copy_for_ai") return run(() => captures.copyForAi(summary.id));
   if (action === "copy_path") return run(() => captures.copyPath(summary.id));

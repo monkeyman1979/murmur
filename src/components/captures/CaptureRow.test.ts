@@ -34,7 +34,6 @@ const summary = {
   audio_retention: null,
   audio_delete_at: null,
   audio_bytes: 0,
-  audio_kept: false,
 } satisfies CaptureSummary;
 
 const stubs = {

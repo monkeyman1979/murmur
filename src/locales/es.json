@@ -109,7 +109,7 @@
     "cancel_transcription": "Cancelar transcripción", "retry_finalization": "Reintentar guardado",
     "choose_folder": "Elegir otra carpeta", "retry_cleanup": "Reintentar limpieza",
     "cleanup_audio": "Reintentar limpieza del audio temporal", "save_audio": "Guardar copia de audio",
-    "keep_audio": "Conservar hasta eliminar", "delete_audio": "Eliminar audio", "regenerate": "Regenerar Markdown",
+    "delete_audio": "Eliminar audio", "regenerate": "Regenerar Markdown",
     "copy_transcript": "Copiar transcripción", "copy_for_ai": "Copiar para IA", "copy_path": "Copiar ruta del archivo",
     "reveal": "Mostrar en Finder", "stopping": "Deteniendo…", "working": "Procesando…",
     "more": "Más acciones de la reunión", "view": "Ver transcripción"
@@ -153,7 +153,7 @@
     "notFound": "No se encontró la reunión.", "details": "Detalles", "created": "Creada", "started": "Iniciada",
     "ended": "Finalizada", "notStarted": "Sin iniciar", "inProgress": "En curso", "language": "Idioma",
     "automatic": "Automático", "words": "Palabras", "retainedAudio": "Audio conservado",
-    "noAudio": "No hay audio conservado", "kept": "Conservado hasta su eliminación", "retained": "Conservado",
+    "noAudio": "No hay audio conservado", "retained": "Conservado",
     "activeRecording": "Grabación de la reunión", "finishTranscribe": "Finalizar y transcribir",
     "transcript": "Transcripción", "segments": "Segmentos de la transcripción", "overlapping": "Voces superpuestas en {time}",
     "unavailable": "La transcripción guardada no está disponible para mostrarla."
@@ -177,7 +177,7 @@
       "retry_transcription": "No se inició el nuevo intento de transcripción", "pause_transcription": "No se pausó la transcripción", "resume_transcription": "No se reanudó la transcripción", "cancel_transcription": "No se canceló la transcripción",
       "retry_finalization": "No se inició el nuevo intento de guardado", "choose_folder": "No se cambió la carpeta",
       "retry_cleanup": "Falló el nuevo intento de limpieza", "cleanup_audio": "No se eliminó el audio temporal",
-      "save_audio": "No se guardó la copia de audio", "keep_audio": "No se actualizó la conservación del audio",
+      "save_audio": "No se guardó la copia de audio",
       "delete_audio": "No se eliminó el audio conservado", "regenerate": "No se restauró el Markdown",
       "copy_transcript": "No se copió la transcripción", "copy_for_ai": "No se copiaron las instrucciones y la transcripción",
       "copy_path": "No se copió la ruta del archivo", "reveal": "No se pudo mostrar la transcripción"
@@ -185,7 +185,7 @@
     "titleUpdated": "Título actualizado", "retryStarted": "Se inició el nuevo intento de transcripción",
     "transcriptionStopped": "Transcripción cancelada", "transcriptionPaused": "Transcripción en pausa", "transcriptionResumed": "Transcripción reanudada", "savingRetry": "Se inició el nuevo intento de guardado",
     "markdownRestored": "Markdown restaurado", "audioCleaned": "Audio temporal eliminado",
-    "audioKept": "Audio de la reunión conservado", "audioDeleted": "Audio conservado eliminado",
+    "audioDeleted": "Audio conservado eliminado",
     "folderUpdated": "Carpeta de transcripciones actualizada", "audioSaved": "Copia de audio guardada",
     "captureDeleted": "Reunión eliminada", "meetingDeleted": "Reunión eliminada",
     "meetingsDeleted": "{count} reuniones eliminadas", "meetingHistoryFailed": "No se eliminó el historial de reuniones",
@@ -215,7 +215,7 @@
     "markdownMissing": "La transcripción está a salvo en Murmur, pero falta su copia Markdown."
   },
   "captureAudio": {
-    "kept": "Audio conservado{size}", "preserved": "Audio preservado{size}",
+    "preserved": "Audio preservado{size}",
     "cleanupPending": "Limpieza de audio pendiente{size}", "retained": "Audio conservado{size}",
     "recoveryCountdown": "Audio conservado para recuperación · se elimina en {duration}{size}",
     "hours": "{count} {unit}", "days": "{count} {unit}"
@@ -301,10 +301,10 @@
     "redownload": "Volver a descargar el modelo", "reveal": "Mostrar en Finder", "deleteModel": "Eliminar modelo"
   },
   "permissionSettings": {
-    "heading": "Permisos del sistema", "microphone": "Micrófono", "microphoneHelp": "Grabar audio mientras mantienes pulsado el atajo.",
-    "inputMonitoring": "Monitorización de entrada", "inputHelp": "Detectar el atajo de dictado en todo el sistema mediante CGEventTap.",
-    "accessibility": "Accesibilidad", "accessibilityHelp": "Simular ⌘V para pegar el texto transcrito en la app activa.",
-    "refreshHelp": "El estado se actualiza cada pocos segundos. Los permisos concedidos o revocados en Ajustes del Sistema aparecen aquí sin reiniciar. «Abrir Ajustes» abre la sección de privacidad correspondiente.",
+    "heading": "Permisos del sistema", "microphone": "Micrófono", "microphoneHelp": "Graba audio para dictados y reuniones.",
+    "inputMonitoring": "Monitorización de entrada", "inputHelp": "Reconoce tu atajo de teclado.",
+    "accessibility": "Accesibilidad", "accessibilityHelp": "Usa tu atajo y pega texto en otras apps.",
+    "refreshHelp": "El estado se actualiza cada pocos segundos, así que los cambios que hagas en Ajustes del Sistema aparecen aquí sin reiniciar. Accesibilidad también permite a Murmur reconocer tu atajo, así que Monitorización de entrada solo aparece si tu Mac la necesita por separado.",
     "granted": "Concedido", "denied": "No concedido", "notDetermined": "Aún no solicitado", "unknown": "Desconocido", "checking": "Comprobando…",
     "grant": "Conceder", "openSettings": "Abrir Ajustes"
   },
@@ -359,10 +359,10 @@
     "meetingCaptures": "Grabaciones de reuniones", "keepMeetings": "Conservar transcripciones de reuniones durante",
     "meetingRetentionHelp": "Las reuniones terminadas anteriores a este plazo se eliminan automáticamente. Reducirlo se aplica de inmediato tras confirmar. Se conservan las reuniones fallidas, interrumpidas, activas y en proceso.",
     "meetingRetentionLabel": "Plazo de conservación de reuniones", "keepAudio": "Conservar audio de reuniones correctas durante",
-    "audioRetentionHelp": "Las grabaciones correctas permanecen en el equipo durante un plazo de recuperación. El audio de grabaciones fallidas o interrumpidas se conserva hasta que reintentes, guardes una copia o lo elimines explícitamente.",
-    "audioRetentionLabel": "Conservación del audio de reuniones correctas", "deleteMeetings": "Eliminar historial de reuniones ahora",
-    "deleteMeetingsHelp": "Elimina permanentemente las reuniones guardadas en Murmur, incluido el audio conservado y los puntos de recuperación. Las reuniones activas o en proceso no se modifican.",
-    "deleting": "Eliminando…", "deleteAllMeetings": "¿Eliminar todo el historial de reuniones?",
+    "audioRetentionHelp": "Las grabaciones se guardan de forma privada dentro de Murmur en este Mac, aparte de tu carpeta de transcripciones, y se eliminan pasado este plazo. Para conservar una, usa Guardar copia de audio en la reunión. Las grabaciones fallidas o interrumpidas se conservan hasta que reintentes, guardes una copia o las elimines.",
+    "audioRetentionLabel": "Conservación del audio de reuniones correctas", "deleteMeetings": "Eliminar todas las reuniones de Murmur",
+    "deleteMeetingsHelp": "Elimina permanentemente todas las reuniones guardadas en Murmur, incluidas las transcripciones y el audio que aún se conserve. Los archivos Markdown de tu carpeta de transcripciones y las copias de audio que guardaste permanecen en tu Mac. Las reuniones activas o en proceso no se modifican.",
+    "deleting": "Eliminando…", "deleteAllMeetings": "¿Eliminar todas las reuniones de Murmur?",
     "meetingsDeletedHelp": "Esto elimina permanentemente todas las reuniones guardadas que no estén activas ni en proceso, incluidas las fallidas o interrumpidas, su audio conservado y los puntos de recuperación.",
     "savedCopiesSafe": "Los archivos Markdown o copias de audio guardados en otro lugar permanecen en el disco.",
     "confirmDeleteMeetings": "Eliminar todas las reuniones",
@@ -378,7 +378,7 @@
     "dictationChangeHelp": "Los dictados anteriores a {period} se eliminarán permanentemente de inmediato.",
     "keepCurrent": "Mantener el ajuste actual", "changeTo": "Cambiar a {period}",
     "retentionForever": "Conservar siempre", "retentionDays": "{count} días", "retentionYear": "1 año",
-    "audioImmediately": "Eliminar inmediatamente", "audioAfterHours": "Tras 24 horas", "audioAfterDays": "Tras 7 días", "audioUntilDeleted": "Hasta que se elimine",
+    "audioImmediately": "Eliminar inmediatamente", "audioAfterHours": "Tras 24 horas", "audioAfterDays": "Tras 7 días",
     "dictationsForeverToast": "Los dictados se conservarán siempre.", "meetingsForeverToast": "Las transcripciones de reuniones se conservarán siempre.",
     "dictationsAfterToast": "Los dictados se eliminarán después de {period}.", "meetingsAfterToast": "Las transcripciones de reuniones se eliminarán después de {period}.",
     "aiPromptMissing": "Incluye {placeholder} exactamente una vez.", "aiPromptRepeated": "Usa {placeholder} solo una vez.",

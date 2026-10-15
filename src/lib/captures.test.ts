@@ -116,7 +116,8 @@ describe("capture presentation contracts", () => {
     });
     expect(retained.audio_retention).toBe("after_24_hours");
     expect(audioRetentionLabel(retained, 0)).toBe("Audio retained for recovery · deletes in 1 hour · 92 MB");
-    expect(statePresentation("completed", "available", true).actions).toEqual(expect.arrayContaining(["save_audio", "keep_audio", "delete_audio"]));
+    expect(statePresentation("completed", "available", true).actions).toEqual(expect.arrayContaining(["save_audio", "delete_audio"]));
+    expect(statePresentation("completed", "available", true).actions).not.toContain("keep_audio");
   });
 
   it("does not advertise transcript or audio actions for unusable failures", () => {

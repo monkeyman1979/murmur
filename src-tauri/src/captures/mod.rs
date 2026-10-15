@@ -357,7 +357,6 @@ pub enum MeetingAudioRetention {
     DeleteImmediately,
     After24Hours,
     After7Days,
-    Keep,
 }
 
 impl MeetingAudioRetention {
@@ -367,7 +366,6 @@ impl MeetingAudioRetention {
             Self::DeleteImmediately => "delete_immediately",
             Self::After24Hours => "after_24_hours",
             Self::After7Days => "after_7_days",
-            Self::Keep => "keep",
         }
     }
 
@@ -377,7 +375,9 @@ impl MeetingAudioRetention {
             "delete_immediately" => Ok(Self::DeleteImmediately),
             "after_24_hours" => Ok(Self::After24Hours),
             "after_7_days" => Ok(Self::After7Days),
-            "keep" => Ok(Self::Keep),
+            // v0.1.1 could keep audio indefinitely. Retention now tops out
+            // at 7 days; `retire_kept_audio` rewrites these rows on cleanup.
+            LEGACY_KEPT_AUDIO => Ok(Self::After7Days),
             _ => Err(CaptureError::new(
                 CaptureErrorCode::InvalidPersistedState,
                 "capture has an unknown audio retention state",
@@ -390,10 +390,13 @@ impl MeetingAudioRetention {
             Self::DeleteImmediately => Some(completed_at),
             Self::After24Hours => completed_at.checked_add(24 * HOUR_MS),
             Self::After7Days => completed_at.checked_add(7 * 24 * HOUR_MS),
-            Self::FailurePreserved | Self::Keep => None,
+            Self::FailurePreserved => None,
         }
     }
 }
+
+/// Stored `audio_retention` for audio v0.1.1 kept until manually deleted.
+const LEGACY_KEPT_AUDIO: &str = "keep";
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -401,8 +404,10 @@ pub enum SuccessfulAudioRetention {
     DeleteImmediately,
     #[default]
     After24Hours,
+    // A v0.1.1 frontend may still persist "keep"; it now means the longest
+    // window. To keep a recording longer, users save a copy.
+    #[serde(alias = "keep")]
     After7Days,
-    Keep,
 }
 
 impl SuccessfulAudioRetention {
@@ -411,7 +416,6 @@ impl SuccessfulAudioRetention {
             Self::DeleteImmediately => MeetingAudioRetention::DeleteImmediately,
             Self::After24Hours => MeetingAudioRetention::After24Hours,
             Self::After7Days => MeetingAudioRetention::After7Days,
-            Self::Keep => MeetingAudioRetention::Keep,
         }
     }
 }
@@ -504,7 +508,6 @@ pub struct CaptureSummary {
     pub audio_retention: Option<MeetingAudioRetention>,
     pub audio_delete_at: Option<i64>,
     pub audio_bytes: i64,
-    pub audio_kept: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -1098,8 +1101,6 @@ impl TranscriptStore {
             audio_retention: row.has_recovery_audio.then_some(row.audio_retention),
             audio_delete_at: row.audio_delete_at,
             audio_bytes: row.audio_bytes,
-            audio_kept: row.has_recovery_audio
-                && row.audio_retention == MeetingAudioRetention::Keep,
         }
     }
 
@@ -2173,22 +2174,27 @@ impl TranscriptStore {
         get_capture_in_connection(&conn, capture_id)
     }
 
-    pub(crate) fn keep_capture_audio(&self, capture_id: i64) -> Result<(), CaptureError> {
+    /// Give audio that v0.1.1 kept indefinitely the longest current window,
+    /// counted from when recording ended. Failed captures go back to being
+    /// preserved until retried, saved, or deleted. A no-op once none remain.
+    pub(crate) fn retire_kept_audio(&self) -> Result<usize, CaptureError> {
         self.ensure_capture_durable()?;
-        validate_id(capture_id)?;
         let conn = self.connection()?;
         let changed = conn.execute(
-            "UPDATE captures SET audio_retention = 'keep', audio_delete_at = NULL,
-                 updated_at = ?2 WHERE id = ?1 AND staging_path IS NOT NULL",
-            params![capture_id, now_millis()],
+            "UPDATE captures
+                SET audio_retention = CASE WHEN status = 'completed'
+                        THEN ?2 ELSE ?3 END,
+                    audio_delete_at = CASE WHEN status = 'completed' AND staging_path IS NOT NULL
+                        THEN COALESCE(ended_at, updated_at) + ?4 ELSE NULL END
+              WHERE audio_retention = ?1",
+            params![
+                LEGACY_KEPT_AUDIO,
+                MeetingAudioRetention::After7Days.as_str(),
+                MeetingAudioRetention::FailurePreserved.as_str(),
+                7 * 24 * HOUR_MS
+            ],
         )?;
-        if changed != 1 {
-            return Err(CaptureError::new(
-                CaptureErrorCode::AudioUnavailable,
-                "capture has no retained audio",
-            ));
-        }
-        Ok(())
+        Ok(changed)
     }
 
     pub(crate) fn expired_completed_audio(&self, now: i64) -> Result<Vec<i64>, CaptureError> {
@@ -3149,6 +3155,7 @@ pub(crate) fn cleanup_expired_capture_audio(
     let _guard = AUDIO_FILES_LOCK
         .lock()
         .map_err(|_| CaptureError::persistence())?;
+    store.retire_kept_audio()?;
     let ids = store.expired_completed_audio(now)?;
     let mut cleaned = 0_u64;
     for id in ids {
@@ -3695,28 +3702,6 @@ pub async fn capture_clear_all_meetings(
     .map_err(|_| CaptureError::persistence())??;
     announce_meeting_history_change(&app, &store, deleted);
     Ok(deleted)
-}
-
-#[tauri::command]
-pub async fn capture_keep_audio(
-    app: tauri::AppHandle,
-    store: StoreState<'_>,
-    update_gate: UpdateGateState<'_>,
-    capture_id: i64,
-) -> Result<CaptureSummary, CaptureError> {
-    feature_gate()?;
-    let _update_activity = begin_update_activity(&update_gate)?;
-    let root = staging_root(&app)?;
-    let store = Arc::clone(store.inner());
-    tauri::async_runtime::spawn_blocking(move || {
-        let _guard = AUDIO_FILES_LOCK
-            .lock()
-            .map_err(|_| CaptureError::persistence())?;
-        store.keep_capture_audio(capture_id)?;
-        ui_summary(&store, capture_id, &root)
-    })
-    .await
-    .map_err(|_| CaptureError::persistence())?
 }
 
 #[tauri::command]
@@ -6939,7 +6924,7 @@ mod tests {
     }
 
     #[test]
-    fn successful_audio_retention_persists_deadline_size_and_keep_override() {
+    fn successful_audio_retention_persists_deadline_and_size() {
         let test = TestStore::new("audio-retention");
         let capture = finalizing_fixture(&test, "Retained");
         let completed =
@@ -6971,15 +6956,100 @@ mod tests {
                 .unwrap(),
             vec![completed.id]
         );
-        test.store.keep_capture_audio(completed.id).unwrap();
         let summary = TranscriptStore::summary_from_row(
             test.store
                 .get_capture_summary(completed.id, &test.root)
                 .unwrap(),
         );
-        assert!(summary.audio_kept);
-        assert_eq!(summary.audio_delete_at, None);
+        assert_eq!(summary.audio_delete_at, Some(1_000 + 24 * HOUR_MS));
         assert_eq!(summary.audio_bytes, 92_000_000);
+    }
+
+    #[test]
+    fn audio_retention_setting_reads_legacy_keep_as_seven_days() {
+        let retention: SuccessfulAudioRetention = serde_json::from_str("\"keep\"").unwrap();
+        assert_eq!(retention, SuccessfulAudioRetention::After7Days);
+        assert_eq!(
+            MeetingAudioRetention::parse(LEGACY_KEPT_AUDIO).unwrap(),
+            MeetingAudioRetention::After7Days
+        );
+    }
+
+    #[test]
+    fn legacy_kept_audio_expires_seven_days_after_recording_ends() {
+        let test = TestStore::new("legacy-kept-audio");
+        let capture = finalizing_fixture(&test, "Kept");
+        let completed =
+            finalize_markdown(&test.store, capture.id, &test.root.join("output")).unwrap();
+        test.store
+            .set_completed_audio_retention(
+                completed.id,
+                SuccessfulAudioRetention::After24Hours,
+                92_000_000,
+                1_000,
+            )
+            .unwrap();
+        let ended_at = 5_000_i64;
+        {
+            let conn = test.store.connection().unwrap();
+            conn.execute(
+                "UPDATE captures SET audio_retention = 'keep', audio_delete_at = NULL,
+                     ended_at = ?2 WHERE id = ?1",
+                params![completed.id, ended_at],
+            )
+            .unwrap();
+        }
+        assert!(test
+            .store
+            .expired_completed_audio(i64::MAX)
+            .unwrap()
+            .is_empty());
+
+        assert_eq!(test.store.retire_kept_audio().unwrap(), 1);
+        let retired = test.store.get_capture(completed.id).unwrap();
+        assert_eq!(retired.audio_retention, MeetingAudioRetention::After7Days);
+        assert_eq!(retired.audio_delete_at, Some(ended_at + 7 * 24 * HOUR_MS));
+        assert_eq!(
+            test.store
+                .expired_completed_audio(ended_at + 7 * 24 * HOUR_MS)
+                .unwrap(),
+            vec![completed.id]
+        );
+        assert_eq!(test.store.retire_kept_audio().unwrap(), 0);
+    }
+
+    #[test]
+    fn legacy_kept_failed_audio_returns_to_failure_preserved() {
+        let test = TestStore::new("legacy-kept-failed-audio");
+        let capture = test
+            .store
+            .create_capture("Interrupted", &test.root)
+            .unwrap();
+        advance_to_recording(&test.store, capture.id);
+        test.store
+            .transition_capture(
+                capture.id,
+                CaptureState::Interrupted,
+                Some(CaptureErrorCode::CaptureInterrupted),
+                Some("interrupted".into()),
+            )
+            .unwrap();
+        {
+            let conn = test.store.connection().unwrap();
+            conn.execute(
+                "UPDATE captures SET audio_retention = 'keep' WHERE id = ?1",
+                params![capture.id],
+            )
+            .unwrap();
+        }
+
+        assert_eq!(test.store.retire_kept_audio().unwrap(), 1);
+        let retired = test.store.get_capture(capture.id).unwrap();
+        assert_eq!(
+            retired.audio_retention,
+            MeetingAudioRetention::FailurePreserved
+        );
+        assert_eq!(retired.audio_delete_at, None);
         assert!(test
             .store
             .expired_completed_audio(i64::MAX)
