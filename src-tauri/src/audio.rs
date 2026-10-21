@@ -12,6 +12,7 @@ use std::io::{self, BufWriter, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc;
+use std::sync::OnceLock;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -141,7 +142,7 @@ pub fn sanitize_effective_device_name(name: &str) -> Option<String> {
 
 /// Commands the audio thread accepts. Dropping the sender ends the thread.
 enum Cmd {
-    Start(mpsc::Sender<std::result::Result<(), String>>),
+    Start(mpsc::Sender<std::result::Result<CaptureReadiness, String>>),
     Stop(mpsc::Sender<Option<RecordedAudio>>),
     /// Start a lightweight level-only input stream for onboarding's
     /// microphone meter. This never buffers audio and emits on the
@@ -153,6 +154,54 @@ enum Cmd {
     /// Stop the active capture and discard its buffer. The acknowledgement
     /// keeps the shared audio-owner lease held until the CPAL stream is gone.
     Cancel(mpsc::Sender<()>),
+}
+
+/// Per-capture signal: `Stream::play` does not mean a Bluetooth microphone
+/// has delivered its first block of audio yet.
+#[derive(Clone, Debug)]
+pub struct CaptureReadiness {
+    active: Arc<AtomicBool>,
+    first_callback: Arc<OnceLock<Instant>>,
+    first_signal: Arc<OnceLock<Instant>>,
+}
+
+impl CaptureReadiness {
+    pub(crate) fn new() -> Self {
+        Self {
+            active: Arc::new(AtomicBool::new(true)),
+            first_callback: Arc::new(OnceLock::new()),
+            first_signal: Arc::new(OnceLock::new()),
+        }
+    }
+
+    pub fn is_active(&self) -> bool {
+        self.active.load(Ordering::Acquire)
+    }
+
+    pub fn since_first_callback(&self) -> Option<Duration> {
+        self.first_callback.get().map(Instant::elapsed)
+    }
+
+    /// Track both first frames and first non-near-silent block. The threshold
+    /// is far below normal speech: background mic noise may satisfy it before
+    /// anyone talks, while noise suppression may keep it below threshold.
+    /// Keep this diagnostic-only until device timing shows which event is a
+    /// reliable cue trigger.
+    pub(crate) fn note_callback(&self, samples: usize, rms: f32) {
+        if samples > 0 {
+            if self.first_callback.get().is_none() {
+                let _ = self.first_callback.set(Instant::now());
+            }
+            if rms.is_finite() && rms > NO_SIGNAL_RMS_THRESHOLD && self.first_signal.get().is_none()
+            {
+                let _ = self.first_signal.set(Instant::now());
+            }
+        }
+    }
+
+    pub(crate) fn close(&self) {
+        self.active.store(false, Ordering::Release);
+    }
 }
 
 /// Handle to the audio thread. Cheap to clone.
@@ -197,7 +246,7 @@ impl AudioHandle {
         self.capture_arbiter.meeting_capture_active()
     }
 
-    pub fn start(&self) -> std::result::Result<(), AudioStartError> {
+    pub fn start(&self) -> std::result::Result<CaptureReadiness, AudioStartError> {
         let _lifecycle = self.lifecycle.lock();
         let previous = std::mem::replace(&mut *self.owner.lock(), HandleAudioOwner::Idle);
         let lease = match previous {
@@ -377,9 +426,14 @@ fn audio_loop(
 
         match cmd {
             Cmd::Start(reply) => {
-                if capture.is_some() {
-                    let _ = reply.send(Ok(()));
+                if let Some(CaptureState::Active(active)) = capture.as_ref() {
+                    let _ = reply.send(Ok(active.readiness.clone()));
                     continue;
+                }
+                // A prior release may have been lost after auto-stop. Do not
+                // leave its bounded buffer blocking every subsequent press.
+                if discard_auto_stopped(&mut capture) {
+                    crate::murmur_dev_log!("[murmur] discarded unclaimed auto-stopped capture");
                 }
                 // A real dictation capture owns the input meter while it
                 // runs. Drop any onboarding monitor first so we don't keep
@@ -390,8 +444,9 @@ fn audio_loop(
                 let device_name = preferred_device.lock().clone();
                 match ActiveCapture::start(app.clone(), device_name.as_deref()) {
                     Ok(c) => {
+                        let readiness = c.readiness.clone();
                         capture = Some(CaptureState::Active(c));
-                        let _ = reply.send(Ok(()));
+                        let _ = reply.send(Ok(readiness));
                     }
                     Err(e) => {
                         let message = e.to_string();
@@ -452,6 +507,15 @@ fn audio_loop(
 enum CaptureState {
     Active(ActiveCapture),
     AutoStopped(RecordedAudio),
+}
+
+fn discard_auto_stopped(capture: &mut Option<CaptureState>) -> bool {
+    if matches!(capture.as_ref(), Some(CaptureState::AutoStopped(_))) {
+        *capture = None;
+        true
+    } else {
+        false
+    }
 }
 
 impl CaptureState {
@@ -560,11 +624,12 @@ impl Drop for LevelMonitor {
 
 struct ActiveCapture {
     buffer: Arc<Mutex<Vec<f32>>>,
-    stream: cpal::Stream,
+    stream: Option<cpal::Stream>,
     sample_rate: u32,
     channels: u16,
     effective_device_name: Option<String>,
     started_at: Instant,
+    readiness: CaptureReadiness,
 }
 
 impl ActiveCapture {
@@ -585,9 +650,12 @@ impl ActiveCapture {
         let sample_rate = config.sample_rate().0;
         let channels = config.channels();
         let buffer: Arc<Mutex<Vec<f32>>> = Arc::new(Mutex::new(Vec::new()));
+        let readiness = CaptureReadiness::new();
         let err_app = app.clone();
         let notified_stream_error = Arc::new(AtomicBool::new(false));
+        let error_readiness = readiness.clone();
         let err_fn = move |e| {
+            error_readiness.close();
             crate::murmur_dev_log!("[murmur] input stream error: {e}");
             if !notified_stream_error.swap(true, Ordering::Relaxed) {
                 notify::error(
@@ -605,13 +673,16 @@ impl ActiveCapture {
         let stream = match config.sample_format() {
             cpal::SampleFormat::F32 => {
                 let buf = Arc::clone(&buffer);
+                let ready = readiness.clone();
                 let app_cb = app.clone();
                 let mut last_emit = initial_last_emit;
                 device.build_input_stream(
                     &config.into(),
                     move |data: &[f32], _| {
+                        let rms = rms_f32(data);
+                        ready.note_callback(data.len(), rms);
                         buf.lock().extend_from_slice(data);
-                        maybe_emit_level(&app_cb, &mut last_emit, rms_f32(data));
+                        maybe_emit_level(&app_cb, &mut last_emit, rms);
                     },
                     err_fn,
                     None,
@@ -619,15 +690,18 @@ impl ActiveCapture {
             }
             cpal::SampleFormat::I16 => {
                 let buf = Arc::clone(&buffer);
+                let ready = readiness.clone();
                 let app_cb = app.clone();
                 let mut last_emit = initial_last_emit;
                 device.build_input_stream(
                     &config.into(),
                     move |data: &[i16], _| {
+                        let rms = rms_i16(data);
+                        ready.note_callback(data.len(), rms);
                         let mut g = buf.lock();
                         g.extend(data.iter().map(|&s| s as f32 / i16::MAX as f32));
                         drop(g);
-                        maybe_emit_level(&app_cb, &mut last_emit, rms_i16(data));
+                        maybe_emit_level(&app_cb, &mut last_emit, rms);
                     },
                     err_fn,
                     None,
@@ -635,15 +709,18 @@ impl ActiveCapture {
             }
             cpal::SampleFormat::U16 => {
                 let buf = Arc::clone(&buffer);
+                let ready = readiness.clone();
                 let app_cb = app.clone();
                 let mut last_emit = initial_last_emit;
                 device.build_input_stream(
                     &config.into(),
                     move |data: &[u16], _| {
+                        let rms = rms_u16(data);
+                        ready.note_callback(data.len(), rms);
                         let mut g = buf.lock();
                         g.extend(data.iter().map(|&s| (s as f32 - 32768.0) / 32768.0));
                         drop(g);
-                        maybe_emit_level(&app_cb, &mut last_emit, rms_u16(data));
+                        maybe_emit_level(&app_cb, &mut last_emit, rms);
                     },
                     err_fn,
                     None,
@@ -655,22 +732,47 @@ impl ActiveCapture {
         }
         .map_err(|e| Error::Backend(format!("build_input_stream: {e}")))?;
 
+        let started_at = Instant::now();
         stream
             .play()
             .map_err(|e| Error::Backend(format!("stream play: {e}")))?;
 
         Ok(Self {
             buffer,
-            stream,
+            stream: Some(stream),
             sample_rate,
             channels,
             effective_device_name,
-            started_at: Instant::now(),
+            started_at,
+            readiness,
         })
     }
 
-    fn finish(self) -> RecordedAudio {
-        let samples = std::mem::take(&mut *self.buffer.lock());
+    fn finish(mut self) -> RecordedAudio {
+        // Close the stream before draining: callbacks could previously append
+        // after `mem::take`, discarding the final block on key release. Drop
+        // also tears it down if pause fails.
+        self.readiness.close();
+        let stream = self.stream.take().expect("active capture has a stream");
+        let samples = take_samples_after_stop(&self.buffer, || {
+            pause_input_stream(&stream, "dictation capture");
+            drop(stream);
+        });
+        let frames = samples.len() / usize::from(self.channels.max(1));
+        let captured_ms = (frames as u64 * 1000) / u64::from(self.sample_rate.max(1));
+        crate::murmur_dev_log!(
+            "[murmur] mic capture: wall_ms={} captured_ms={} first_callback_ms={:?} first_signal_ms={:?}",
+            self.started_at.elapsed().as_millis(),
+            captured_ms,
+            self.readiness
+                .first_callback
+                .get()
+                .map(|at| at.duration_since(self.started_at).as_millis()),
+            self.readiness
+                .first_signal
+                .get()
+                .map(|at| at.duration_since(self.started_at).as_millis())
+        );
         RecordedAudio {
             samples,
             sample_rate: self.sample_rate,
@@ -682,8 +784,18 @@ impl ActiveCapture {
 
 impl Drop for ActiveCapture {
     fn drop(&mut self) {
-        pause_input_stream(&self.stream, "dictation capture");
+        self.readiness.close();
+        if let Some(stream) = self.stream.take() {
+            pause_input_stream(&stream, "dictation capture");
+        }
     }
+}
+
+/// Teardown must finish before the final buffer swap. A callback that races
+/// with teardown should still be in the returned recording, not left behind.
+fn take_samples_after_stop(buffer: &Arc<Mutex<Vec<f32>>>, stop: impl FnOnce()) -> Vec<f32> {
+    stop();
+    std::mem::take(&mut *buffer.lock())
 }
 
 fn pause_input_stream(stream: &cpal::Stream, label: &str) {
@@ -1349,12 +1461,45 @@ mod tests {
         };
 
         assert!(audio.meeting_capture_active());
-        assert_eq!(audio.start(), Err(AudioStartError::CaptureBusy));
+        assert!(matches!(audio.start(), Err(AudioStartError::CaptureBusy)));
         assert!(matches!(rx.try_recv(), Err(mpsc::TryRecvError::Empty)));
         assert_eq!(arbiter.owner(), Some(AudioCaptureOwner::Meeting));
 
         drop(meeting_lease);
         assert_eq!(arbiter.owner(), None);
+    }
+
+    #[test]
+    fn capture_readiness_tracks_first_nonempty_callback() {
+        let ready = CaptureReadiness::new();
+        assert!(ready.is_active());
+        assert!(ready.since_first_callback().is_none());
+        ready.note_callback(0, 0.0);
+        assert!(ready.since_first_callback().is_none());
+        ready.note_callback(128, 0.0);
+        assert!(ready.since_first_callback().is_some());
+        assert!(ready.first_signal.get().is_none());
+        ready.note_callback(128, 0.05);
+        assert!(ready.first_signal.get().is_some());
+        ready.close();
+        assert!(!ready.is_active());
+    }
+
+    #[test]
+    fn stop_collects_frames_added_during_teardown() {
+        let buffer = Arc::new(Mutex::new(vec![1.0]));
+        let callback_buffer = Arc::clone(&buffer);
+        let samples = take_samples_after_stop(&buffer, || callback_buffer.lock().push(2.0));
+        assert_eq!(samples, vec![1.0, 2.0]);
+        assert!(buffer.lock().is_empty());
+    }
+
+    #[test]
+    fn stale_auto_stopped_capture_is_discarded_before_next_start() {
+        let mut capture = Some(CaptureState::AutoStopped(sample_audio()));
+        assert!(discard_auto_stopped(&mut capture));
+        assert!(capture.is_none());
+        assert!(!discard_auto_stopped(&mut capture));
     }
 
     #[test]

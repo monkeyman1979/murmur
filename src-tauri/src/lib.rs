@@ -798,44 +798,49 @@ fn wire_hotkey(
             // Reserve and start dictation audio before publishing any recording
             // UI. A meeting owns the shared capture lease, so its hotkey
             // rejection must remain invisible and must not touch meeting state.
-            if let Err(error) = audio.start() {
-                // No release/cancel event from this rejected gesture may call
-                // into dictation audio or alter an existing indicator session.
-                admission.reject();
-                if error == AudioStartError::CaptureBusy {
-                    crate::murmur_dev_log!("[murmur] dictation ignored: meeting capture active");
+            let capture_ready = match audio.start() {
+                Ok(ready) => ready,
+                Err(error) => {
+                    // No release/cancel event from this rejected gesture may call
+                    // into dictation audio or alter an existing indicator session.
+                    admission.reject();
+                    if error == AudioStartError::CaptureBusy {
+                        crate::murmur_dev_log!(
+                            "[murmur] dictation ignored: meeting capture active"
+                        );
+                        return;
+                    }
+
+                    current_indicator_session_id = indicator_session.begin();
+                    crate::murmur_dev_log!("[murmur] audio start failed: {error}");
+                    emit_attempt_outcome(&app, current_indicator_session_id, "pipeline-error");
+                    window_events::emit_main(
+                        &app,
+                        "murmur://hotkey-binding-state",
+                        BindingStatePayload { pressed: false },
+                    );
+                    emit_indicator_state_for_session(
+                        &app,
+                        &indicator_session,
+                        current_indicator_session_id,
+                        "microphone-error",
+                    );
+                    show_indicator(&app);
+                    notify::error(
+                        &app,
+                        "Microphone unavailable",
+                        "Murmur couldn't start recording. Check your input device, clamshell/display setup, and Microphone permission.",
+                    );
+                    sound::play_cancel(&sound_cues);
+                    schedule_indicator_hide(
+                        app.clone(),
+                        Arc::clone(&indicator_session),
+                        current_indicator_session_id,
+                        DICTATION_RESULT_PILL_DURATION,
+                    );
                     return;
                 }
-
-                current_indicator_session_id = indicator_session.begin();
-                crate::murmur_dev_log!("[murmur] audio start failed: {error}");
-                emit_attempt_outcome(&app, current_indicator_session_id, "pipeline-error");
-                window_events::emit_main(
-                    &app,
-                    "murmur://hotkey-binding-state",
-                    BindingStatePayload { pressed: false },
-                );
-                emit_indicator_state_for_session(
-                    &app,
-                    &indicator_session,
-                    current_indicator_session_id,
-                    "microphone-error",
-                );
-                show_indicator(&app);
-                notify::error(
-                    &app,
-                    "Microphone unavailable",
-                    "Murmur couldn't start recording. Check your input device, clamshell/display setup, and Microphone permission.",
-                );
-                sound::play_cancel(&sound_cues);
-                schedule_indicator_hide(
-                    app.clone(),
-                    Arc::clone(&indicator_session),
-                    current_indicator_session_id,
-                    DICTATION_RESULT_PILL_DURATION,
-                );
-                return;
-            }
+            };
 
             current_update_activity = Some(update_activity);
             current_indicator_session_id = indicator_session.begin();
@@ -858,13 +863,16 @@ fn wire_hotkey(
                 "recording",
             );
             show_indicator(&app);
-            sound::play_start(&sound_cues);
-            // Mute system output if the user opted in. Happens after
-            // the start chime so the chime itself is audible at the
-            // user's current output volume — though in practice
-            // NSSound rides the alert channel and survives output
-            // muting anyway. Saved volume is recovered at any exit
-            // path below; a sentinel file covers the crash case.
+            // Bluetooth outputs can still be switching into microphone mode
+            // when `Stream::play()` returns. Schedule the start cue after the
+            // first input callback, without delaying or blocking capture.
+            let sound_cues_for_start = Arc::clone(&sound_cues);
+            runtime.spawn(async move {
+                sound::play_start_when_ready(sound_cues_for_start, capture_ready).await;
+            });
+            // Mute system output if opted in. NSSound uses the separate alert
+            // volume (see mute_audio.rs); the cue may now play after muting.
+            // Restore at every exit path; a sentinel covers crashes.
             mute_state.mute_if_enabled(&app);
             // Eager warmup. Idempotent on the WhisperEngine cache:
             // a no-op when the model is already loaded, kicks the

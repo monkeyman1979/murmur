@@ -3,8 +3,9 @@
 //!
 //! Three cue slots wired in `lib.rs::wire_hotkey` + `transcribe_and_emit`:
 //!
-//! - **Start** (`Pop`) — hotkey was pressed, capture has begun. Brief
-//!   and neutral; doesn't step on the speaker's first word.
+//! - **Start** (`Pop`) — capture has begun delivering microphone frames.
+//!   Keep the original sound while testing whether cue timing fixes
+//!   Bluetooth playback; selecting a different cue is a separate experiment.
 //! - **Stop** (`Bottle`) — transcription and corrections completed;
 //!   insertion is about to begin. This does not claim paste acceptance.
 //! - **Cancel** (`Basso`) — capture/transcription or insertion failed.
@@ -25,6 +26,15 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
+
+use crate::audio::CaptureReadiness;
+
+/// Allow the output route a short settling window after the first microphone
+/// callback. Never hold up capture or the hotkey worker to play a cue.
+const START_CUE_SETTLE: Duration = Duration::from_millis(150);
+const START_CUE_MAX_WAIT: Duration = Duration::from_secs(2);
+const START_CUE_POLL: Duration = Duration::from_millis(20);
 
 /// macOS built-in sound name for the "dictation started" cue.
 const SOUND_START: &str = "Pop";
@@ -75,10 +85,35 @@ pub fn set_sound_cues(state: tauri::State<'_, Arc<SoundCuesState>>, enabled: boo
     crate::murmur_dev_log!("[murmur] sound cues: {enabled}");
 }
 
-/// Play the "dictation started" cue. No-op when the toggle is OFF.
-pub fn play_start(state: &SoundCuesState) {
-    if state.is_enabled() {
+/// Play start only after audio has actually arrived and the route has had a
+/// brief chance to settle. This runs independently of the capture thread; a
+/// quick release, cancellation, stream error, or silent/dead route suppresses
+/// a misleading *late* start cue. Capture itself is never delayed.
+pub async fn play_start_when_ready(state: Arc<SoundCuesState>, ready: CaptureReadiness) {
+    if wait_for_start_cue(&state, &ready).await {
+        // Playback is asynchronous; capture may end immediately after the
+        // readiness check, but the cue was scheduled while it was active.
         play_system_sound(SOUND_START);
+    }
+}
+
+async fn wait_for_start_cue(state: &SoundCuesState, ready: &CaptureReadiness) -> bool {
+    let deadline = tokio::time::Instant::now() + START_CUE_MAX_WAIT;
+    loop {
+        if !ready.is_active() || !state.is_enabled() {
+            return false;
+        }
+        if ready
+            .since_first_callback()
+            .is_some_and(|elapsed| elapsed >= START_CUE_SETTLE)
+        {
+            return true;
+        }
+        if tokio::time::Instant::now() >= deadline {
+            crate::murmur_dev_log!("[murmur] start cue skipped: no ready microphone frames");
+            return false;
+        }
+        tokio::time::sleep(START_CUE_POLL).await;
     }
 }
 
@@ -123,7 +158,9 @@ fn play_system_sound(name: &str) {
             // AppKit's named-sound cache owns the actual system sound.
             match NSSound::soundNamed(&ns_name) {
                 Some(sound) => {
-                    sound.play();
+                    if !sound.play() {
+                        crate::murmur_dev_log!("[murmur] system sound playback failed: {name}");
+                    }
                 }
                 None => crate::murmur_dev_log!("[murmur] system sound not found: {name}"),
             }
@@ -135,5 +172,45 @@ fn play_system_sound(name: &str) {
         // cross-compiles don't flag it as unused. Non-macOS targets
         // silently skip — audio cues are macOS-only for v0.1.
         let _ = name;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn start_waits_for_frames_and_settling_without_blocking_capture() {
+        let state = SoundCuesState::new();
+        state.set(true);
+        let ready = CaptureReadiness::new();
+        ready.note_callback(0, 0.0);
+        assert!(ready.since_first_callback().is_none());
+        let callback = ready.clone();
+        let producer = tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(30)).await;
+            callback.note_callback(128, 0.0);
+        });
+        let start = std::time::Instant::now();
+        assert!(wait_for_start_cue(&state, &ready).await);
+        assert!(start.elapsed() >= START_CUE_SETTLE);
+        producer.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn cancelled_capture_never_plays_late_start_cue() {
+        let state = SoundCuesState::new();
+        state.set(true);
+        let ready = CaptureReadiness::new();
+        ready.close();
+        assert!(!wait_for_start_cue(&state, &ready).await);
+    }
+
+    #[tokio::test]
+    async fn disabled_cues_never_wait_or_play() {
+        let state = SoundCuesState::new();
+        let ready = CaptureReadiness::new();
+        ready.note_callback(128, 0.0);
+        assert!(!wait_for_start_cue(&state, &ready).await);
     }
 }

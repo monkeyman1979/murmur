@@ -6,7 +6,7 @@ const STORAGE_KEY = "murmur:sound-cues-enabled";
 /**
  * Reactive control for the Settings "Sound cues" toggle.
  *
- * Plays three short macOS system chimes — `Pop` on recording start,
+ * Plays three macOS system chimes — `Pop` when microphone frames arrive,
  * `Bottle` when transcription and corrections complete before insertion,
  * and `Basso` on cancel / empty capture / Whisper error / paste error.
  * Bottle does not claim paste acceptance, so a later insertion failure can
