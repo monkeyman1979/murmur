@@ -4,9 +4,9 @@ Murmur is a local-first macOS menu-bar app for voice dictation and meeting trans
 
 ## Download
 
-**[Download for Apple Silicon Mac (.dmg)](https://github.com/monkeyman1979/murmur/releases/download/v0.1.2/Murmur_0.1.2_aarch64.dmg)**
+**[Download for Apple Silicon Mac (.dmg)](https://github.com/monkeyman1979/murmur/releases/download/v0.1.3/Murmur_0.1.3_aarch64.dmg)**
 
-**Requires macOS 14.4 or later. Not compatible with Intel Macs.** Windows and Linux are not supported. The v0.1.2 installer is Developer ID–signed, Apple-notarized and stapled; its checksum is included in the [GitHub Release](https://github.com/monkeyman1979/murmur/releases/tag/v0.1.2).
+**Requires macOS 14.4 or later. Not compatible with Intel Macs.** Windows and Linux are not supported. Official installers are Developer ID–signed, Apple-notarized and stapled; verify the checksum in the [GitHub Release](https://github.com/monkeyman1979/murmur/releases/tag/v0.1.3).
 
 Installation and functional checks were performed on Apple Silicon with **macOS 27.0.1 (26A434)**. The macOS 14.4 floor is the configured requirement, not a claim that every older supported macOS version has been independently tested.
 
@@ -20,7 +20,7 @@ Murmur lives in the menu bar. Use its menu to open the window or **Quit Murmur**
 
 Meeting capture records your microphone and the Mac's system audio, not video. Ask participants for consent. The first meeting can trigger macOS **System Audio Recording** and **Documents** permission prompts; Markdown transcripts default to `Documents/Murmur/Meetings`. Microphone capture can begin while the first system-audio prompt is awaiting your answer. A folder-save failure offers another folder and retry, but denied-permission/recovery paths have not all been independently exercised.
 
-Starting with v0.1.2, Murmur checks [GitHub Releases](https://github.com/monkeyman1979/murmur/releases) for a new version at launch, at most once a day, and shows it in the sidebar above Settings. Settings → About can also check, download and restart to update, even with the sidebar collapsed. Downloading and restarting remain your choice, and each update is verified against Murmur's updater signing key before it installs. v0.1.1 and earlier cannot check for updates; download v0.1.2 or later from GitHub Releases and replace the app manually. A retained-data update between the tested release candidates preserved local data and model files; migration from every historical development build and all interrupted-recording recovery cases has not been validated.
+Starting with v0.1.2, Murmur checks [GitHub Releases](https://github.com/monkeyman1979/murmur/releases) for a new version at launch, at most once a day, and shows it in the sidebar above Settings. Settings → About can also check, download and restart to update, even with the sidebar collapsed. Downloading and restarting remain your choice, and each update is verified against Murmur's updater signing key before it installs. v0.1.1 and earlier cannot check for updates; download v0.1.2 or later from GitHub Releases and replace the app manually. On the tested Mac, manually replacing v0.1.2 with the notarized v0.1.3 candidate preserved the existing model and history, and previously granted Microphone and Accessibility permissions still worked. The GitHub-hosted in-app update itself has not yet been exercised for this release; first-use meeting permissions, migrations from every historical development build and all interrupted-recording recovery cases have not been fully validated.
 
 ## Languages
 

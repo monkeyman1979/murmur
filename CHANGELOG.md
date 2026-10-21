@@ -2,6 +2,15 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] - 2026-10-21
+
+### Improved
+
+- The dictation start cue now plays shortly after the microphone begins delivering audio, making it more reliable on tested Bluetooth earbuds without delaying capture or the recording indicator.
+- Dictation now closes the microphone stream before collecting the final audio buffer, reducing the chance of dropping audio at key release. A stale auto-stopped capture no longer blocks a later dictation attempt.
+
+Bluetooth dictation can still miss speech begun immediately at the hotkey press, and this update does not change Bluetooth playback quality. Wait for the start cue before speaking.
+
 ## [0.1.2] - 2026-10-15
 
 ### Added
@@ -45,6 +54,7 @@ sudo chown -R root:admin /Applications/Murmur.app && sudo chmod -R u+rwX,go+rX,g
 
 First public release: a Developer ID–signed, notarized DMG for Apple Silicon Macs running macOS 14.4 or later.
 
+[0.1.3]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.3
 [0.1.2]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.2
 [0.1.1]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.1
 [0.1.0]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.0
