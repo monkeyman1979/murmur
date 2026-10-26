@@ -62,11 +62,13 @@ interface AuditModule {
 const exactEntitlementValues = {
   "com.apple.security.device.audio-input": true,
   "com.apple.security.automation.apple-events": true,
+  "com.apple.security.personal-information.calendars": true,
 };
 const exactEntitlements = `<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0"><dict>
 <key>com.apple.security.device.audio-input</key><true/>
 <key>com.apple.security.automation.apple-events</key><true/>
+<key>com.apple.security.personal-information.calendars</key><true/>
 </dict></plist>`;
 
 function fakeCodeSignature(
@@ -246,6 +248,10 @@ describe("macOS production app bundle audit", () => {
   it.each([
     ["missing entitlement", {
       "com.apple.security.automation.apple-events": true,
+    }],
+    ["missing calendar entitlement", {
+      "com.apple.security.automation.apple-events": true,
+      "com.apple.security.device.audio-input": true,
     }],
     ["unexpected entitlement", {
       ...exactEntitlementValues,

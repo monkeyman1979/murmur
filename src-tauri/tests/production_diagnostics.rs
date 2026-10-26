@@ -166,6 +166,7 @@ fn production_macos_privileges_are_explicit_and_allowlisted() {
     let expected = vec![
         "com.apple.security.automation.apple-events",
         "com.apple.security.device.audio-input",
+        "com.apple.security.personal-information.calendars",
     ];
     assert_eq!(keys, expected);
     for key in &expected {
@@ -185,6 +186,8 @@ fn production_macos_privileges_are_explicit_and_allowlisted() {
     assert_eq!(unique_keys.len(), serialized_keys.len());
 
     let info = std::fs::read_to_string(manifest_path("Info.plist")).expect("read Info.plist");
+    assert!(info.contains("<key>NSCalendarsFullAccessUsageDescription</key>"));
+    assert!(info.contains("does not edit your calendars or start recording automatically"));
     assert!(info.contains("<key>NSAppleEventsUsageDescription</key>"));
     assert!(info.contains("opens the Privacy &amp; Security pane when you ask"));
     assert!(info.contains("Mute system audio while dictating"));

@@ -3,6 +3,7 @@ mod diagnostics;
 
 pub mod audio;
 pub mod audio_devices;
+pub mod calendar;
 pub mod captures;
 pub mod corrections;
 pub mod display;
@@ -373,6 +374,9 @@ pub fn run() {
             audio_devices::set_input_device,
             audio_devices::list_output_devices,
             audio_devices::set_output_device,
+            calendar::calendar_permission,
+            calendar::request_calendar_access,
+            calendar::read_calendar_snapshot,
             permissions::get_permissions,
             permissions::open_privacy_pane,
             permissions::request_input_monitoring_prompt,

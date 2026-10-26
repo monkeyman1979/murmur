@@ -5,6 +5,10 @@
 	<!-- Required by Hardened Runtime for cpal/AVFoundation microphone input. -->
 	<key>com.apple.security.device.audio-input</key>
 	<true/>
+	<!-- Required by Hardened Runtime for opt-in EventKit access. This permits
+	     the system consent request; it does not grant access by itself. -->
+	<key>com.apple.security.personal-information.calendars</key>
+	<true/>
 	<!-- Required for the user-invoked System Settings deep link and for fixed
 	     osascript volume reads/writes in opt-in mute-while-dictating. -->
 	<key>com.apple.security.automation.apple-events</key>

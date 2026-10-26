@@ -230,6 +230,9 @@ fn privacy_pane_url(pane: &str) -> Result<&'static str, String> {
         "audio-capture" => {
             Ok("x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture")
         }
+        "calendars" => {
+            Ok("x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars")
+        }
         "input-monitoring" => {
             Ok("x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent")
         }
