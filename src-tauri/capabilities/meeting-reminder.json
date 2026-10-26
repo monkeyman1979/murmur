@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "meeting-reminder",
+  "description": "Calendar prompt: read the current offer and respond, but never start capture directly.",
+  "windows": [
+    "meeting-reminder"
+  ],
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "allow-calendar-reminder-current",
+    "allow-calendar-reminder-action"
+  ]
+}

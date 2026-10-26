@@ -337,7 +337,7 @@ impl Drop for MeetingControllerVisibilityGuard {
 /// Only ever called for a controller that is not currently visible — see the
 /// caller for why.
 #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
-fn place_meeting_controller(app: &tauri::AppHandle, window: &tauri::WebviewWindow) {
+pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::WebviewWindow) {
     const MARGIN: f64 = 8.0;
 
     let Some(main_window) = app.get_webview_window("main") else {
@@ -402,7 +402,9 @@ fn place_meeting_controller(app: &tauri::AppHandle, window: &tauri::WebviewWindo
 /// steal focus from the main window (and make its next button click only
 /// reactivate it). AppKit's `orderFront` preserves the current key window.
 #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
-fn show_meeting_controller_without_focus(window: &tauri::WebviewWindow) -> tauri::Result<()> {
+pub(crate) fn show_meeting_window_without_focus(
+    window: &tauri::WebviewWindow,
+) -> tauri::Result<()> {
     let ns_window = window.ns_window()? as usize;
     // The native handle belongs to this app-managed window. Like placement,
     // dereference it only on AppKit's main thread while the window is alive.
@@ -443,8 +445,8 @@ fn emit_meeting_state(
             if already_visible {
                 crate::murmur_diag!("[murmur][mc-diag] already visible, leaving window alone");
             } else {
-                place_meeting_controller(app, &window);
-                match show_meeting_controller_without_focus(&window) {
+                place_meeting_window(app, &window);
+                match show_meeting_window_without_focus(&window) {
                     Ok(()) => crate::murmur_diag!("[murmur][mc-diag] orderFront() ok"),
                     Err(e) => crate::murmur_diag!("[murmur][mc-diag] orderFront() FAILED: {e:?}"),
                 }
@@ -1207,12 +1209,16 @@ pub struct MeetingCaptureCapabilities {
     pub minimum_macos_version: String,
     pub microphone: crate::permissions::PermissionState,
     pub persistence_durable: bool,
+    pub stt_model_ready: bool,
+    pub settings_ready: bool,
 }
 
 #[tauri::command]
 pub fn meeting_capture_capabilities(
     store: tauri::State<'_, Arc<TranscriptStore>>,
+    settings: tauri::State<'_, Arc<crate::captures::processing::MeetingProcessingSettingsState>>,
 ) -> MeetingCaptureCapabilities {
+    let (stt_model_ready, settings_ready) = settings.readiness();
     MeetingCaptureCapabilities {
         feature_enabled: cfg!(all(target_os = "macos", feature = "meeting-capture")),
         #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
@@ -1224,6 +1230,8 @@ pub fn meeting_capture_capabilities(
         minimum_macos_version: "14.4".into(),
         microphone: crate::permissions::current().microphone,
         persistence_durable: store.is_durable(),
+        stt_model_ready,
+        settings_ready,
     }
 }
 

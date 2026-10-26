@@ -1,11 +1,13 @@
 //! Native calendar connection shared by settings and the future reminder scheduler.
 //!
 //! No account credentials, calendar writes, recordings, or automatic permission
-//! requests. Only explicit main-window actions can request access or read events.
+//! requests. Explicit main-window consent is required to request access or arm
+//! background monitoring; the scheduler only offers a recording prompt.
 //! Calendar content must never be logged, put in diagnostics, or broadcast.
 
 #[cfg(target_os = "macos")]
 mod native;
+pub mod reminders;
 
 use serde::Serialize;
 

@@ -4,6 +4,8 @@
   "description": "Main application window",
   "windows": ["main"],
   "permissions": [
+    "allow-configure-calendar-reminders",
+    "allow-present-calendar-reminder",
     "core:event:allow-listen",
     "core:event:allow-unlisten",
     "core:window:allow-start-dragging",

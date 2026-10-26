@@ -11,6 +11,10 @@ if (windowParam === "indicator") {
   import("./components/Indicator.vue").then((module) => {
     createApp(module.default).use(i18n).mount("#app");
   });
+} else if (windowParam === "meeting-reminder") {
+  import("./components/captures/MeetingReminder.vue").then((module) => {
+    createApp(module.default).use(i18n).mount("#app");
+  });
 } else if (windowParam === "meeting-controller") {
   // Meeting controls are isolated from both the routed app and the transient
   // dictation indicator. Rust owns this window's visibility.

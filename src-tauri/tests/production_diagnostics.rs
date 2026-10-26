@@ -188,6 +188,19 @@ fn production_macos_privileges_are_explicit_and_allowlisted() {
     let info = std::fs::read_to_string(manifest_path("Info.plist")).expect("read Info.plist");
     assert!(info.contains("<key>NSCalendarsFullAccessUsageDescription</key>"));
     assert!(info.contains("does not edit your calendars or start recording automatically"));
+    for locale in ["es", "fr", "ru"] {
+        let localized = std::fs::read_to_string(manifest_path(&format!(
+            "locales/{locale}.lproj/InfoPlist.strings"
+        )))
+        .expect("read localized calendar permission explanation");
+        assert!(
+            localized.lines().any(|line| {
+                line.starts_with("\"NSCalendarsFullAccessUsageDescription\" = \"Murmur ")
+                    && line.ends_with("\";")
+            }),
+            "{locale} calendar permission explanation is missing"
+        );
+    }
     assert!(info.contains("<key>NSAppleEventsUsageDescription</key>"));
     assert!(info.contains("opens the Privacy &amp; Security pane when you ask"));
     assert!(info.contains("Mute system audio while dictating"));

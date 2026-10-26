@@ -25,6 +25,7 @@ import {
   readMeetingAiHandoffPrompt,
 } from "@/composables/useMeetingAiHandoff";
 import { useMeetingCapture } from "@/composables/useMeetingCapture";
+import { startCalendarReminders } from "@/composables/useCalendarReminders";
 import { useOnboarding } from "@/composables/useOnboarding";
 import { useMuteWhileDictating } from "@/composables/useMuteWhileDictating";
 import { useSoundCues } from "@/composables/useSoundCues";
@@ -290,7 +291,12 @@ async function handleTrayStop(): Promise<void> {
 }
 
 const trayUnlisteners: UnlistenFn[] = [];
+let stopCalendarReminders: (() => void) | null = null;
+let mainDisposed = false;
 onMounted(() => {
+  void startCalendarReminders().then((stop) => {
+    if (mainDisposed) stop(); else stopCalendarReminders = stop;
+  });
   // Keep the webview hydrated on quiet login startup, but show it for an
   // explicit Finder/Spotlight cold launch. Rust caches the initial launch
   // source before IPC runs; merely enabling login startup must not hide a
@@ -339,6 +345,8 @@ onMounted(() => {
     .catch((error) => console.error("[murmur] tray meeting stop listener failed", error));
 });
 onUnmounted(() => {
+  mainDisposed = true;
+  stopCalendarReminders?.();
   removeScrollGuard();
   window.clearTimeout(restoreTimer);
   for (const unlisten of trayUnlisteners) unlisten();

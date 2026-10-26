@@ -149,6 +149,8 @@ describe("meeting start fast path", () => {
     minimum_macos_version: "14.4",
     microphone: "granted",
     persistence_durable: true,
+    stt_model_ready: true,
+    settings_ready: true,
   };
 
   function mockBackend(capabilities: Record<string, unknown>, startFails = false) {
@@ -192,6 +194,8 @@ describe("meeting start fast path", () => {
     ["unsupported macOS", { ...READY, supported: false }],
     ["store not durable", { ...READY, persistence_durable: false }],
     ["feature disabled", { ...READY, feature_enabled: false }],
+    ["speech model missing", { ...READY, stt_model_ready: false, settings_ready: false }],
+    ["settings loading", { ...READY, settings_ready: false }],
   ])("falls back to the dialog when %s", async (_label, capabilities) => {
     mockBackend(capabilities);
     expect(await useMeetingCapture().resolveStartFlow()).toBe("dialog");
@@ -209,6 +213,8 @@ describe("meeting start fast path", () => {
     mockBackend(READY, true);
     const meeting = useMeetingCapture();
     expect(await meeting.resolveStartFlow()).toBe("dialog");
+    expect(meeting.error.value?.code).toBe("capture_busy");
+    await meeting.refreshCapabilities();
     expect(meeting.error.value?.code).toBe("capture_busy");
   });
 });

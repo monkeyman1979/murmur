@@ -1,7 +1,7 @@
 import { defineComponent } from "vue";
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CALENDAR_SELECTION_KEY, useCalendarConnection, type CalendarSnapshot } from "./useCalendarConnection";
+import { CALENDAR_CONNECTED_KEY, CALENDAR_SELECTION_KEY, useCalendarConnection, type CalendarSnapshot } from "./useCalendarConnection";
 
 const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke }));
@@ -17,7 +17,7 @@ const snapshot: CalendarSnapshot = {
 function render() {
   wrapper = mount(defineComponent({ setup() { connection = useCalendarConnection(); return () => null; } }));
 }
-beforeEach(() => { invoke.mockReset(); localStorage.removeItem(CALENDAR_SELECTION_KEY); localStorage.removeItem("murmur:calendar-selection-v1"); });
+beforeEach(() => { invoke.mockReset(); localStorage.removeItem(CALENDAR_SELECTION_KEY); localStorage.removeItem(CALENDAR_CONNECTED_KEY); localStorage.removeItem("murmur:calendar-selection-v1"); });
 afterEach(() => { wrapper?.unmount(); vi.restoreAllMocks(); });
 function allowed() {
   invoke.mockImplementation(async (command: string, args?: { accountIds: string[] }) => {
@@ -45,31 +45,31 @@ describe("calendar account connection consent, selection and lifecycle", () => {
     invoke.mockResolvedValueOnce("not-determined").mockResolvedValueOnce("granted").mockResolvedValueOnce(snapshot); render(); await connection.connect();
     expect(invoke.mock.calls.map(([command]) => command)).toEqual(["calendar_permission", "request_calendar_access", "read_calendar_snapshot"]);
     expect(invoke).toHaveBeenLastCalledWith("read_calendar_snapshot", { accountIds: [] });
-    expect(connection.meetings.value).toEqual([]);
+    expect(connection.snapshot.value?.meetings).toEqual([]);
     expect(connection.pending.value).toBe(false);
   });
 
-  it("uses saved account choices only after explicit connection and filters unselected results defensively", async () => {
+  it("restores selected accounts but never requests or retains meeting details in account management", async () => {
     localStorage.setItem(CALENDAR_SELECTION_KEY, JSON.stringify(["work"]));
     invoke.mockResolvedValueOnce("granted").mockResolvedValueOnce(snapshot); render();
     expect(invoke).not.toHaveBeenCalled(); await connection.connect();
-    expect(invoke).toHaveBeenLastCalledWith("read_calendar_snapshot", { accountIds: ["work"] });
-    expect(connection.meetings.value.map((meeting) => meeting.id)).toEqual(["event:1"]);
+    expect(invoke).toHaveBeenLastCalledWith("read_calendar_snapshot", { accountIds: [] });
+    expect(connection.snapshot.value?.meetings).toEqual([]);
     expect(connection.selectedCount.value).toBe(1);
   });
 
-  it("saves only account IDs and narrows the native query without storing emails or meeting content", async () => {
+  it("saves account IDs and updates monitoring without querying meeting content", async () => {
     allowed(); render(); await connection.connect(); await connection.setAccount("unknown", true);
     expect(connection.selectedIds.value).toEqual([]);
     await connection.setAccount("work", true);
-    expect(invoke).toHaveBeenLastCalledWith("read_calendar_snapshot", { accountIds: ["work"] });
+    expect(invoke).toHaveBeenLastCalledWith("read_calendar_snapshot", { accountIds: [] });
     expect(JSON.parse(localStorage.getItem(CALENDAR_SELECTION_KEY)!)).toEqual(["work"]);
     expect(localStorage.getItem(CALENDAR_SELECTION_KEY)).not.toContain("@");
     expect(localStorage.getItem(CALENDAR_SELECTION_KEY)).not.toContain("Work meeting");
-    expect(connection.meetings.value.map((meeting) => meeting.title)).toEqual(["Work meeting"]);
+    expect(connection.snapshot.value?.meetings).toEqual([]);
     await connection.setAccount("work", false);
     expect(connection.selectedIds.value).toEqual([]);
-    expect(connection.meetings.value).toEqual([]);
+    expect(connection.snapshot.value?.meetings).toEqual([]);
   });
 
   it("retains choices across disconnect and remount without automatically reconnecting", async () => {
@@ -80,10 +80,33 @@ describe("calendar account connection consent, selection and lifecycle", () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 
+  it("keeps connection intent across Settings remount without retaining or re-reading private content", async () => {
+    allowed(); render(); await connection.connect(); await connection.setAccount("work", true);
+    expect(localStorage.getItem(CALENDAR_CONNECTED_KEY)).toBe("true");
+    wrapper.unmount();
+    expect(connection.snapshot.value).toBeNull();
+    invoke.mockClear(); render(); await flushPromises();
+    expect(connection.connected.value).toBe(true);
+    expect(connection.selectedIds.value).toEqual(["work"]);
+    expect(connection.snapshot.value).toBeNull();
+    expect(invoke).not.toHaveBeenCalled();
+    connection.disconnect(); wrapper.unmount(); render();
+    expect(connection.connected.value).toBe(false);
+    expect(connection.selectedIds.value).toEqual(["work"]);
+    expect(localStorage.getItem(CALENDAR_CONNECTED_KEY)).toBe("false");
+  });
+
+  it("recognizes existing account consent without inferring a new account selection", () => {
+    localStorage.setItem(CALENDAR_SELECTION_KEY, JSON.stringify(["work"])); render();
+    expect(connection.connected.value).toBe(true);
+    expect(connection.selectedIds.value).toEqual(["work"]);
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
   it("keeps a temporarily unavailable account choice without selecting another account", async () => {
     localStorage.setItem(CALENDAR_SELECTION_KEY, JSON.stringify(["missing"])); allowed(); render(); await connection.connect();
     expect(connection.selectedCount.value).toBe(0);
-    expect(connection.meetings.value).toEqual([]);
+    expect(connection.snapshot.value?.meetings).toEqual([]);
     expect(connection.selectedIds.value).toEqual(["missing"]);
   });
 
@@ -100,7 +123,7 @@ describe("calendar account connection consent, selection and lifecycle", () => {
     await connection.setAccount("work", true);
     expect(connection.selectedIds.value).toEqual(["work"]);
     expect(connection.selectionStorageFailed.value).toBe(true);
-    expect(connection.meetings.value).toHaveLength(1);
+    expect(connection.snapshot.value?.accounts).toHaveLength(2);
   });
 
   it.each(["denied", "restricted", "unsupported"])("does not read account data for %s permission", async (permission) => {
@@ -151,13 +174,13 @@ describe("calendar account connection consent, selection and lifecycle", () => {
     expect(connection.snapshot.value).toBeNull(); expect(connection.pending.value).toBe(false);
   });
 
-  it("keeps the account picker steady while immediately clearing stale meetings", async () => {
+  it("keeps the account picker steady while changing selection", async () => {
     localStorage.setItem(CALENDAR_SELECTION_KEY, JSON.stringify(["work"])); allowed(); render(); await connection.connect();
     let resolve!: (value: CalendarSnapshot) => void;
     invoke.mockResolvedValueOnce("granted").mockReturnValueOnce(new Promise<CalendarSnapshot>((r) => { resolve = r; }));
     const changing = connection.setAccount("work", false); await flushPromises();
     expect(connection.snapshot.value?.accounts).toHaveLength(2);
-    expect(connection.meetings.value).toEqual([]);
+    expect(connection.snapshot.value?.meetings).toEqual([]);
     expect(connection.pending.value).toBe(true);
     connection.disconnect(); resolve(snapshot); await changing;
     expect(connection.snapshot.value).toBeNull();
@@ -170,6 +193,7 @@ describe("calendar account connection consent, selection and lifecycle", () => {
     invoke.mockResolvedValueOnce("granted").mockRejectedValueOnce(new Error("Private appointment details"));
     await connection.connect();
     expect(connection.snapshot.value).toBeNull(); expect(connection.failed.value).toBe(true);
-    expect(log).not.toHaveBeenCalled(); expect(storage).not.toHaveBeenCalled();
+    expect(log).not.toHaveBeenCalled();
+    expect(storage.mock.calls).toEqual([[CALENDAR_CONNECTED_KEY, "true"]]);
   });
 });

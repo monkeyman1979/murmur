@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { invoke } from "@tauri-apps/api/core";
 import { computed, ref, watch } from "vue";
-import { Mic } from "lucide-vue-next";
+import { Download, Mic } from "lucide-vue-next";
+import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
+const router = useRouter();
 
 import { Button } from "@/components/ui/button";
 import {
@@ -76,6 +78,11 @@ async function requestMicrophone(): Promise<void> {
   window.setTimeout(() => void refreshCapabilities(), 2000);
 }
 
+function openSpeechModelSettings(): void {
+  emit("update:open", false);
+  void router.push({ name: "settings-general", query: { section: "speech-model" } });
+}
+
 async function begin(): Promise<void> {
   if (!canStart.value) return;
   starting.value = true;
@@ -111,6 +118,17 @@ function close(): void {
       </DialogHeader>
 
       <div class="grid gap-3">
+        <div v-if="capabilities && !capabilities.stt_model_ready" class="flex items-center gap-3 rounded-lg border p-3" role="status">
+          <Download class="size-4 shrink-0" aria-hidden="true" />
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium">{{ t('meetingStart.modelRequired') }}</p>
+            <p class="text-xs text-muted-foreground">{{ t('meetingStart.modelHelp') }}</p>
+          </div>
+          <Button size="sm" variant="outline" @click="openSpeechModelSettings">{{ t('meetingStart.setUpModel') }}</Button>
+        </div>
+        <p v-else-if="capabilities && !capabilities.settings_ready" class="text-xs text-muted-foreground" role="status">
+          {{ t('captureErrors.settings_not_hydrated') }}
+        </p>
         <div v-if="showMicrophonePrompt" class="flex items-center gap-3 rounded-lg border p-3" :aria-label="t('meetingStart.microphoneRequired')">
           <Mic class="size-4 shrink-0" aria-hidden="true" />
           <div class="min-w-0 flex-1">

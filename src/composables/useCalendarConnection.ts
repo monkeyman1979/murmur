@@ -23,8 +23,11 @@ export interface CalendarSnapshot {
 // Account choices deliberately use a new key. Converting an earlier partial
 // calendar choice into a whole-account opt-in would silently broaden access.
 export const CALENDAR_SELECTION_KEY = "murmur:calendar-account-selection-v1";
+export const CALENDAR_CONNECTED_KEY = "murmur:calendar-connected-v1";
 
-function loadSelection(): { ids: string[]; failed: boolean } {
+export const CALENDAR_ACCOUNT_SELECTION_CHANGED = "murmur:calendar-account-selection-changed";
+
+export function readCalendarSelection(): { ids: string[]; failed: boolean } {
   try {
     const raw = localStorage.getItem(CALENDAR_SELECTION_KEY);
     if (!raw) return { ids: [], failed: false };
@@ -39,14 +42,25 @@ function loadSelection(): { ids: string[]; failed: boolean } {
   }
 }
 
-/** Opening Settings never reads events or requests access. Only opaque account
- * selection IDs are saved on this Mac; email labels and event content remain
- * in component memory. Disconnect/unmount clears the private snapshot but keeps
- * the user's selections for their next explicit connection.
+function savedConnection(selectedIds: string[]): boolean {
+  try {
+    const raw = localStorage.getItem(CALENDAR_CONNECTED_KEY);
+    // Existing account selections were saved only after an explicit connection.
+    // An explicit disconnect overrides them without erasing those selections.
+    return raw === null ? selectedIds.length > 0 : raw === "true";
+  } catch { return false; }
+}
+
+/** Opening Settings never reads events or requests access. Connection preferences
+ * and opaque account IDs are saved on this Mac; email labels remain in component
+ * memory. Account management never queries meeting content. Disconnect/unmount clears the private snapshot but keeps
+ * the user's selections. Connection intent is separate from the reminder opt-in;
+ * unmount clears private content, not the saved connection.
  */
 export function useCalendarConnection() {
-  const saved = loadSelection();
+  const saved = readCalendarSelection();
   const selectedIds = ref(saved.ids);
+  const connected = ref(savedConnection(saved.ids));
   const selectionStorageFailed = ref(saved.failed);
   const permission = ref<CalendarPermission | null>(null);
   const snapshot = ref<CalendarSnapshot | null>(null);
@@ -57,13 +71,23 @@ export function useCalendarConnection() {
 
   const selectedSet = computed(() => new Set(selectedIds.value));
   const selectedCount = computed(() => snapshot.value?.accounts.filter((account) => selectedSet.value.has(account.id)).length ?? 0);
-  const meetings = computed(() => snapshot.value?.meetings.filter((meeting) => selectedSet.value.has(meeting.account_id)) ?? []);
 
-  function disconnect(): void {
+  function clearSnapshot(): void {
     generation++;
     snapshot.value = null;
     pending.value = false;
     failed.value = false;
+  }
+
+  function saveConnection(value: boolean): void {
+    connected.value = value;
+    try { localStorage.setItem(CALENDAR_CONNECTED_KEY, String(value)); }
+    catch { selectionStorageFailed.value = true; }
+  }
+
+  function disconnect(): void {
+    saveConnection(false);
+    clearSnapshot();
   }
 
   async function readConnection(requestPermission: boolean): Promise<void> {
@@ -72,9 +96,7 @@ export function useCalendarConnection() {
     const current = () => !disposed && token === generation;
     pending.value = true;
     failed.value = false;
-    // Keep the account picker steady while refreshing, without displaying
-    // stale meetings (especially meetings from a just-disabled calendar).
-    if (snapshot.value) snapshot.value = { ...snapshot.value, meetings: [] };
+    // Keep the existing account picker steady while refreshing.
     try {
       const actual = await invoke<CalendarPermission>("calendar_permission");
       if (!current()) return;
@@ -85,14 +107,18 @@ export function useCalendarConnection() {
         permission.value = requested;
       }
       if (permission.value !== "granted") {
+        saveConnection(false);
         snapshot.value = null;
         if (permission.value === "not-determined") failed.value = true;
         return;
       }
-      // Native code narrows the EventKit query itself, not only the rendered
-      // list. An empty selection lists email accounts but reads no events.
-      const result = await invoke<CalendarSnapshot>("read_calendar_snapshot", { accountIds: [...selectedIds.value] });
-      if (current()) snapshot.value = result;
+      // Account management needs only the directory. Empty selection tells
+      // EventKit not to query events; the opt-in native reminder loop owns that.
+      const result = await invoke<CalendarSnapshot>("read_calendar_snapshot", { accountIds: [] });
+      if (current()) {
+        snapshot.value = { accounts: result.accounts, meetings: [] };
+        saveConnection(true);
+      }
     } catch {
       // Never log/render native exceptions: they may contain private data.
       if (current()) {
@@ -121,17 +147,18 @@ export function useCalendarConnection() {
       // Session choices still work; make it explicit that they weren't saved.
       selectionStorageFailed.value = true;
     }
+    window.dispatchEvent(new CustomEvent(CALENDAR_ACCOUNT_SELECTION_CHANGED, { detail: [...selectedIds.value] }));
     // Toggling an account never launches a new OS permission prompt.
     await readConnection(false);
   }
 
   onBeforeUnmount(() => {
     disposed = true;
-    disconnect();
+    clearSnapshot();
   });
 
   return {
-    permission, snapshot, pending, failed, selectedIds, selectedCount, meetings,
+    connected, permission, snapshot, pending, failed, selectedIds, selectedCount,
     selectionStorageFailed, connect, disconnect, setAccount,
   };
 }

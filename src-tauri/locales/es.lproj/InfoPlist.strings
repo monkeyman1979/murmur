@@ -1,3 +1,4 @@
+"NSCalendarsFullAccessUsageDescription" = "Murmur lee los próximos eventos de los calendarios de este Mac para preparar avisos de reuniones. No modifica tus calendarios ni empieza a grabar automáticamente.";
 "NSMicrophoneUsageDescription" = "Murmur escucha el micrófono mientras dictas o inicias expresamente una grabación local de una reunión.";
 "NSAudioCaptureUsageDescription" = "Al iniciar la grabación de una reunión, Murmur captura el audio del sistema del Mac para transcribirlo localmente. Nunca graba la pantalla.";
 "NSInputMonitoringUsageDescription" = "Murmur detecta el atajo de dictado que has configurado (⌘ derecho de forma predeterminada).";

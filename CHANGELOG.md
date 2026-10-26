@@ -2,6 +2,24 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.4] - Unreleased
+
+### Added
+
+- Optional meeting reminders from accounts synced with Apple Calendar, including Google accounts. Select email accounts in Settings → General → Meeting captures and turn on Meeting reminders. Reminders are off by default; choose At meeting start, 15 seconds (the default), 30 seconds or 1 minute before.
+- A floating reminder with explicit Start recording and Dismiss actions. Starting uses the existing recording setup and consent checks, then shows the floating recording controller. Reminders and newly shown controllers use the top-right of the display containing Murmur's main window.
+
+### Improved
+
+- Missing speech models are identified before attempting to record, with a direct link to model setup. Downloading the selected model in Settings activates it without requiring a restart.
+- Calendar connection and account choices persist independently of the reminder switch. Manage accounts expands and collapses smoothly; Refresh and Disconnect calendars are inside the account panel. Account management reads no meeting content.
+- Simplified AI handoff instructions and corrected the software-update privacy wording.
+
+### Privacy and limits
+
+- Calendar Full Access is requested only when you connect; macOS does not offer a read-only permission tier. Murmur never edits calendar events, joins meetings or starts recording automatically. Calendar account choices and opaque reminder acknowledgments stay on this Mac.
+- Murmur must be running, and events must have synced into Apple Calendar. Sleep or delayed synchronization can delay or suppress a reminder. Scheduled reminders do not detect whether you actually attend a call.
+
 ## [0.1.3] - 2026-10-21
 
 ### Improved
@@ -54,6 +72,7 @@ sudo chown -R root:admin /Applications/Murmur.app && sudo chmod -R u+rwX,go+rX,g
 
 First public release: a Developer ID–signed, notarized DMG for Apple Silicon Macs running macOS 14.4 or later.
 
+[0.1.4]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.4
 [0.1.3]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.3
 [0.1.2]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.2
 [0.1.1]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.1

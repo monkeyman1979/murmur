@@ -668,9 +668,6 @@ function confirmMeetingAiPromptRestore(): void {
             <p class="mt-1 text-xs leading-snug text-muted-foreground">
               {{ t('generalSettings.aiPromptHelp') }}
             </p>
-            <p class="mt-1 text-xs leading-snug text-muted-foreground">
-              {{ t('generalSettings.aiPromptLanguageHelp') }}
-            </p>
           </div>
           <textarea
             id="meeting-ai-handoff-prompt"
