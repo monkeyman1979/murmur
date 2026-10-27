@@ -61,8 +61,8 @@ bundled-source provenance remains a release-review item.
 Additional source and model notices
 ===================================
 
-Generated/copied src/components/ui/ components: shadcn-vue 2.8.2
-(source: https://github.com/unovue/shadcn-vue; locally adapted components).
+Copied src/components/ui/ components and src/styles/shadcn-vue.css: shadcn-vue 2.8.2
+(source: https://github.com/unovue/shadcn-vue; locally adapted components and unchanged stylesheet).
 
 --- shadcn-vue LICENSE ---
 MIT License
