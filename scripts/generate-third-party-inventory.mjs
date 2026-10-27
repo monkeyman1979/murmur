@@ -297,11 +297,11 @@ bundled-source provenance remains a release-review item.
 
 `;
 
-  // These copies do not occur as installed production packages: shadcn-vue
-  // generates source into src/components/ui, and whisper.cpp is nested inside
-  // the path-patched whisper-rs-sys crate. Keep their notices in the app too.
-  const shadcnManifest = JSON.parse(readFileSync(resolve(root, "node_modules/shadcn-vue/package.json"), "utf8"));
-  const shadcnLicense = readFileSync(resolve(root, "node_modules/shadcn-vue/LICENSE"), "utf8").trimEnd();
+  // Copied UI components/styles retain their upstream license even though
+  // the generator CLI is not installed. See third-party/shadcn-vue/README.md.
+  // whisper.cpp is nested inside the path-patched whisper-rs-sys crate.
+  const shadcnVersion = "2.8.2";
+  const shadcnLicense = readFileSync(resolve(root, "third-party/shadcn-vue/LICENSE"), "utf8").trimEnd();
   const whisperCppLicense = readFileSync(resolve(root, "src-tauri/vendor/whisper-rs-sys/whisper.cpp/LICENSE"), "utf8").trimEnd();
   const sileroLicense = readFileSync(resolve(root, "src-tauri/resources/SILERO-LICENSE.txt"), "utf8").trimEnd();
   const ortLicense = readFileSync(resolve(root, "src-tauri/resources/ONNXRUNTIME-LICENSE.txt"), "utf8").trimEnd();
@@ -309,8 +309,8 @@ bundled-source provenance remains a release-review item.
   const copiedNotices = `Additional source and model notices
 ===================================
 
-Generated/copied src/components/ui/ components: shadcn-vue ${shadcnManifest.version}
-(source: https://github.com/unovue/shadcn-vue; locally adapted components).
+Copied src/components/ui/ components and src/styles/shadcn-vue.css: shadcn-vue ${shadcnVersion}
+(source: https://github.com/unovue/shadcn-vue; locally adapted components and unchanged stylesheet).
 
 --- shadcn-vue LICENSE ---
 ${shadcnLicense}
