@@ -3,7 +3,7 @@ import { chmod, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
-import { checkApp, rejectPrivateModes, validateAppInfo } from "./check-macos-app-bundle.mjs";
+import { checkApp, rejectPrivateModes, validateAppInfo, validateProductionEntitlements } from "./check-macos-app-bundle.mjs";
 
 test("app bundle contains the exact source MIT license alongside third-party notices", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "murmur-license-bundle-"));
@@ -67,6 +67,20 @@ test("app bundle stays readable and launchable by every account on the Mac", asy
     await chmod(contents, 0o755).catch(() => {});
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test("calendar access requires an explicit hardened-runtime entitlement without admitting unrelated privileges", () => {
+  const required = {
+    "com.apple.security.automation.apple-events": true,
+    "com.apple.security.device.audio-input": true,
+    "com.apple.security.personal-information.calendars": true,
+  };
+  assert.doesNotThrow(() => validateProductionEntitlements(required));
+  const missingCalendar = { ...required };
+  delete missingCalendar["com.apple.security.personal-information.calendars"];
+  assert.throws(() => validateProductionEntitlements(missingCalendar), /missing: com\.apple\.security\.personal-information\.calendars/);
+  assert.throws(() => validateProductionEntitlements({ ...required, "com.apple.security.device.camera": true }), /unexpected/);
+  assert.throws(() => validateProductionEntitlements({ ...required, "com.apple.security.personal-information.calendars": false }), /not enabled/);
 });
 
 test("menu-bar-only bundle keeps the existing app identity", () => {

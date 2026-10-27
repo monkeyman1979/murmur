@@ -605,7 +605,7 @@
     ]
   },
   "rust": {
-    "packageCount": 437,
+    "packageCount": 438,
     "packages": [
       {
         "name": "adler2",
@@ -2943,6 +2943,17 @@
         "name": "objc2-encode",
         "version": "4.1.0",
         "license": "MIT",
+        "licenseFile": null,
+        "repository": "https://github.com/madsmtm/objc2",
+        "source": "registry+https://github.com/rust-lang/crates.io-index",
+        "targets": [
+          "aarch64-apple-darwin"
+        ]
+      },
+      {
+        "name": "objc2-event-kit",
+        "version": "0.3.2",
+        "license": "Zlib OR Apache-2.0 OR MIT",
         "licenseFile": null,
         "repository": "https://github.com/madsmtm/objc2",
         "source": "registry+https://github.com/rust-lang/crates.io-index",

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CalendarConnection from "@/components/settings/CalendarConnection.vue";
 import HotkeyRecorder from "@/components/settings/HotkeyRecorder.vue";
 import SettingRow from "@/components/settings/SettingRow.vue";
 import SpeechModelSettings from "@/components/settings/SpeechModelSettings.vue";
@@ -571,6 +572,8 @@ function confirmMeetingAiPromptRestore(): void {
         <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {{ t('generalSettings.meetingCaptures') }}
         </h2>
+        <CalendarConnection />
+        <Separator />
         <SettingRow
           :title="t('generalSettings.keepMeetings')"
           :description="t('generalSettings.meetingRetentionHelp')"
@@ -664,9 +667,6 @@ function confirmMeetingAiPromptRestore(): void {
             </label>
             <p class="mt-1 text-xs leading-snug text-muted-foreground">
               {{ t('generalSettings.aiPromptHelp') }}
-            </p>
-            <p class="mt-1 text-xs leading-snug text-muted-foreground">
-              {{ t('generalSettings.aiPromptLanguageHelp') }}
             </p>
           </div>
           <textarea

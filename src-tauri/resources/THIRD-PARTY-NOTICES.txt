@@ -28,9 +28,9 @@ Generated from:
 
 Summary:
 - 83 installed frontend dependency entries
-- 437 macOS normal/build Cargo dependency entries
+- 438 macOS normal/build Cargo dependency entries
 - 1 frontend entry without a packaged license file
-- 42 Rust entries without a packaged license file
+- 43 Rust entries without a packaged license file
 
 Downloaded model
 ----------------
@@ -46701,6 +46701,7 @@ release review before these notices can be treated as final.
 - objc2-core-text 0.3.2 — Zlib OR Apache-2.0 OR MIT
 - objc2-core-video 0.3.2 — Zlib OR Apache-2.0 OR MIT
 - objc2-encode 4.1.0 — MIT
+- objc2-event-kit 0.3.2 — Zlib OR Apache-2.0 OR MIT
 - objc2-exception-helper 0.1.1 — Zlib OR Apache-2.0 OR MIT
 - objc2-foundation 0.3.2 — MIT
 - objc2-io-surface 0.3.2 — Zlib OR Apache-2.0 OR MIT

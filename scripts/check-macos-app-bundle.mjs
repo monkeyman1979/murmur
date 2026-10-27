@@ -10,6 +10,7 @@ const forbiddenNames = new Set(["issue-license", "issue_license"]);
 const expectedEntitlements = new Set([
   "com.apple.security.automation.apple-events",
   "com.apple.security.device.audio-input",
+  "com.apple.security.personal-information.calendars",
 ]);
 
 function serializedPlistKeys(plist) {

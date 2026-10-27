@@ -72,14 +72,41 @@ fn each_window_has_one_exact_capability() {
         .collect::<BTreeSet<_>>();
     assert_eq!(
         files,
-        string_set(&["indicator.json", "main.json", "meeting-controller.json"]),
+        string_set(&[
+            "indicator.json",
+            "main.json",
+            "meeting-controller.json",
+            "meeting-reminder.json"
+        ]),
         "an extra capability could add authority to a matching window"
     );
 
-    for label in ["main", "indicator", "meeting-controller"] {
+    for label in [
+        "main",
+        "indicator",
+        "meeting-controller",
+        "meeting-reminder",
+    ] {
         let value = capability(label);
         assert_eq!(value["identifier"], label);
         assert_eq!(value["windows"], serde_json::json!([label]));
+    }
+}
+
+#[test]
+fn hidden_main_window_keeps_durable_reminder_acknowledgments_running() {
+    // Native timers cannot show an offer until this webview persists its
+    // occurrence key. WKWebView's default hidden-view suspension delays that.
+    for file in ["tauri.conf.json", "tauri.debug.conf.json"] {
+        let config: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(manifest_path(file)).unwrap()).unwrap();
+        let main = config["app"]["windows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|window| window["label"] == "main")
+            .unwrap();
+        assert_eq!(main["backgroundThrottling"], "disabled", "{file}");
     }
 }
 
@@ -102,7 +129,12 @@ fn only_main_can_open_the_exact_project_urls() {
             { "url": "https://github.com/monkeyman1979/murmur/issues/new?template=bug_report.yml" }
         ]
     });
-    for label in ["main", "indicator", "meeting-controller"] {
+    for label in [
+        "main",
+        "indicator",
+        "meeting-controller",
+        "meeting-reminder",
+    ] {
         let capability = capability(label);
         let opener_permissions = capability["permissions"]
             .as_array()
@@ -173,6 +205,20 @@ fn meeting_controller_grants_only_existing_recording_controls() {
             "unexpected authority: {forbidden}"
         );
     }
+}
+
+#[test]
+fn reminder_can_only_read_and_respond_to_its_offer() {
+    let value = capability("meeting-reminder");
+    let actual = app_command_permissions(&value);
+    let expected = command_policy::REMINDER_WINDOW_COMMANDS
+        .iter()
+        .map(|command| command_permission(command))
+        .collect();
+    assert_eq!(actual, expected);
+    assert!(!actual.contains(&command_permission("meeting_recorder_start")));
+    assert!(!actual.contains(&command_permission("configure_calendar_reminders")));
+    assert!(!actual.contains(&command_permission("read_calendar_snapshot")));
 }
 
 fn rust_sources(directory: &std::path::Path, output: &mut Vec<PathBuf>) {

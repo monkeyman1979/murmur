@@ -3,6 +3,7 @@ mod diagnostics;
 
 pub mod audio;
 pub mod audio_devices;
+pub mod calendar;
 pub mod captures;
 pub mod corrections;
 pub mod display;
@@ -373,6 +374,13 @@ pub fn run() {
             audio_devices::set_input_device,
             audio_devices::list_output_devices,
             audio_devices::set_output_device,
+            calendar::reminders::configure_calendar_reminders,
+            calendar::reminders::present_calendar_reminder,
+            calendar::reminders::calendar_reminder_current,
+            calendar::reminders::calendar_reminder_action,
+            calendar::calendar_permission,
+            calendar::request_calendar_access,
+            calendar::read_calendar_snapshot,
             permissions::get_permissions,
             permissions::open_privacy_pane,
             permissions::request_input_monitoring_prompt,
@@ -394,6 +402,7 @@ pub fn run() {
             update_install::claim_update_install,
             update_install::release_update_install,
         ])
+        .manage(Arc::new(calendar::reminders::CalendarReminderState::default()))
         .manage(tray::TrayState::default())
         .manage(audio_devices::OutputDeviceState::default())
         .manage(meeting_capture::Mt0State::new())
@@ -404,6 +413,8 @@ pub fn run() {
         .manage(Arc::new(update_install::UpdateInstallGate::default()))
         .setup(|app| {
             app.manage(startup_window::StartupLaunch::detect());
+            indicator_native::force_transparent(app.handle(), calendar::reminders::WINDOW);
+            calendar::reminders::spawn(app.handle().clone());
             // Launch at login is opt-in from Settings and uses a main-app
             // login item; carry a v0.1.0 LaunchAgent opt-in across once.
             login_item::migrate_legacy_agent();

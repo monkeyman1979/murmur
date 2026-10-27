@@ -76,6 +76,16 @@ impl MeetingProcessingSettingsState {
         value.corrections_hydrated = true;
     }
 
+    /// Readiness only: never load a model or expose user settings to a webview.
+    pub fn readiness(&self) -> (bool, bool) {
+        let value = self.value.lock();
+        let model_ready = value.model_hydrated && !value.stt_model_id.trim().is_empty();
+        (
+            model_ready,
+            model_ready && value.vocabulary_hydrated && value.corrections_hydrated,
+        )
+    }
+
     pub fn snapshot(&self) -> Result<MeetingProcessingProfile, CaptureError> {
         let value = self.value.lock().clone();
         if !(value.model_hydrated && value.vocabulary_hydrated && value.corrections_hydrated) {
@@ -1164,7 +1174,14 @@ mod tests {
             settings.snapshot().unwrap_err().code,
             CaptureErrorCode::SettingsNotHydrated
         );
+        assert_eq!(settings.readiness(), (false, false));
+        // A missing model leaves activation unhydrated even after other
+        // settings finish loading; this must not look like a transient wait.
+        settings.set_vocabulary_prompt(None);
+        settings.set_corrections(Vec::new());
+        assert_eq!(settings.readiness(), (false, false));
         settings.set_model("model-a".into());
+        assert_eq!(settings.readiness(), (true, true));
         settings.set_vocabulary_prompt(Some("Glossary: fictional-term.".into()));
         settings.set_corrections(Vec::new());
         let profile = settings.snapshot().unwrap();
@@ -1172,6 +1189,17 @@ mod tests {
         assert!(profile.language.is_none());
         assert!(profile.vocabulary_prompt.is_none());
         assert!(profile.correction_rules.is_empty());
+    }
+
+    #[test]
+    fn model_activation_alone_does_not_make_meeting_settings_ready() {
+        let settings = MeetingProcessingSettingsState::new();
+        settings.set_model("model-a".into());
+        assert_eq!(settings.readiness(), (true, false));
+        settings.set_vocabulary_prompt(None);
+        assert_eq!(settings.readiness(), (true, false));
+        settings.set_corrections(Vec::new());
+        assert_eq!(settings.readiness(), (true, true));
     }
 
     #[test]

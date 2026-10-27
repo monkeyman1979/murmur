@@ -1,3 +1,4 @@
+"NSCalendarsFullAccessUsageDescription" = "Murmur lit les événements à venir des calendriers de ce Mac pour préparer les rappels de réunion. Il ne modifie pas vos calendriers et ne lance pas d’enregistrement automatique.";
 "NSMicrophoneUsageDescription" = "Murmur utilise votre microphone pendant la dictée ou lorsque vous lancez expressément l’enregistrement local d’une réunion.";
 "NSAudioCaptureUsageDescription" = "Lorsque vous lancez l’enregistrement d’une réunion, Murmur capture l’audio système de votre Mac pour le transcrire localement. Il n’enregistre jamais l’écran.";
 "NSInputMonitoringUsageDescription" = "Murmur détecte le raccourci de dictée que vous avez configuré (⌘ droit par défaut).";

@@ -65,12 +65,16 @@ describe("capture presentation contracts", () => {
       minimum_macos_version: "14.4",
       microphone: "granted" as const,
       persistence_durable: true,
+      stt_model_ready: true,
+      settings_ready: true,
     };
     expect(canStartMeeting(capabilities, "granted", false)).toBe(true);
     expect(canStartMeeting(capabilities, "denied", false)).toBe(false);
     expect(canStartMeeting(capabilities, "granted", true)).toBe(false);
     expect(canStartMeeting({ ...capabilities, supported: false }, "granted", false)).toBe(false);
     expect(canStartMeeting({ ...capabilities, persistence_durable: false }, "granted", false)).toBe(false);
+    expect(canStartMeeting({ ...capabilities, stt_model_ready: false }, "granted", false)).toBe(false);
+    expect(canStartMeeting({ ...capabilities, settings_ready: false }, "granted", false)).toBe(false);
     expect(canStartMeeting(null, "granted", false)).toBe(false);
   });
 

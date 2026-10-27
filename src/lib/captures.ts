@@ -121,6 +121,8 @@ export interface MeetingCaptureCapabilities {
   minimum_macos_version: string;
   microphone: "granted" | "denied" | "not-determined" | "unknown";
   persistence_durable: boolean;
+  stt_model_ready: boolean;
+  settings_ready: boolean;
 }
 
 export interface MeetingRecorderStatus {
@@ -348,6 +350,8 @@ export function canStartMeeting(
     && capabilities.feature_enabled
     && capabilities.supported
     && capabilities.persistence_durable
+    && capabilities.stt_model_ready
+    && capabilities.settings_ready
     && microphone === "granted"
     && !hasActiveCapture;
 }

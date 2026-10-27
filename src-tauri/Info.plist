@@ -6,6 +6,8 @@
        bundle identifier and permission usage descriptions unchanged. -->
   <key>LSUIElement</key>
   <true/>
+  <key>NSCalendarsFullAccessUsageDescription</key>
+  <string>Murmur reads upcoming events from calendars on this Mac to prepare meeting reminders. It does not edit your calendars or start recording automatically.</string>
   <key>NSMicrophoneUsageDescription</key>
   <string>Murmur listens to your microphone while you dictate or explicitly run local meeting capture.</string>
   <!-- Core Audio process taps. Declaring this and NOT

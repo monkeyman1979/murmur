@@ -4,6 +4,10 @@
 // a command without an allow permission in a window capability is rejected
 // before its Rust handler runs.
 pub const APP_COMMANDS: &[&str] = &[
+    "configure_calendar_reminders",
+    "present_calendar_reminder",
+    "calendar_reminder_current",
+    "calendar_reminder_action",
     "model_info",
     "list_models",
     "download_model",
@@ -81,6 +85,9 @@ pub const APP_COMMANDS: &[&str] = &[
     "set_input_device",
     "list_output_devices",
     "set_output_device",
+    "calendar_permission",
+    "request_calendar_access",
+    "read_calendar_snapshot",
     "get_permissions",
     "open_privacy_pane",
     "request_input_monitoring_prompt",
@@ -107,6 +114,8 @@ pub const APP_COMMANDS: &[&str] = &[
 // above but absent here are intentionally unavailable to every webview.
 #[allow(dead_code)]
 pub const MAIN_WINDOW_COMMANDS: &[&str] = &[
+    "configure_calendar_reminders",
+    "present_calendar_reminder",
     "model_info",
     "list_models",
     "download_model",
@@ -166,6 +175,9 @@ pub const MAIN_WINDOW_COMMANDS: &[&str] = &[
     "set_input_device",
     "list_output_devices",
     "set_output_device",
+    "calendar_permission",
+    "request_calendar_access",
+    "read_calendar_snapshot",
     "get_permissions",
     "open_privacy_pane",
     "request_input_monitoring_prompt",
@@ -186,9 +198,14 @@ pub const MAIN_WINDOW_COMMANDS: &[&str] = &[
     "release_update_install",
 ];
 
+// The reminder can only read and respond to the current native-issued offer.
+// Starting is a request to the main window, not direct recorder authority.
+#[allow(dead_code)]
+pub const REMINDER_WINDOW_COMMANDS: &[&str] =
+    &["calendar_reminder_current", "calendar_reminder_action"];
+
 // The floating controller can only control an already-running meeting.
-// In particular it cannot start a recording, mutate
-// capture history/settings or read transcripts.
+// It cannot start capture, mutate history/settings, or read transcripts.
 #[allow(dead_code)]
 pub const MEETING_CONTROLLER_COMMANDS: &[&str] = &[
     "meeting_recorder_pause",

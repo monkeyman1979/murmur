@@ -53,6 +53,7 @@ describe("About external links", () => {
     } });
     expect(wrapper.get("a").text()).toBe(reportLabel);
     expect(wrapper.get("a").attributes("href")).toBe("https://github.com/monkeyman1979/murmur/issues/new?template=bug_report.yml");
+    expect(wrapper.text()).not.toContain("GitHub Releases");
     wrapper.unmount();
   });
 
@@ -87,6 +88,9 @@ describe("About software updates", () => {
     await flushPromises();
     const row = wrapper.get('[data-test="about-updates"]');
     expect(row.text()).toContain("Software updates");
+    expect(wrapper.text()).not.toContain("Automatic updates are off");
+    expect(wrapper.text()).not.toContain("GitHub Releases");
+    expect(wrapper.text()).toContain("update checks and downloads");
     expect(row.text()).toContain("Murmur checks at launch at most once per day.");
     const dl = wrapper.get("dl").element;
     expect(dl.compareDocumentPosition(row.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

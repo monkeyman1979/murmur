@@ -84,7 +84,7 @@ async function refreshCapabilities(): Promise<MeetingCaptureCapabilities | null>
   try {
     const result = await invoke<MeetingCaptureCapabilities>("meeting_capture_capabilities");
     capabilities.value = result;
-    error.value = null;
+    // A capability refresh must not erase the failure that opened setup.
     return result;
   } catch (reason) {
     error.value = normalizeCaptureError(reason);

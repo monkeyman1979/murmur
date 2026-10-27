@@ -48,14 +48,24 @@ function handleSetActive(item: ModelListItem): void {
 
 function handleDownload(item: ModelListItem): void {
   const dl = useModelDownload(item.entry.id);
-  void dl.download().catch(() => {
+  void dl.download().then(async () => {
+    // Boot activation fails when this model is absent. Downloading the
+    // already-selected id does not trigger the selection watcher again.
+    if (activeSttId.value === item.entry.id) {
+      await invoke("set_active_stt", { modelId: item.entry.id });
+    }
+  }).catch(() => {
     console.error("[murmur] model download failed");
   }).finally(() => void refresh());
 }
 
 function handleRedownload(item: ModelListItem): void {
   const dl = useModelDownload(item.entry.id);
-  void dl.download({ force: true }).catch(() => {
+  void dl.download({ force: true }).then(async () => {
+    if (activeSttId.value === item.entry.id) {
+      await invoke("set_active_stt", { modelId: item.entry.id });
+    }
+  }).catch(() => {
     console.error("[murmur] model re-download failed");
   }).finally(() => void refresh());
 }
