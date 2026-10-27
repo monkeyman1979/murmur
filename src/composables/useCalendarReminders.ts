@@ -87,6 +87,18 @@ function setEnabled(value: boolean): Promise<void> {
   });
 }
 
+/** First-time setup is an explicit account-selection action, never a mount,
+ * refresh, permission grant or restoration of previously saved accounts.
+ */
+function enableOnFirstSelection(): Promise<void> {
+  try {
+    if (!enabled.value && writes === 0 && accountIds.length > 0 && localStorage.getItem(ENABLED_KEY) === null) {
+      return setEnabled(true);
+    }
+  } catch { /* An unreadable saved choice is not permission to enable reminders. */ }
+  return Promise.resolve();
+}
+
 function setLeadSeconds(value: number): Promise<void> {
   if (!REMINDER_TIMINGS.some((option) => option === value)) return Promise.resolve();
   writes++;
@@ -165,5 +177,5 @@ export async function startCalendarReminders(): Promise<() => void> {
 }
 
 export function useCalendarReminders() {
-  return { enabled, leadSeconds, pending, failed, setEnabled, setLeadSeconds };
+  return { enabled, leadSeconds, pending, failed, setEnabled, enableOnFirstSelection, setLeadSeconds };
 }

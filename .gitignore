@@ -40,8 +40,11 @@ coverage/
 .turbo/
 .cache/
 
-# Never include local assistant state or private meeting-quality assets.
-.claude/
+# Share only Claude's attribution policy; keep all local assistant state private.
+.claude/*
+!.claude/settings.json
+
+# Never include other local assistant state or private meeting-quality assets.
 .pi-subagents/
 .codex/
 .cursor/

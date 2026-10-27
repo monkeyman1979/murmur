@@ -1,6 +1,6 @@
 [package]
 name = "murmur"
-version = "0.1.4"
+version = "0.1.5"
 description = "Murmur — local-first voice dictation for macOS"
 authors = ["monkeyman1979"]
 edition = "2021"

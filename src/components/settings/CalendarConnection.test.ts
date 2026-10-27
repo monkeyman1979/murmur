@@ -9,8 +9,9 @@ import { Select } from "@/components/ui/select";
 
 const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke }));
-const reminders = vi.hoisted(() => ({ enabled: null as unknown as Ref<boolean>, pending: null as unknown as Ref<boolean>, failed: null as unknown as Ref<boolean>, leadSeconds: null as unknown as Ref<number>, setLeadSeconds: vi.fn(), setEnabled: vi.fn() }));
+const reminders = vi.hoisted(() => ({ enabled: null as unknown as Ref<boolean>, pending: null as unknown as Ref<boolean>, failed: null as unknown as Ref<boolean>, leadSeconds: null as unknown as Ref<number>, setLeadSeconds: vi.fn(), setEnabled: vi.fn(), enableOnFirstSelection: vi.fn() }));
 vi.mock("@/composables/useCalendarReminders", () => ({ REMINDER_TIMINGS: [0, 15, 30, 60], useCalendarReminders: () => reminders }));
+const REMINDERS_ENABLED_KEY = "murmur:calendar-reminders-enabled-v1";
 let wrapper: VueWrapper;
 const snapshot: CalendarSnapshot = {
   accounts: [{ id: "a1", email: "work@example.com" }, { id: "a2", email: "personal@example.com" }],
@@ -20,11 +21,17 @@ function render() {
   wrapper = mount(CalendarConnection, { global: { plugins: [createI18n({ legacy: false, locale: "en", messages: { en } })] } });
 }
 beforeEach(() => {
-  invoke.mockReset(); localStorage.removeItem(CALENDAR_SELECTION_KEY); localStorage.removeItem(CALENDAR_CONNECTED_KEY);
+  invoke.mockReset(); localStorage.removeItem(CALENDAR_SELECTION_KEY); localStorage.removeItem(CALENDAR_CONNECTED_KEY); localStorage.removeItem(REMINDERS_ENABLED_KEY);
   reminders.enabled = ref(false); reminders.pending = ref(false); reminders.failed = ref(false);
   reminders.leadSeconds = ref(15);
   reminders.setLeadSeconds.mockReset().mockImplementation(async (value) => { reminders.leadSeconds.value = value; });
-  reminders.setEnabled.mockReset().mockImplementation(async (enabled) => { reminders.enabled.value = enabled; });
+  reminders.setEnabled.mockReset().mockImplementation(async (enabled) => {
+    localStorage.setItem(REMINDERS_ENABLED_KEY, String(enabled));
+    reminders.enabled.value = enabled;
+  });
+  reminders.enableOnFirstSelection.mockReset().mockImplementation(async () => {
+    if (localStorage.getItem(REMINDERS_ENABLED_KEY) === null) await reminders.setEnabled(true);
+  });
 });
 afterEach(() => { wrapper?.unmount(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 function button(text: string) { return wrapper.findAll("button").find((b) => b.text() === text)!; }
@@ -50,14 +57,15 @@ describe("calendar email account settings", () => {
     expect(titleBlock.textContent).toContain(en.calendarConnection.description);
     expect(en.calendarConnection.description).toContain("Apple Calendar");
     expect(button(en.calendarConnection.privacy).attributes("aria-expanded")).toBe("false");
-    expect(wrapper.get('[role="switch"]').element.compareDocumentPosition(button(en.calendarConnection.privacy).element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain(en.calendarConnection.remindersTitle);
     expect(wrapper.text()).not.toContain(en.calendarConnection.permissionHelp);
     expect(wrapper.text()).not.toContain("Reminders aren’t enabled yet.");
     expect(wrapper.find('[role="status"]').exists()).toBe(false);
     expect(button(disconnectLabel)).toBeUndefined();
     await button(en.calendarConnection.privacy).trigger("click"); await flushPromises();
     expect(wrapper.text()).toContain(en.calendarConnection.permissionHelp);
-    expect(wrapper.get(".calendar-disclosure").attributes("data-state")).toBe("open");
+    expect(wrapper.get(`#${button(en.calendarConnection.privacy).attributes("aria-controls")}`).attributes("data-state")).toBe("open");
     await button(en.calendarConnection.privacy).trigger("click"); await flushPromises();
     expect(button(en.calendarConnection.privacy).attributes("aria-expanded")).toBe("false");
     expect(invoke).not.toHaveBeenCalled();
@@ -85,6 +93,8 @@ describe("calendar email account settings", () => {
     const disconnect = button(disconnectLabel);
     expect(panel.element.contains(refresh.element)).toBe(true);
     expect(panel.element.contains(disconnect.element)).toBe(true);
+    expect(panel.element.compareDocumentPosition(button(en.calendarConnection.privacy).element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(wrapper.get("section").element.lastElementChild?.contains(button(en.calendarConnection.privacy).element)).toBe(true);
     expect(account("personal@example.com").element.compareDocumentPosition(refresh.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(disconnect.attributes("class")).toContain("text-muted-foreground");
     expect(refresh.classes().some((name) => /^(min-w-|w-|flex-1$)/.test(name))).toBe(false);
@@ -195,16 +205,26 @@ describe("calendar email account settings", () => {
     expect(wrapper.get('[role="status"]').text()).toBe("1 of 2 accounts selected");
   });
 
-  it("requires selected accounts to enable reminders and always allows turning them off", async () => {
+  it("reveals and enables reminders on the first selected account, not merely opening Manage accounts", async () => {
     allowed(); render();
-    expect(wrapper.get('[role="switch"]').attributes("disabled")).toBeDefined();
+    expect(wrapper.find('[role="switch"]').exists()).toBe(false);
     await connect();
-    expect(wrapper.get('[role="switch"]').attributes("disabled")).toBeDefined();
+    expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+    expect(reminders.enableOnFirstSelection).not.toHaveBeenCalled();
     await account("work@example.com").trigger("click"); await flushPromises();
-    await wrapper.get('[role="switch"]').trigger("click"); await flushPromises();
+    expect(reminders.enableOnFirstSelection).toHaveBeenCalledOnce();
     expect(reminders.setEnabled).toHaveBeenCalledWith(true);
+    expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("true");
+    expect(wrapper.get('[role="combobox"]').text()).toBe("15 seconds before");
+    expect(account("work@example.com").element.compareDocumentPosition(wrapper.get('[role="switch"]').element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(wrapper.text()).not.toContain("Reminders on.");
+    await wrapper.get('[role="switch"]').trigger("click"); await flushPromises();
+    expect(reminders.setEnabled).toHaveBeenLastCalledWith(false);
+    expect(account("work@example.com").attributes("aria-checked")).toBe("true");
+    expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("false");
+    expect(wrapper.find('[role="combobox"]').exists()).toBe(false);
     await button(disconnectLabel).trigger("click"); await flushPromises();
+    expect(wrapper.find('[role="switch"]').exists()).toBe(false);
     expect(reminders.setEnabled).toHaveBeenLastCalledWith(false);
   });
 
@@ -213,7 +233,6 @@ describe("calendar email account settings", () => {
     expect(wrapper.find('[role="combobox"]').exists()).toBe(false);
     await connect();
     await account("work@example.com").trigger("click"); await flushPromises();
-    await wrapper.get('[role="switch"]').trigger("click"); await flushPromises();
     const checkbox = account("work@example.com").element;
     const timing = wrapper.get('[role="combobox"]');
     const toggle = wrapper.get('[role="switch"]').element;
@@ -234,7 +253,6 @@ describe("calendar email account settings", () => {
   it("keeps calendars connected when reminders are disabled after reopening Settings", async () => {
     allowed(); render(); await connect();
     await account("work@example.com").trigger("click"); await flushPromises();
-    await wrapper.get('[role="switch"]').trigger("click"); await flushPromises();
     wrapper.unmount(); invoke.mockClear(); render(); await flushPromises();
     expect(invoke).not.toHaveBeenCalled();
     expect(button(manageLabel).exists()).toBe(true);
@@ -251,6 +269,86 @@ describe("calendar email account settings", () => {
     await button(manageLabel).trigger("click"); await flushPromises();
     expect(account("work@example.com").attributes("aria-checked")).toBe("true");
     expect(button(disconnectLabel).exists()).toBe(true);
+  });
+
+  it("keeps a deliberate Off choice through account changes, Refresh, remount and reselection", async () => {
+    allowed(); render(); await connect();
+    await account("work@example.com").trigger("click"); await flushPromises();
+    await wrapper.get('[role="switch"]').trigger("click"); await flushPromises();
+    await account("personal@example.com").trigger("click"); await flushPromises();
+    await button(en.calendarConnection.refresh).trigger("click"); await flushPromises();
+    expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("false");
+    wrapper.unmount(); invoke.mockClear(); render(); await flushPromises();
+    expect(invoke).not.toHaveBeenCalled();
+    expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("false");
+    await button(manageLabel).trigger("click"); await flushPromises();
+    await account("work@example.com").trigger("click"); await flushPromises();
+    await account("personal@example.com").trigger("click"); await flushPromises();
+    expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+    await account("work@example.com").trigger("click"); await flushPromises();
+    expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("false");
+    expect(reminders.setEnabled.mock.calls.filter(([enabled]) => enabled === true)).toHaveLength(1);
+  });
+
+  it("does not auto-enable restored selections or selections that could not be saved", async () => {
+    localStorage.setItem(CALENDAR_SELECTION_KEY, JSON.stringify(["a1"]));
+    allowed(); render();
+    expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("false");
+    expect(invoke).not.toHaveBeenCalled();
+    await button(manageLabel).trigger("click"); await flushPromises();
+    expect(reminders.enableOnFirstSelection).not.toHaveBeenCalled();
+    await account("work@example.com").trigger("click"); await flushPromises();
+    const save = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (this: Storage, key, value) {
+      if (key === CALENDAR_SELECTION_KEY) throw new Error("Storage unavailable");
+      save.call(this, key, value);
+    });
+    await account("work@example.com").trigger("click"); await flushPromises();
+    expect(wrapper.get('[role="alert"]').text()).toBe(en.calendarConnection.selectionSaveFailed);
+    expect(reminders.enableOnFirstSelection).not.toHaveBeenCalled();
+    expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("false");
+  });
+
+  it("hides controls when no selected saved account exists in the refreshed directory", async () => {
+    localStorage.setItem(CALENDAR_SELECTION_KEY, JSON.stringify(["missing-account"]));
+    allowed(); render();
+    await button(manageLabel).trigger("click"); await flushPromises();
+    expect(wrapper.text()).toContain("0 of 2 accounts selected");
+    expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+    expect(reminders.enableOnFirstSelection).not.toHaveBeenCalled();
+  });
+
+  it("animates the reminder controls in and out below the picker without removing the switch when turned off", async () => {
+    vi.stubGlobal("CSS", { escape: (value: string) => value });
+    const nativeStyle = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation((element, pseudo) => {
+      const style = nativeStyle(element, pseudo);
+      if (element.getAttribute("data-slot") === "collapsible-content"
+        && element.parentElement?.id.endsWith("-reminders")) {
+        style.display = "block";
+        style.animationName = element.getAttribute("data-state") === "open"
+          ? "calendar-disclosure-open" : "calendar-disclosure-close";
+      }
+      return style;
+    });
+    allowed(); render(); await connect();
+    const checkbox = account("work@example.com").element;
+    await account("work@example.com").trigger("click"); await flushPromises();
+    const content = wrapper.get('[id$="-reminders"] [data-slot="collapsible-content"]');
+    expect(content.classes()).toContain("calendar-disclosure");
+    expect(content.attributes("data-state")).toBe("open");
+    expect(content.get(":scope > div").classes()).toContain("pt-3");
+    expect(account("work@example.com").element).toBe(checkbox);
+    await wrapper.get('[role="switch"]').trigger("click"); await flushPromises();
+    expect(content.attributes("data-state")).toBe("open");
+    expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("false");
+    await account("work@example.com").trigger("click"); await flushPromises();
+    expect(content.attributes("data-state")).toBe("closed");
+    expect(wrapper.get('[role="switch"]').attributes("disabled")).toBeDefined();
+    await content.trigger("animationend", { animationName: "calendar-disclosure-close" });
+    await flushPromises();
+    expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+    expect(button(en.calendarConnection.privacy).exists()).toBe(true);
   });
 
   it("offers the exact Calendar privacy pane after denial", async () => {

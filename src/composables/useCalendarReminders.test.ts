@@ -30,6 +30,68 @@ describe("calendar reminders opt-in and durable acknowledgment", () => {
     expect(mock.invoke.mock.calls.map(([command]) => command)).not.toContain("read_calendar_snapshot");
   });
 
+  it("enables first-time setup only after an explicit account-selection action", async () => {
+    await start();
+    await api.useCalendarReminders().enableOnFirstSelection();
+    expect(api.useCalendarReminders().enabled.value).toBe(false);
+    expect(localStorage.getItem(ENABLED)).toBeNull();
+    localStorage.setItem(SELECTION, JSON.stringify(["account"]));
+    window.dispatchEvent(new CustomEvent("murmur:calendar-account-selection-changed", { detail: ["account"] }));
+    await flushPromises();
+    expect(api.useCalendarReminders().enabled.value).toBe(false);
+    await api.useCalendarReminders().enableOnFirstSelection();
+    expect(localStorage.getItem(ENABLED)).toBe("true");
+    expect(mock.invoke).toHaveBeenLastCalledWith("configure_calendar_reminders", {
+      enabled: true, accountIds: ["account"], leadSeconds: 15, handled: [],
+    });
+  });
+
+  it("never overrides a saved Off choice, including after an app restart", async () => {
+    localStorage.setItem(ENABLED, "false");
+    localStorage.setItem(SELECTION, JSON.stringify(["account"]));
+    await start();
+    await api.useCalendarReminders().enableOnFirstSelection();
+    expect(api.useCalendarReminders().enabled.value).toBe(false);
+    stop!(); stop = undefined; await flushPromises(); vi.resetModules(); await start();
+    await api.useCalendarReminders().enableOnFirstSelection();
+    expect(localStorage.getItem(ENABLED)).toBe("false");
+    expect(mock.invoke).not.toHaveBeenCalledWith("configure_calendar_reminders", expect.objectContaining({ enabled: true }));
+  });
+
+  it("does not auto-enable restored accounts or overwrite an unreadable saved choice", async () => {
+    localStorage.setItem(SELECTION, JSON.stringify(["account"]));
+    await start();
+    expect(api.useCalendarReminders().enabled.value).toBe(false);
+    const get = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (this: Storage, key) {
+      if (key === ENABLED) throw new Error("Storage unavailable");
+      return get.call(this, key);
+    });
+    await api.useCalendarReminders().enableOnFirstSelection();
+    expect(mock.invoke).not.toHaveBeenCalledWith("configure_calendar_reminders", expect.objectContaining({ enabled: true }));
+  });
+
+  it("fails closed when first-selection consent cannot be saved", async () => {
+    localStorage.setItem(SELECTION, JSON.stringify(["account"]));
+    await start();
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
+    await api.useCalendarReminders().enableOnFirstSelection();
+    expect(api.useCalendarReminders().enabled.value).toBe(false);
+    expect(api.useCalendarReminders().failed.value).toBe(true);
+    expect(mock.invoke).not.toHaveBeenCalledWith("configure_calendar_reminders", expect.objectContaining({ enabled: true }));
+  });
+
+  it("does not override a pending explicit Off choice with first-selection setup", async () => {
+    localStorage.setItem(SELECTION, JSON.stringify(["account"]));
+    await start();
+    const disable = api.useCalendarReminders().setEnabled(false);
+    await api.useCalendarReminders().enableOnFirstSelection();
+    await disable;
+    expect(api.useCalendarReminders().enabled.value).toBe(false);
+    expect(localStorage.getItem(ENABLED)).toBe("false");
+    expect(mock.invoke).not.toHaveBeenCalledWith("configure_calendar_reminders", expect.objectContaining({ enabled: true }));
+  });
+
   it("restores explicit opt-in, selected account IDs, and unexpired handled keys", async () => {
     const item = due();
     localStorage.setItem(ENABLED, "true"); localStorage.setItem(SELECTION, JSON.stringify(["account"]));

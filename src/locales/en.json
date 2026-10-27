@@ -361,7 +361,7 @@
   },
   "calendarConnection": {
     "title": "Calendar accounts",
-    "description": "Choose accounts in Apple Calendar for meeting reminders.",
+    "description": "Select Apple Calendar accounts to enable meeting reminders.",
     "permissionHelp": "macOS requires Full Access. Murmur reads meetings only from selected accounts and never edits events or starts recording automatically. Only accounts with an identifiable email label are listed.",
     "connect": "Connect calendars",
     "connecting": "Connecting…",

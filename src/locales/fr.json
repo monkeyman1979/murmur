@@ -335,7 +335,7 @@
   },
   "calendarConnection": {
     "title": "Comptes de calendrier",
-    "description": "Choisissez les comptes du Calendrier Apple pour les rappels.",
+    "description": "Sélectionnez des comptes du Calendrier Apple pour activer les rappels de réunion.",
     "permissionHelp": "macOS exige un accès complet. Murmur ne lit les réunions que dans les comptes sélectionnés, ne modifie jamais les événements et ne lance pas d’enregistrement automatique. Seuls les comptes avec une adresse e-mail identifiable sont affichés.",
     "connect": "Connecter les calendriers",
     "connecting": "Connexion…",
