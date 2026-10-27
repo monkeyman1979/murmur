@@ -2,7 +2,7 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [0.1.4] - Unreleased
+## [0.1.4] - 2026-10-27
 
 ### Added
 
@@ -19,6 +19,10 @@ Notable changes to Murmur are listed here. Versions follow [Semantic Versioning]
 
 - Calendar Full Access is requested only when you connect; macOS does not offer a read-only permission tier. Murmur never edits calendar events, joins meetings or starts recording automatically. Calendar account choices and opaque reminder acknowledgments stay on this Mac.
 - Murmur must be running, and events must have synced into Apple Calendar. Sleep or delayed synchronization can delay or suppress a reminder. Scheduled reminders do not detect whether you actually attend a call.
+
+### Validation scope
+
+- The signed app and DMG passed Apple notarization, stapled-ticket, Gatekeeper and exact-entitlement checks. The signed updater archive was verified and its extracted app passed those checks. The GitHub-hosted v0.1.3 → v0.1.4 in-app upgrade and installed-system data/permission retention checks remain unverified at publication.
 
 ## [0.1.3] - 2026-10-21
 
