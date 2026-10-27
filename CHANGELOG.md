@@ -2,6 +2,21 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.5] - 2026-10-27
+
+This update simplifies meeting reminder setup, preserves your reminder preferences, and cleans up update notifications.
+
+### Improved
+
+- Meeting reminder controls stay hidden until a connected account is selected, then animate into view below the account picker. Selecting the first account during first-time setup enables reminders with the default 15-second timing.
+- Turning reminders off keeps the selected accounts and the switch available. Saved Off choices are respected through account changes, Refresh, Settings visits and app restarts; existing users are not silently opted in.
+- Calendar access & privacy is now at the bottom of the calendar section and remains accessible before connecting. Setup copy makes the account-selection behavior explicit in all four interface languages.
+- The sidebar update card no longer previews raw release-note Markdown. It keeps the version, Update action and dismiss control.
+
+### Validation scope
+
+- Automated UI/state integration and signed-debug checks passed. Production-identity fresh-install and v0.1.4 → v0.1.5 upgrade/data/permission retention checks remain pending.
+
 ## [0.1.4] - 2026-10-27
 
 ### Added
@@ -76,6 +91,7 @@ sudo chown -R root:admin /Applications/Murmur.app && sudo chmod -R u+rwX,go+rX,g
 
 First public release: a Developer ID–signed, notarized DMG for Apple Silicon Macs running macOS 14.4 or later.
 
+[0.1.5]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.5
 [0.1.4]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.4
 [0.1.3]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.3
 [0.1.2]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.2

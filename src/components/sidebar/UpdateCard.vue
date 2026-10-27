@@ -39,9 +39,6 @@ const compact = computed(() => sidebarState.value === "collapsed" && !isMobile.v
       <Download class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
       <div class="min-w-0 flex-1">
         <p class="text-xs font-semibold leading-5">{{ statusLabel }}</p>
-        <p v-if="updater.phase.value === 'available' && updater.notes.value" class="line-clamp-2 text-[11px] leading-4 text-sidebar-foreground/65">
-          {{ updater.notes.value }}
-        </p>
       </div>
       <button
         v-if="updater.phase.value === 'available'"

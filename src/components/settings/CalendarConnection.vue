@@ -22,7 +22,7 @@ const {
 } = useCalendarConnection();
 const {
   enabled: remindersEnabled, leadSeconds, pending: reminderPending, failed: reminderFailed,
-  setEnabled: setRemindersEnabled, setLeadSeconds,
+  setEnabled: setRemindersEnabled, enableOnFirstSelection, setLeadSeconds,
 } = useCalendarReminders();
 const timingValue = computed({
   get: () => String(leadSeconds.value),
@@ -34,8 +34,20 @@ function timingLabel(seconds: number): string {
 }
 const selected = computed(() => new Set(selectedIds.value));
 const accounts = computed(() => snapshot.value?.accounts ?? []);
+const hasSelectedAccounts = computed(() => connected.value
+  && (snapshot.value ? selectedCount.value > 0 : selectedIds.value.length > 0));
 const blocked = computed(() => permission.value === "denied" || permission.value === "write-only");
 const checkboxClass = "inline-flex size-3.5 shrink-0 appearance-none items-center justify-center rounded-[3px] border border-input bg-background text-primary-foreground outline-none data-[state=checked]:border-primary data-[state=checked]:bg-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-wait";
+async function selectAccount(accountId: string, checked: boolean): Promise<void> {
+  const hadSelection = hasSelectedAccounts.value;
+  // setAccount saves and announces the choice before its directory refresh.
+  const update = setAccount(accountId, checked);
+  if (checked && !hadSelection && hasSelectedAccounts.value && !selectionStorageFailed.value) {
+    await enableOnFirstSelection();
+  }
+  await update;
+}
+
 async function disconnectCalendars(): Promise<void> {
   await setRemindersEnabled(false);
   accountsOpen.value = false;
@@ -74,28 +86,6 @@ async function openSettings(): Promise<void> {
         {{ t(connected ? 'calendarConnection.manageAccounts' : pending ? 'calendarConnection.connecting' : 'calendarConnection.connect') }}
       </Button>
     </header>
-    <SettingRow :title="t('calendarConnection.remindersTitle')" :description="t('calendarConnection.remindersHelp')">
-      <div class="flex items-center gap-3">
-        <Select v-if="remindersEnabled" v-model="timingValue" :disabled="reminderPending">
-          <SelectTrigger class="w-44 max-w-full" :aria-label="t('calendarConnection.timingTitle')">
-            <SelectValue>{{ timingLabel(leadSeconds) }}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="seconds in REMINDER_TIMINGS" :key="seconds" :value="String(seconds)">{{ timingLabel(seconds) }}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Switch :model-value="remindersEnabled" :aria-label="t('calendarConnection.remindersTitle')" :disabled="reminderPending || (!remindersEnabled && (!connected || !selectedIds.length))" @update:model-value="setRemindersEnabled" />
-      </div>
-    </SettingRow>
-    <Collapsible v-model:open="privacyOpen">
-      <CollapsibleTrigger class="group inline-flex items-center gap-1 text-xs text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <ChevronRight aria-hidden="true" class="size-3 transition-transform duration-200 group-data-[state=open]:rotate-90 motion-reduce:transition-none" />
-        {{ t('calendarConnection.privacy') }}
-      </CollapsibleTrigger>
-      <CollapsibleContent class="calendar-disclosure">
-        <p class="w-[min(100%,65ch)] pt-2 text-xs leading-snug text-muted-foreground">{{ t('calendarConnection.permissionHelp') }}</p>
-      </CollapsibleContent>
-    </Collapsible>
     <p v-if="reminderFailed" role="alert" class="text-xs text-destructive">{{ t('calendarConnection.remindersFailed') }}</p>
     <p v-if="failed" role="alert" class="text-xs text-destructive">{{ t('calendarConnection.failed') }}</p>
     <p v-if="selectionStorageFailed" role="alert" class="text-xs text-destructive">{{ t('calendarConnection.selectionSaveFailed') }}</p>
@@ -118,7 +108,7 @@ async function openSettings(): Promise<void> {
                   <CheckboxRoot
                     :class="checkboxClass" :model-value="selected.has(account.id)"
                     :aria-label="t('calendarConnection.useAccount', { account: account.email })"
-                    :disabled="pending" @update:model-value="setAccount(account.id, $event === true)"
+                    :disabled="pending" @update:model-value="selectAccount(account.id, $event === true)"
                   >
                     <CheckboxIndicator force-mount class="inline-flex items-center justify-center data-[state=unchecked]:invisible">
                       <Check aria-hidden="true" class="size-3" :stroke-width="3" />
@@ -138,6 +128,35 @@ async function openSettings(): Promise<void> {
             </div>
           </div>
         </div>
+      </CollapsibleContent>
+    </Collapsible>
+    <!-- Reveal below the picker so selecting an account does not move its row. -->
+    <Collapsible :id="`${id}-reminders`" :open="hasSelectedAccounts" class="-mt-3">
+      <CollapsibleContent class="calendar-disclosure">
+        <div class="pt-3" aria-live="polite">
+          <SettingRow :title="t('calendarConnection.remindersTitle')" :description="t('calendarConnection.remindersHelp')">
+            <div class="flex items-center gap-3">
+              <Select v-if="remindersEnabled" v-model="timingValue" :disabled="reminderPending">
+                <SelectTrigger class="w-44 max-w-full" :aria-label="t('calendarConnection.timingTitle')">
+                  <SelectValue>{{ timingLabel(leadSeconds) }}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="seconds in REMINDER_TIMINGS" :key="seconds" :value="String(seconds)">{{ timingLabel(seconds) }}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Switch :model-value="remindersEnabled" :aria-label="t('calendarConnection.remindersTitle')" :disabled="reminderPending || !hasSelectedAccounts" @update:model-value="setRemindersEnabled" />
+            </div>
+          </SettingRow>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+    <Collapsible v-model:open="privacyOpen">
+      <CollapsibleTrigger class="group inline-flex items-center gap-1 text-xs text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <ChevronRight aria-hidden="true" class="size-3 transition-transform duration-200 group-data-[state=open]:rotate-90 motion-reduce:transition-none" />
+        {{ t('calendarConnection.privacy') }}
+      </CollapsibleTrigger>
+      <CollapsibleContent class="calendar-disclosure">
+        <p class="w-[min(100%,65ch)] pt-2 text-xs leading-snug text-muted-foreground">{{ t('calendarConnection.permissionHelp') }}</p>
       </CollapsibleContent>
     </Collapsible>
   </section>

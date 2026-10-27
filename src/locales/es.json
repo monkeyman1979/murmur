@@ -335,7 +335,7 @@
   },
   "calendarConnection": {
     "title": "Cuentas de calendario",
-    "description": "Elige cuentas de Calendario de Apple para avisos de reuniones.",
+    "description": "Selecciona cuentas de Calendario de Apple para activar los avisos de reuniones.",
     "permissionHelp": "macOS exige Acceso completo. Murmur solo lee reuniones de las cuentas seleccionadas. Nunca modifica eventos ni empieza a grabar automáticamente. Solo se muestran cuentas con una dirección de correo identificable.",
     "connect": "Conectar calendarios",
     "connecting": "Conectando…",
