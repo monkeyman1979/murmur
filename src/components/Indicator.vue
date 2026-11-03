@@ -16,6 +16,7 @@ const { t } = useI18n();
 // the first state event — the window is only ever shown on hotkey-press, so
 // "recording" is the correct opening label.
 type IndicatorState =
+  | "connecting"
   | "recording"
   | "transcribing"
   | "cancelled"
@@ -63,6 +64,7 @@ onMounted(async () => {
     "murmur://indicator-state",
     (e) => {
       if (
+        e.payload === "connecting" ||
         e.payload === "recording" ||
         e.payload === "transcribing" ||
         e.payload === "cancelled" ||
@@ -106,9 +108,22 @@ onUnmounted(() => {
       class="flex max-w-full items-center gap-2 rounded-full bg-zinc-950 px-4 py-2 select-none"
       style="-webkit-app-region: drag; cursor: default"
     >
+      <!-- Connecting: a Bluetooth headset is still switching its mic on and
+           delivers no audio yet. A dim, pulsing dot (no level) tells the user
+           to wait before speaking; Rust swaps to "recording" on first frames. -->
+      <template v-if="state === 'connecting'">
+        <span
+          class="size-2 shrink-0 rounded-full bg-zinc-400 animate-pulse"
+          aria-hidden="true"
+        />
+        <span class="text-sm font-medium text-white leading-none">
+          {{ t("indicator.connecting") }}
+        </span>
+      </template>
+
       <!-- Recording: red dot scaled by live mic level. 75 ms transition
            smooths the 30 Hz event cadence into continuous motion. -->
-      <template v-if="state === 'recording'">
+      <template v-else-if="state === 'recording'">
         <span
           class="size-2 shrink-0 rounded-full bg-red-500 transition-transform duration-75"
           :style="{ transform: `scale(${1 + level * 0.6})` }"

@@ -499,6 +499,7 @@
     }
   },
   "indicator": {
+    "connecting": "Connecting mic…",
     "recording": "Recording",
     "transcribing": "Transcribing…",
     "cancelled": "Cancelled",

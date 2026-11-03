@@ -2,6 +2,21 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Dictating with a Bluetooth headset's own microphone no longer plays muffled, bass-less "call-quality" audio at the start and end of each dictation. Murmur mutes output before the headset switches into call mode and restores it only after the headset is back in music mode (about 2 seconds after release on tested earbuds). If nothing else is playing, Murmur does not mute.
+- The recording pill now shows "Connecting mic…" while a Bluetooth headset mic is switching on, and turns red only once it is actually hearing sound, so first words are no longer lost to the headset's silent start-up.
+
+### Changed
+
+- Dictations that use a Bluetooth headset's microphone while it is also the output play no sound cues; the headset's mode switch made them inaudible or late. The pill is the signal instead. Built-in and USB microphones, including with Bluetooth headphones as output, keep their cues. With Bluetooth headphones as output and nothing else playing, Murmur no longer mutes, so cues stay audible.
+
+### Validation scope
+
+- Tested on Sony WF-1000XM5 earbuds with a signed debug build. Other headsets and the AirPods family are unverified; headsets that don't report a sample-rate change fall back to a fixed 1.5-second wait.
+
 ## [0.1.5] - 2026-10-27
 
 This update simplifies meeting reminder setup, preserves your reminder preferences, and cleans up update notifications.

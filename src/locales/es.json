@@ -1,6 +1,7 @@
 {
   "common": { "appName": "Murmur", "tagline": "Dictado local y privado" },
   "indicator": {
+    "connecting": "Conectando micrófono…",
     "recording": "Grabando", "transcribing": "Transcribiendo…", "cancelled": "Cancelado",
     "microphoneError": "Micrófono no disponible", "modelMissing": "Falta el modelo", "recordingLimit": "Grabación detenida",
     "noAudio": "Sin audio · {device}", "noAudioGeneric": "Sin audio · Comprueba la entrada",
