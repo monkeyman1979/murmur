@@ -13,6 +13,7 @@ import { useI18n } from "vue-i18n";
 type ActivationMode = "hold" | "toggle";
 type DemoPhase = ActivationMode | "complete";
 const indicatorLabels = {
+  connecting: "indicator.connecting",
   recording: "indicator.recording",
   transcribing: "indicator.transcribing",
   cancelled: "indicator.cancelled",
@@ -314,6 +315,7 @@ onUnmounted(() => {
                    not its window-scoped component or global transparency styles. -->
               <div data-gesture-badge class="inline-flex max-w-full items-center gap-2 rounded-full border border-transparent bg-zinc-950 px-4 py-2">
                   <span v-if="indicatorState === 'recording'" class="inline-recording-dot size-2 shrink-0 rounded-full bg-red-500" :style="{ transform: `scale(${1 + inputLevel * 0.6})` }" aria-hidden="true" />
+                  <span v-else-if="indicatorState === 'connecting'" class="size-2 shrink-0 rounded-full bg-zinc-400 animate-pulse" aria-hidden="true" />
                   <span v-else-if="indicatorState === 'transcribing'" class="inline-transcribing-spinner size-3 shrink-0 rounded-full border-2 border-white/80 border-t-transparent" aria-hidden="true" />
                   <span v-else class="size-2 shrink-0 rounded-full bg-zinc-400" aria-hidden="true" />
                   <span role="status" class="text-center text-sm font-medium leading-none text-white">{{ feedbackLabel }}</span>

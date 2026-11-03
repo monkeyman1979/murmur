@@ -3,6 +3,7 @@ mod diagnostics;
 
 pub mod audio;
 pub mod audio_devices;
+pub mod bluetooth_route;
 pub mod calendar;
 pub mod captures;
 pub mod corrections;
@@ -806,6 +807,22 @@ fn wire_hotkey(
             // starts. Snapshot its onboarding insertion/privacy policy.
             current_demo = onboarding_demo.snapshot();
             admission.press();
+            // A Bluetooth headset mic switches the headset into call mode,
+            // which is audible and delays the first frames. Mute before the
+            // mic opens so that switch is never heard (bluetooth_route.rs).
+            // `None` for built-in/USB mics, which keep their existing path.
+            let bluetooth = bluetooth_route::probe(audio.preferred_device().as_deref());
+            // On Bluetooth outputs any mute also silences the chimes. With
+            // nothing else playing there is nothing to hide, so skip muting
+            // and let the chimes be heard; while music plays, its stopping
+            // and returning is the cue instead.
+            let output_bluetooth = bluetooth_route::output_is_bluetooth();
+            let silence_output = !output_bluetooth || bluetooth_route::other_audio_playing();
+            let bluetooth_output = bluetooth
+                .and_then(|route| route.output)
+                .filter(|_| silence_output);
+            let mute_generation = mute_state.begin_dictation(&app, bluetooth_output);
+            sound_cues.set_bluetooth_headset_mic(bluetooth.is_some() && output_bluetooth);
             // Reserve and start dictation audio before publishing any recording
             // UI. A meeting owns the shared capture lease, so its hotkey
             // rejection must remain invisible and must not touch meeting state.
@@ -815,6 +832,7 @@ fn wire_hotkey(
                     // No release/cancel event from this rejected gesture may call
                     // into dictation audio or alter an existing indicator session.
                     admission.reject();
+                    mute_state.end_capture(&app);
                     if error == AudioStartError::CaptureBusy {
                         crate::murmur_dev_log!(
                             "[murmur] dictation ignored: meeting capture active"
@@ -867,24 +885,55 @@ fn wire_hotkey(
                 },
             );
             window_events::emit_main(&app, "murmur://recording", true);
+            // A Bluetooth mic delivers nothing until the headset finishes
+            // switching; say so instead of inviting speech that will be lost.
             emit_indicator_state_for_session(
                 &app,
                 &indicator_session,
                 current_indicator_session_id,
-                "recording",
+                if bluetooth.is_some() {
+                    "connecting"
+                } else {
+                    "recording"
+                },
             );
             show_indicator(&app);
-            // Bluetooth outputs can still be switching into microphone mode
-            // when `Stream::play()` returns. Schedule the start cue after the
-            // first input callback, without delaying or blocking capture.
-            let sound_cues_for_start = Arc::clone(&sound_cues);
-            runtime.spawn(async move {
-                sound::play_start_when_ready(sound_cues_for_start, capture_ready).await;
-            });
+            if bluetooth.is_some() {
+                // Pill, start cue and mute hand-off all wait for real audio.
+                // The cue itself is skipped when the output is the headset.
+                let app_for_ready = app.clone();
+                let sound_cues_for_start = Arc::clone(&sound_cues);
+                let mute_for_ready = Arc::clone(&mute_state);
+                let sessions = Arc::clone(&indicator_session);
+                let session_id = current_indicator_session_id;
+                runtime.spawn(async move {
+                    follow_bluetooth_mic_startup(
+                        app_for_ready,
+                        capture_ready,
+                        sound_cues_for_start,
+                        mute_for_ready,
+                        mute_generation,
+                        sessions,
+                        session_id,
+                    )
+                    .await;
+                });
+            } else {
+                // Schedule the start cue after the first input callback,
+                // without delaying or blocking capture.
+                let sound_cues_for_start = Arc::clone(&sound_cues);
+                runtime.spawn(async move {
+                    sound::play_start_when_ready(sound_cues_for_start, capture_ready).await;
+                });
+            }
             // Mute system output if opted in. NSSound uses the separate alert
             // volume (see mute_audio.rs); the cue may now play after muting.
-            // Restore at every exit path; a sentinel covers crashes.
-            mute_state.mute_if_enabled(&app);
+            // Restore at every exit path; a sentinel covers crashes. A
+            // Bluetooth headset output was already muted above, and an idle
+            // one is left alone (see `silence_output`).
+            if silence_output && bluetooth_output.is_none() {
+                mute_state.mute_if_enabled(&app);
+            }
             // Eager warmup. Idempotent on the WhisperEngine cache:
             // a no-op when the model is already loaded, kicks the
             // load in parallel with audio capture when the idle
@@ -938,7 +987,7 @@ fn wire_hotkey(
                 sound::play_cancel(&sound_cues);
                 // No samples → nothing to transcribe; restore system
                 // volume now so other apps aren't stuck silent.
-                mute_state.restore(&app);
+                mute_state.end_capture(&app);
                 return;
             };
             // Recording capture is done — restore system volume now
@@ -949,7 +998,7 @@ fn wire_hotkey(
             // Later restores downstream are no-ops once `saved_volume`
             // has been taken — kept as belt-and-suspenders for error
             // paths but they won't re-restore.
-            mute_state.restore(&app);
+            mute_state.end_capture(&app);
 
             // Assess only after a normal release. Near-digital silence gets
             // actionable feedback immediately and never writes a WAV, enters
@@ -1087,7 +1136,7 @@ fn wire_hotkey(
             // Restore output volume *immediately*, not paired with the
             // 2 s pill fade — there's no reason to keep YouTube muted
             // while the Cancelled pill is still visible.
-            mute_state.restore(&app);
+            mute_state.end_capture(&app);
             schedule_indicator_hide(
                 app.clone(),
                 Arc::clone(&indicator_session),
@@ -1100,7 +1149,7 @@ fn wire_hotkey(
 }
 
 /// Publish the indicator-pill state to the frontend. The payload is a
-/// string enum — `"recording" | "transcribing" | "cancelled" |
+/// string enum — `"connecting" | "recording" | "transcribing" | "cancelled" |
 /// "microphone-error" | "model-missing" | "recording-limit" |
 /// "no-audio" | "no-speech" | "idle"` — consumed by
 /// `src/components/Indicator.vue`
@@ -1110,6 +1159,36 @@ fn wire_hotkey(
 /// stale state never leaves a ghost window visible.
 fn emit_indicator_state(app: &AppHandle, state: &str) {
     window_events::emit_dictation_ui(app, "murmur://indicator-state", state);
+}
+
+/// Switch the pill from "Connecting mic…" to "Recording", play the start cue
+/// and tell the mute state the headset is in call mode — all once a Bluetooth
+/// mic is hearing real audio, not at its first (zero-filled) frames. Ends
+/// quietly if the capture stops first.
+async fn follow_bluetooth_mic_startup(
+    app: AppHandle,
+    ready: audio::CaptureReadiness,
+    sound_cues: Arc<SoundCuesState>,
+    mute_state: Arc<MuteWhileDictatingState>,
+    mute_generation: u64,
+    sessions: Arc<IndicatorSession>,
+    session_id: u64,
+) {
+    let started = Instant::now();
+    let Some(via) = bluetooth_route::wait_for_live_audio(&ready).await else {
+        return;
+    };
+    crate::murmur_dev_log!(
+        "[murmur] bluetooth mic live after {} ms ({via:?})",
+        started.elapsed().as_millis()
+    );
+    if ready.is_active() {
+        emit_indicator_state_for_session(&app, &sessions, session_id, "recording");
+    }
+    if ready.is_active() {
+        sound::play_start(&sound_cues);
+    }
+    mute_state.bluetooth_mic_ready(&app, mute_generation);
 }
 
 fn emit_indicator_state_for_session(

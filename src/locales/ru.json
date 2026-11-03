@@ -1,6 +1,7 @@
 {
   "common": { "appName": "Murmur", "tagline": "Локальная диктовка" },
   "indicator": {
+    "connecting": "Подключение микрофона…",
     "recording": "Запись", "transcribing": "Расшифровка…", "cancelled": "Отменено",
     "microphoneError": "Микрофон недоступен", "modelMissing": "Модель отсутствует", "recordingLimit": "Запись остановлена",
     "noAudio": "Нет аудио · {device}", "noAudioGeneric": "Нет аудио · Проверьте вход",

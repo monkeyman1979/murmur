@@ -4,14 +4,16 @@
 //! Three cue slots wired in `lib.rs::wire_hotkey` + `transcribe_and_emit`:
 //!
 //! - **Start** (`Pop`) — capture has begun delivering microphone frames.
-//!   Keep the original sound while testing whether cue timing fixes
-//!   Bluetooth playback; selecting a different cue is a separate experiment.
 //! - **Stop** (`Bottle`) — transcription and corrections completed;
 //!   insertion is about to begin. This does not claim paste acceptance.
 //! - **Cancel** (`Basso`) — capture/transcription or insertion failed.
 //!   Fires on Esc, empty capture, empty transcript, Whisper error, and
 //!   paste error, including after Bottle. macOS's `Basso` is its built-in
 //!   "error" sound, so the low-thud association is already learned.
+//!
+//! Dictations that record from a Bluetooth headset which is also the output
+//! play no cues: the headset's switch into and out of call mode swallows or
+//! delays them, so the indicator pill carries those transitions instead.
 //!
 //! All three are macOS system sounds from `/System/Library/Sounds/`,
 //! picked for low collision risk with common notification sounds
@@ -49,6 +51,11 @@ const SOUND_CANCEL: &str = "Basso";
 /// round-trip on every press.
 pub struct SoundCuesState {
     enabled: AtomicBool,
+    /// The current dictation records from a Bluetooth headset that is also
+    /// the output. Its call-mode switch swallows cues: start is never heard
+    /// in call mode, and stop/cancel only become audible ~2 s after release,
+    /// after the text has landed. The indicator pill is the signal instead.
+    bluetooth_headset_mic: AtomicBool,
 }
 
 impl SoundCuesState {
@@ -59,6 +66,7 @@ impl SoundCuesState {
     pub fn new() -> Self {
         Self {
             enabled: AtomicBool::new(false),
+            bluetooth_headset_mic: AtomicBool::new(false),
         }
     }
 
@@ -68,6 +76,15 @@ impl SoundCuesState {
 
     pub fn is_enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
+    }
+
+    /// Set at each dictation start.
+    pub fn set_bluetooth_headset_mic(&self, value: bool) {
+        self.bluetooth_headset_mic.store(value, Ordering::Relaxed);
+    }
+
+    fn should_play(&self) -> bool {
+        self.is_enabled() && !self.bluetooth_headset_mic.load(Ordering::Relaxed)
     }
 }
 
@@ -117,11 +134,19 @@ async fn wait_for_start_cue(state: &SoundCuesState, ready: &CaptureReadiness) ->
     }
 }
 
+/// Play the start cue now. For Bluetooth captures, whose caller has already
+/// waited for real audio rather than first frames.
+pub fn play_start(state: &SoundCuesState) {
+    if state.should_play() {
+        play_system_sound(SOUND_START);
+    }
+}
+
 /// Play the transcription-complete cue before insertion begins. No-op when
 /// the toggle is OFF. A later insertion failure may also play `play_cancel`,
 /// so both completion and failure cues can sound for one dictation.
 pub fn play_stop(state: &SoundCuesState) {
-    if state.is_enabled() {
+    if state.should_play() {
         play_system_sound(SOUND_STOP);
     }
 }
@@ -131,7 +156,7 @@ pub fn play_stop(state: &SoundCuesState) {
 /// error, and paste error (non-Accessibility-denied — that path has
 /// its own in-app surfaces and a chime would be double-signaling).
 pub fn play_cancel(state: &SoundCuesState) {
-    if state.is_enabled() {
+    if state.should_play() {
         play_system_sound(SOUND_CANCEL);
     }
 }
@@ -204,6 +229,17 @@ mod tests {
         let ready = CaptureReadiness::new();
         ready.close();
         assert!(!wait_for_start_cue(&state, &ready).await);
+    }
+
+    #[test]
+    fn bluetooth_headset_mic_dictation_plays_no_cues() {
+        let state = SoundCuesState::new();
+        state.set(true);
+        assert!(state.should_play());
+        state.set_bluetooth_headset_mic(true);
+        assert!(!state.should_play());
+        state.set_bluetooth_headset_mic(false);
+        assert!(state.should_play());
     }
 
     #[tokio::test]

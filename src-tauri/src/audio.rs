@@ -182,6 +182,10 @@ impl CaptureReadiness {
         self.first_callback.get().map(Instant::elapsed)
     }
 
+    pub fn since_first_signal(&self) -> Option<Duration> {
+        self.first_signal.get().map(Instant::elapsed)
+    }
+
     /// Track both first frames and first non-near-silent block. The threshold
     /// is far below normal speech: background mic noise may satisfy it before
     /// anyone talks, while noise suppression may keep it below threshold.
@@ -1022,6 +1026,12 @@ fn resolve_input_device(host: &cpal::Host, preferred: Option<&str>) -> Option<cp
         }
     }
     host.default_input_device()
+}
+
+/// Name of the device the next capture will open, using the same choice as
+/// the capture thread so callers can prepare for it before `start`.
+pub fn resolved_input_device_name(preferred: Option<&str>) -> Option<String> {
+    resolve_input_device(&cpal::default_host(), preferred).and_then(|d| d.name().ok())
 }
 
 /// Emit `murmur://level` at most once per [`LEVEL_EMIT_INTERVAL`]. Applies
