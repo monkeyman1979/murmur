@@ -2,7 +2,9 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.1.6] - 2026-11-03
+
+This update fixes muffled audio and lost first words when dictating with Bluetooth headsets, and includes security updates for TLS and interface translations.
 
 ### Fixed
 
@@ -12,6 +14,11 @@ Notable changes to Murmur are listed here. Versions follow [Semantic Versioning]
 ### Changed
 
 - Dictations that use a Bluetooth headset's microphone while it is also the output play no sound cues; the headset's mode switch made them inaudible or late. The pill is the signal instead. Built-in and USB microphones, including with Bluetooth headphones as output, keep their cues. With Bluetooth headphones as output and nothing else playing, Murmur no longer mutes, so cues stay audible.
+
+### Security
+
+- Updated rustls to 0.23.46, used for HTTPS model downloads and update checks. This resolves four advisories, including one where formatting a TLS session for debugging could expose its secrets. Murmur did not log TLS sessions.
+- Updated vue-i18n to 11.4.18, resolving advisories where translation-message escaping could be bypassed. Murmur's translations are bundled with the app and don't use the affected options.
 
 ### Validation scope
 
@@ -106,6 +113,7 @@ sudo chown -R root:admin /Applications/Murmur.app && sudo chmod -R u+rwX,go+rX,g
 
 First public release: a Developer ID–signed, notarized DMG for Apple Silicon Macs running macOS 14.4 or later.
 
+[0.1.6]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.6
 [0.1.5]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.5
 [0.1.4]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.4
 [0.1.3]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.3
