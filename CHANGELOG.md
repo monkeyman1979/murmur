@@ -4,7 +4,7 @@ Notable changes to Murmur are listed here. Versions follow [Semantic Versioning]
 
 ## [0.1.6] - 2026-11-03
 
-This update fixes muffled audio and lost first words when dictating with Bluetooth headsets, and includes a TLS security update.
+This update fixes muffled audio and lost first words when dictating with Bluetooth headsets, and includes security updates for TLS and interface translations.
 
 ### Fixed
 
@@ -18,6 +18,7 @@ This update fixes muffled audio and lost first words when dictating with Bluetoo
 ### Security
 
 - Updated rustls to 0.23.46, used for HTTPS model downloads and update checks. This resolves four advisories, including one where formatting a TLS session for debugging could expose its secrets. Murmur did not log TLS sessions.
+- Updated vue-i18n to 11.4.18, resolving advisories where translation-message escaping could be bypassed. Murmur's translations are bundled with the app and don't use the affected options.
 
 ### Validation scope
 
