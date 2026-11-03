@@ -24532,7 +24532,7 @@ THE SOFTWARE.
 
 Components:
 - hyper-rustls 0.27.9 — Apache-2.0 OR ISC OR MIT
-- rustls 0.23.45 — Apache-2.0 OR ISC OR MIT
+- rustls 0.23.46 — Apache-2.0 OR ISC OR MIT
 
 --- LICENSE-APACHE ---
 Apache License
