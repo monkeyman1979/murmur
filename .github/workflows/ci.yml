@@ -14,7 +14,9 @@ jobs:
     name: Rust (check + clippy)
     # Linux checks portable Rust code only. macOS-only paths are cfg-gated;
     # they still require separate macOS builds and installed-app QA.
-    runs-on: ubuntu-latest
+    # Pinned: on ubuntu-26.04, bindgen 0.69 (vendored whisper-rs-sys)
+    # generates incomplete `whisper_full_params` bindings and the build fails.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: src-tauri
