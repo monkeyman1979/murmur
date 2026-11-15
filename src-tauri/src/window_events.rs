@@ -30,6 +30,7 @@ pub(crate) fn emit_dictation_ui<S: Serialize + Clone>(app: &AppHandle, event: &s
 }
 
 /// Presentation data for the floating meeting controller only.
+#[cfg(all(target_os = "macos", feature = "meeting-capture"))]
 pub(crate) fn emit_meeting_controller<S: Serialize + Clone>(app: &AppHandle, event: &str, payload: S) {
     let _ = app.emit_to(MEETING_CONTROLLER_WINDOW, event, payload);
 }
