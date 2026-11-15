@@ -3,7 +3,10 @@ import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
+import { useIndicatorAlignment } from "@/composables/useIndicatorAlignment";
+
 const { t } = useI18n();
+const alignment = useIndicatorAlignment();
 
 // No imports from the main app tree — this component is intentionally isolated.
 // The window being visible IS the recording state; Rust controls show/hide via
@@ -93,12 +96,13 @@ onUnmounted(() => {
 
 <template>
   <!-- Outer fills the full window (360×40 per tauri.conf); transparent.
-       Centers the content-sized pill inside. The inline transparent
+       Aligns the content-sized pill to its saved anchor. The inline transparent
        background is belt-and-suspenders against any body-background
        cascade leakage — production transparency is carried by the
        <style> block below plus the app-level `macOSPrivateApi` flag. -->
   <div
-    class="flex h-screen w-screen items-center justify-center bg-transparent"
+    class="flex h-screen w-screen items-center bg-transparent"
+    :class="alignment"
     style="background: transparent !important"
   >
     <div

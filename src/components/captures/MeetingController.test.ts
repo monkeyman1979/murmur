@@ -32,6 +32,7 @@ vi.mock("@/composables/useMeetingCapture", async () => {
 });
 
 vi.mock("@/composables/useTheme", () => ({ useTheme: vi.fn() }));
+vi.mock("@tauri-apps/api/event", () => ({ listen: vi.fn(async () => vi.fn()) }));
 
 import MeetingController from "@/components/captures/MeetingController.vue";
 import { IconTooltip } from "@/components/ui/tooltip";

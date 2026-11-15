@@ -3,11 +3,13 @@ import { computed, onUnmounted, ref, watch } from "vue";
 import { Pause, Play, Square, X } from "lucide-vue-next";
 import { useMeetingCapture } from "@/composables/useMeetingCapture";
 import { useTheme } from "@/composables/useTheme";
+import { useIndicatorAlignment } from "@/composables/useIndicatorAlignment";
 import { IconTooltip } from "@/components/ui/tooltip";
 import { formatMeetingDuration } from "@/lib/format";
 import { useI18n } from "vue-i18n";
 
 useTheme();
+const alignment = useIndicatorAlignment();
 const { t } = useI18n();
 
 const {
@@ -111,7 +113,8 @@ void hydrate();
        cascade leakage; the <style> block at the bottom is what actually
        carries it. -->
   <div
-    class="flex h-screen w-screen items-center justify-end bg-transparent"
+    class="flex h-screen w-screen items-center bg-transparent"
+    :class="alignment"
     style="background: transparent !important"
     data-tauri-drag-region
   >

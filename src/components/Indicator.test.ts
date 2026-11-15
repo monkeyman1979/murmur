@@ -36,6 +36,17 @@ afterEach(() => {
 });
 
 describe("Indicator dictation result feedback", () => {
+  it.each([
+    ["bottom-left", "justify-start"], ["top-center", "justify-center"],
+    ["bottom-right", "justify-end"],
+  ])("aligns the visible pill for %s", async (position, alignment) => {
+    const wrapper = mount(Indicator, { global: { plugins: [i18n] } });
+    await nextTick();
+    await emit("murmur://indicator-position", position);
+    expect(wrapper.get(".h-screen").classes()).toContain(alignment);
+    wrapper.unmount();
+  });
+
   it("names the effective audio input for both no-result states", async () => {
     const wrapper = mount(Indicator, { global: { plugins: [i18n] } });
     await nextTick();
@@ -89,7 +100,7 @@ describe("Indicator dictation result feedback", () => {
     expect(wrapper.text()).toContain("No audio · Check audio input");
 
     wrapper.unmount();
-    expect(eventMocks.unlisteners).toHaveLength(3);
+    expect(eventMocks.unlisteners).toHaveLength(4);
     for (const unlisten of eventMocks.unlisteners) expect(unlisten).toHaveBeenCalledOnce();
   });
 });

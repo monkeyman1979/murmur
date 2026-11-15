@@ -320,8 +320,8 @@ impl Drop for MeetingControllerVisibilityGuard {
     }
 }
 
-/// Park the floating controller in the top-right of the display containing
-/// Murmur's main window, just below the menu bar.
+/// Park the floating controller at its saved anchor on the display containing
+/// Murmur's main window.
 ///
 /// This deliberately uses AppKit's `NSWindow.screen` and `NSScreen.visibleFrame`
 /// instead of Tauri's cursor/monitor coordinate path. Tao currently scales the
@@ -331,14 +331,15 @@ impl Drop for MeetingControllerVisibilityGuard {
 /// controller, producing the seemingly random position seen on an ultrawide.
 ///
 /// AppKit supplies the main window's screen and usable frame in one consistent
-/// logical coordinate space. The only fixed value is the desired 8-point inset;
+/// logical coordinate space. All anchors use the dictation indicator's 20-point inset;
 /// the display origin, size, menu bar, Dock, and controller size are all native.
 ///
 /// Only ever called for a controller that is not currently visible — see the
 /// caller for why.
 #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
 pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::WebviewWindow) {
-    const MARGIN: f64 = 8.0;
+    let anchor = crate::indicator_position::current(app).meeting;
+    crate::window_events::emit_meeting_controller(app, "murmur://indicator-position", anchor);
 
     let Some(main_window) = app.get_webview_window("main") else {
         crate::murmur_diag!("[murmur][mc-diag] main window unavailable, leaving default position");
@@ -374,14 +375,18 @@ pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::Webvi
 
         let work_area = NSScreen::visibleFrame(&screen);
         let controller_frame = NSWindow::frame(controller);
-        let x = work_area.origin.x + work_area.size.width - controller_frame.size.width - MARGIN;
-        // `setFrameTopLeftPoint` expects the top edge in AppKit's bottom-left
-        // coordinate system, so visibleFrame.maxY is exactly the desired base.
-        let y = work_area.origin.y + work_area.size.height - MARGIN;
+        let (offset_x, offset_y) = anchor.offsets(
+            work_area.size.width,
+            work_area.size.height,
+            controller_frame.size.width,
+            controller_frame.size.height,
+        );
+        let x = work_area.origin.x + offset_x;
+        let y = work_area.origin.y + offset_y;
 
         crate::murmur_diag!(
             "[murmur][mc-diag] AppKit visible_frame=({:.1},{:.1},{:.1},{:.1}) \
-             window=({:.1},{:.1}) -> top_left=({x:.1},{y:.1})",
+             window=({:.1},{:.1}) -> origin=({x:.1},{y:.1})",
             work_area.origin.x,
             work_area.origin.y,
             work_area.size.width,
@@ -389,7 +394,7 @@ pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::Webvi
             controller_frame.size.width,
             controller_frame.size.height,
         );
-        controller.setFrameTopLeftPoint(NSPoint::new(x, y));
+        controller.setFrameOrigin(NSPoint::new(x, y));
     }) {
         crate::murmur_diag!(
             "[murmur][mc-diag] scheduling AppKit controller placement failed: {error:?}"

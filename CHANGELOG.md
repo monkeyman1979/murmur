@@ -2,6 +2,21 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.7] - 2026-11-15
+
+### Added
+
+- Choose where the dictation indicator and meeting controls appear: top left, top center, top right, bottom left, bottom center or bottom right. Each has its own saved setting in Settings → General, with bottom center as the default.
+
+### Improved
+
+- Recording widgets use consistent 20-point spacing from the usable screen edges, respecting the menu bar and Dock. Meeting controls remain draggable, and pause/resume preserves their dragged position.
+- Position selectors and their menus have enough room for the default label without the excessive width of the initial test build. All four interface language catalogs include the new controls.
+
+### Validation scope
+
+- Automated frontend, placement and permission-boundary tests passed. The owner tested the signed debug build's placement and selector sizing. Production-identity upgrade and retained-data/permission checks are required before publication; mixed-scale display and independent localization QA remain unverified.
+
 ## [0.1.6] - 2026-11-03
 
 This update fixes muffled audio and lost first words when dictating with Bluetooth headsets, and includes security updates for TLS and interface translations.
@@ -113,6 +128,7 @@ sudo chown -R root:admin /Applications/Murmur.app && sudo chmod -R u+rwX,go+rX,g
 
 First public release: a Developer ID–signed, notarized DMG for Apple Silicon Macs running macOS 14.4 or later.
 
+[0.1.7]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.7
 [0.1.6]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.6
 [0.1.5]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.5
 [0.1.4]: https://github.com/monkeyman1979/murmur/releases/tag/v0.1.4

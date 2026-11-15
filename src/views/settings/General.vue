@@ -56,6 +56,7 @@ import {
 } from "@/composables/useMeetingTranscriptRetention";
 import { useMuteWhileDictating } from "@/composables/useMuteWhileDictating";
 import { useSoundCues } from "@/composables/useSoundCues";
+import { INDICATOR_POSITIONS, useIndicatorPositions } from "@/composables/useIndicatorPositions";
 import {
   retentionChangeRequiresConfirmation,
 } from "@/lib/retention";
@@ -85,6 +86,7 @@ const {
   refresh: refreshInputDevices,
 } = useInputDevices();
 const { enabled: soundCuesEnabled } = useSoundCues();
+const { dictation: dictationPosition, meeting: meetingPosition } = useIndicatorPositions();
 const { enabled: muteWhileDictatingEnabled } = useMuteWhileDictating();
 const { days: retentionDays } = useHistoryRetention();
 const { retention: meetingAudioRetention } = useMeetingAudioRetention();
@@ -410,6 +412,42 @@ function confirmMeetingAiPromptRestore(): void {
           :description="t('generalSettings.loginHelp')"
         >
           <Switch v-model="autostartSwitch" :aria-label="t('generalSettings.login')" />
+        </SettingRow>
+
+        <Separator />
+
+        <SettingRow
+          :title="t('indicatorPosition.dictation')"
+          :description="t('indicatorPosition.dictationHelp')"
+        >
+          <Select v-model="dictationPosition">
+            <SelectTrigger class="w-56 max-w-full" :aria-label="t('indicatorPosition.dictation')">
+              <SelectValue>{{ t(`indicatorPosition.${dictationPosition}`) }}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="position in INDICATOR_POSITIONS" :key="position" :value="position">
+                {{ t(`indicatorPosition.${position}`) }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </SettingRow>
+
+        <Separator />
+
+        <SettingRow
+          :title="t('indicatorPosition.meeting')"
+          :description="t('indicatorPosition.meetingHelp')"
+        >
+          <Select v-model="meetingPosition">
+            <SelectTrigger class="w-56 max-w-full" :aria-label="t('indicatorPosition.meeting')">
+              <SelectValue>{{ t(`indicatorPosition.${meetingPosition}`) }}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="position in INDICATOR_POSITIONS" :key="position" :value="position">
+                {{ t(`indicatorPosition.${position}`) }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </SettingRow>
 
         <Separator />
