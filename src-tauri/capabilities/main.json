@@ -66,6 +66,7 @@
     "allow-capture-reveal",
     "allow-set-mute-while-dictating",
     "allow-set-sound-cues",
+    "allow-set-indicator-positions",
     "allow-set-vocabulary",
     "allow-set-corrections",
     "allow-history-list",

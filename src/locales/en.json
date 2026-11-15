@@ -395,6 +395,18 @@
     "dismiss": "Dismiss",
     "failed": "This reminder is no longer available. Start a recording from Murmur if needed."
   },
+  "indicatorPosition": {
+    "dictation": "Dictation indicator position",
+    "dictationHelp": "Where the indicator appears when dictation starts. All edges use the same spacing.",
+    "meeting": "Meeting controls position",
+    "meetingHelp": "Where the controls appear when a meeting starts. You can still drag them during recording.",
+    "top-left": "Top left",
+    "top-center": "Top center",
+    "top-right": "Top right",
+    "bottom-left": "Bottom left",
+    "bottom-center": "Bottom center (default)",
+    "bottom-right": "Bottom right"
+  },
   "generalSettings": {
     "hotkey": "Hotkey", "hotkeyTitle": "Dictation hotkey",
     "hotkeyHelp": "Hold to record while pressed. Double-tap to lock recording on; tap again to stop. Press and hold the combination you want, then release.",

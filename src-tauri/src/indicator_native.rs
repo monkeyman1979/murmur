@@ -19,7 +19,7 @@ pub fn force_transparent(app: &tauri::AppHandle, label: &str) {
     mac::force_transparent(app, label);
 }
 
-/// Move the dictation indicator to the bottom-center of the display containing
+/// Move the dictation indicator to its saved anchor on the display containing
 /// the focused control in the frontmost application.
 ///
 /// Returns `true` when native placement was scheduled. Callers retain a
@@ -57,7 +57,6 @@ mod mac {
     const AX_ERROR_SUCCESS: i32 = 0;
     const AX_VALUE_CGPOINT_TYPE: u32 = 1;
     const AX_VALUE_CGSIZE_TYPE: u32 = 2;
-    const BOTTOM_MARGIN: f64 = 20.0;
 
     // The AX attribute names are CFSTR macros in Apple's headers, not exported
     // framework symbols, so construct their CFString values locally.
@@ -186,6 +185,7 @@ mod mac {
         // hotkey does not activate Murmur, so this is still the app/control the
         // user was typing into when dictation began.
         let focused_center = focused_target_center();
+        let anchor = crate::indicator_position::current(app).dictation;
         let Some(window) = app.get_webview_window(INDICATOR) else {
             crate::murmur_dev_log!(
                 "[murmur][indicator_native] indicator window not found for placement"
@@ -240,8 +240,14 @@ mod mac {
             let indicator = &*(ns_window as *mut NSWindow);
             let work_area = NSScreen::visibleFrame(&screen);
             let frame = NSWindow::frame(indicator);
-            let x = work_area.origin.x + (work_area.size.width - frame.size.width) / 2.0;
-            let y = work_area.origin.y + BOTTOM_MARGIN;
+            let (offset_x, offset_y) = anchor.offsets(
+                work_area.size.width,
+                work_area.size.height,
+                frame.size.width,
+                frame.size.height,
+            );
+            let x = work_area.origin.x + offset_x;
+            let y = work_area.origin.y + offset_y;
             indicator.setFrameOrigin(NSPoint::new(x, y));
             crate::murmur_dev_log!(
                 "[murmur][indicator_native] positioned on focused screen: visibleFrame=({:.1},{:.1},{:.1},{:.1}) target=({x:.1},{y:.1})",

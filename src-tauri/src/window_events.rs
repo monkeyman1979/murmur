@@ -29,6 +29,12 @@ pub(crate) fn emit_dictation_ui<S: Serialize + Clone>(app: &AppHandle, event: &s
     let _ = app.emit_to(INDICATOR_WINDOW, event, payload);
 }
 
+/// Presentation data for the floating meeting controller only.
+#[cfg(all(target_os = "macos", feature = "meeting-capture"))]
+pub(crate) fn emit_meeting_controller<S: Serialize + Clone>(app: &AppHandle, event: &str, payload: S) {
+    let _ = app.emit_to(MEETING_CONTROLLER_WINDOW, event, payload);
+}
+
 /// Live meeting state drives the routed meeting library and the floating
 /// controller. It is never delivered to the dictation indicator.
 pub(crate) fn emit_meeting_ui<S: Serialize + Clone>(app: &AppHandle, event: &str, payload: S) {

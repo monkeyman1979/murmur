@@ -370,6 +370,18 @@
     "dismiss": "Descartar",
     "failed": "Este aviso ya no está disponible. Si lo necesitas, inicia una grabación desde Murmur."
   },
+  "indicatorPosition": {
+    "dictation": "Posición del indicador de dictado",
+    "dictationHelp": "Dónde aparece el indicador al iniciar el dictado. Todos los bordes usan el mismo margen.",
+    "meeting": "Posición de los controles de reunión",
+    "meetingHelp": "Dónde aparecen los controles al iniciar una reunión. Puedes seguir arrastrándolos durante la grabación.",
+    "top-left": "Arriba a la izquierda",
+    "top-center": "Arriba en el centro",
+    "top-right": "Arriba a la derecha",
+    "bottom-left": "Abajo a la izquierda",
+    "bottom-center": "Abajo en el centro (predeterminado)",
+    "bottom-right": "Abajo a la derecha"
+  },
   "generalSettings": {
     "hotkey": "Atajo", "hotkeyTitle": "Atajo de dictado",
     "hotkeyHelp": "Mantén pulsado el atajo para grabar. Púlsalo dos veces para grabar sin mantenerlo pulsado; vuelve a pulsarlo para detener. Mantén pulsada la combinación que quieras y suéltala.",

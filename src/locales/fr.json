@@ -370,6 +370,18 @@
     "dismiss": "Ignorer",
     "failed": "Ce rappel n’est plus disponible. Lancez un enregistrement depuis Murmur si nécessaire."
   },
+  "indicatorPosition": {
+    "dictation": "Position de l’indicateur de dictée",
+    "dictationHelp": "Emplacement de l’indicateur au début de la dictée. Tous les bords utilisent la même marge.",
+    "meeting": "Position des commandes de réunion",
+    "meetingHelp": "Emplacement des commandes au début d’une réunion. Vous pouvez toujours les déplacer pendant l’enregistrement.",
+    "top-left": "En haut à gauche",
+    "top-center": "En haut au centre",
+    "top-right": "En haut à droite",
+    "bottom-left": "En bas à gauche",
+    "bottom-center": "En bas au centre (par défaut)",
+    "bottom-right": "En bas à droite"
+  },
   "generalSettings": {
     "hotkey": "Raccourci", "hotkeyTitle": "Raccourci de dictée",
     "hotkeyHelp": "Maintenez le raccourci pour enregistrer. Appuyez deux fois pour enregistrer sans maintenir les touches ; appuyez à nouveau pour arrêter. Maintenez la combinaison souhaitée, puis relâchez-la.",

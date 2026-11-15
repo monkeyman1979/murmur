@@ -13,6 +13,7 @@ pub mod focused_app;
 pub mod history;
 pub mod hotkey;
 pub mod indicator_native;
+pub mod indicator_position;
 pub mod insertion;
 mod login_item;
 pub mod meeting_capture;
@@ -359,6 +360,7 @@ pub fn run() {
             captures::capture_reveal,
             mute_audio::set_mute_while_dictating,
             sound::set_sound_cues,
+            indicator_position::set_indicator_positions,
             vocabulary::set_vocabulary,
             corrections::set_corrections,
             history::history_list,
@@ -519,6 +521,9 @@ pub fn run() {
             // launch from a racy atomic.
             let sound_cues = Arc::new(SoundCuesState::new());
             app.manage(Arc::clone(&sound_cues));
+            app.manage(std::sync::Mutex::new(
+                indicator_position::IndicatorPositions::default(),
+            ));
 
             // Mute-while-dictating — same frontend-source-of-truth
             // pattern as sound cues. `useMuteWhileDictating` pushes
@@ -1270,6 +1275,11 @@ fn show_indicator(app: &AppHandle) {
         return;
     };
 
+    window_events::emit_indicator(
+        app,
+        "murmur://indicator-position",
+        indicator_position::current(app).dictation,
+    );
     if !indicator_native::position_on_focused_screen(app) {
         if let Ok(Some(monitor)) = window.primary_monitor() {
             let scale = monitor.scale_factor();
@@ -1278,9 +1288,11 @@ fn show_indicator(app: &AppHandle) {
             let size = work_area.size.to_logical::<f64>(scale);
             let win_w_pt = 360.0;
             let win_h_pt = 40.0;
-            let bottom_margin_pt = 20.0;
-            let x = position.x + (size.width - win_w_pt) / 2.0;
-            let y = position.y + size.height - win_h_pt - bottom_margin_pt;
+            let anchor = indicator_position::current(app).dictation;
+            let (offset_x, offset_y) = anchor.offsets(size.width, size.height, win_w_pt, win_h_pt);
+            let x = position.x + offset_x;
+            // Tauri uses top-left coordinates; offsets are bottom-left based.
+            let y = position.y + size.height - win_h_pt - offset_y;
             let _ = window.set_position(tauri::LogicalPosition::new(x, y));
         }
     }
