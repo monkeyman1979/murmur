@@ -15,7 +15,8 @@ Notable changes to Murmur are listed here. Versions follow [Semantic Versioning]
 
 ### Validation scope
 
-- Automated frontend, placement and permission-boundary tests passed. The owner tested the signed debug build's placement and selector sizing. Production-identity upgrade and retained-data/permission checks are required before publication; mixed-scale display and independent localization QA remain unverified.
+- Automated frontend, placement and permission-boundary tests, Clippy and both required CI jobs passed. The production app and DMG passed Apple notarization, stapled-ticket, Gatekeeper and exact-entitlement checks. The updater archive signature verified against v0.1.6's trusted public key.
+- The owner confirmed that the production-identity v0.1.6 → v0.1.7 manual in-place upgrade preserved settings, history, the speech model and existing permissions, with dictation and meeting recording/pause/resume/save working. The GitHub-hosted in-app download/restart path, mixed-scale displays and independent localization QA remain unverified.
 
 ## [0.1.6] - 2026-11-03
 
