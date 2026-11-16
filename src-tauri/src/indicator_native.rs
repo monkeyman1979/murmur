@@ -14,6 +14,8 @@ pub const INDICATOR: &str = "indicator";
 /// Secondary read-only laptop status while dictating on a notchless display.
 pub const NOTCH_INDICATOR: &str = "indicator-notch";
 
+// Only AppKit placement (macOS) calls this; Linux CI compiles it for tests.
+#[cfg(any(target_os = "macos", test))]
 pub(crate) fn mirror_needed(
     style: crate::indicator_position::IndicatorStyle,
     focused_has_notch: bool,
@@ -22,19 +24,6 @@ pub(crate) fn mirror_needed(
     style == crate::indicator_position::IndicatorStyle::Notch
         && !focused_has_notch
         && laptop_available
-}
-#[cfg(test)]
-mod mirror_tests {
-    use super::*;
-    use crate::indicator_position::IndicatorStyle;
-
-    #[test]
-    fn laptop_mirror_only_supplements_notch_mode_on_an_external_display() {
-        assert!(mirror_needed(IndicatorStyle::Notch, false, true));
-        assert!(!mirror_needed(IndicatorStyle::Notch, true, true));
-        assert!(!mirror_needed(IndicatorStyle::Notch, false, false));
-        assert!(!mirror_needed(IndicatorStyle::Floating, false, true));
-    }
 }
 
 /// Label of the floating meeting-recording control.
@@ -364,5 +353,19 @@ mod mac {
         crate::murmur_dev_log!(
             "[murmur][indicator_native] {label} NSWindow forced: isOpaque=NO, backgroundColor=clear"
         );
+    }
+}
+
+#[cfg(test)]
+mod mirror_tests {
+    use super::*;
+    use crate::indicator_position::IndicatorStyle;
+
+    #[test]
+    fn laptop_mirror_only_supplements_notch_mode_on_an_external_display() {
+        assert!(mirror_needed(IndicatorStyle::Notch, false, true));
+        assert!(!mirror_needed(IndicatorStyle::Notch, true, true));
+        assert!(!mirror_needed(IndicatorStyle::Notch, false, false));
+        assert!(!mirror_needed(IndicatorStyle::Floating, false, true));
     }
 }

@@ -2,7 +2,9 @@
 use std::{collections::HashMap, sync::Mutex};
 
 use serde::Serialize;
-use tauri::{Emitter, Manager};
+#[cfg(target_os = "macos")]
+use tauri::Emitter;
+use tauri::Manager;
 
 use crate::indicator_position::IndicatorStyle;
 
@@ -51,6 +53,7 @@ fn expandable_surface(label: &str) -> bool {
 /// Both meeting windows are full controllers: the floating/notch controller on
 /// the meeting's display and, when that display has no notch, the laptop notch.
 /// Only the dictation laptop mirror (`indicator-notch`) stays status-only.
+#[cfg(any(target_os = "macos", test))]
 pub(crate) fn meeting_surface(label: &str) -> bool {
     matches!(label, "meeting-controller" | "meeting-notch")
 }
@@ -160,6 +163,7 @@ pub fn refresh_level(app: &tauri::AppHandle, window: &tauri::WebviewWindow) -> t
     }
 }
 
+#[cfg(target_os = "macos")]
 fn publish(app: &tauri::AppHandle, label: &str, mut presentation: Presentation) -> Presentation {
     if let Ok(mut state) = app.state::<PresentationState>().0.lock() {
         presentation.revision = state.get(label).map_or(1, |p| p.revision.saturating_add(1));
