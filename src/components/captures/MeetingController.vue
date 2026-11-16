@@ -53,7 +53,7 @@ const issue = computed(() => {
 });
 
 const statusLabel = computed(() => t(paused.value ? "meetingController.pausedStatus" : "meetingController.recordingStatus"));
-// True while the notch plays its exit motion before Finish/Discard runs.
+// True while the notch plays its exit motion before Stop/Discard runs.
 const ending = ref(false);
 const busy = computed(() => action.value !== null || ending.value);
 const surface = ref<InstanceType<typeof RecordingSurface> | null>(null);
@@ -193,7 +193,7 @@ void hydrate();
                     <Pause class="size-3.5" aria-hidden="true" />{{ t('meetingController.pause') }}
                   </button>
                   <button type="button" class="meeting-notch-action bg-white text-zinc-950" :disabled="busy || !controls.includes('stop')" :aria-label="t('meetingController.stopLabel')" @click="finish">
-                    <Square class="size-3 fill-current" aria-hidden="true" />{{ t('meetingController.finish') }}
+                    <Square class="size-3 fill-current" aria-hidden="true" />{{ t('meetingController.stop') }}
                   </button>
                 </div>
               </div>

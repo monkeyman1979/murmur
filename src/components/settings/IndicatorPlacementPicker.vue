@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useId } from "vue";
 import { useI18n } from "vue-i18n";
-import { INDICATOR_POSITIONS, type IndicatorPosition, type IndicatorStyle } from "@/composables/useIndicatorPositions";
+import { INDICATOR_POSITIONS, type IndicatorPosition, type IndicatorStyle } from "@/composables/useIndicatorSettings";
 
 const position = defineModel<IndicatorPosition>({ required: true });
 const style = defineModel<IndicatorStyle>("style", { required: true });

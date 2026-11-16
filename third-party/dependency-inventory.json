@@ -3898,7 +3898,7 @@
       },
       {
         "name": "rustls-webpki",
-        "version": "0.103.15",
+        "version": "0.103.16",
         "license": "ISC",
         "licenseFile": null,
         "repository": "https://github.com/rustls/webpki",
@@ -5207,7 +5207,7 @@
       },
       {
         "name": "webpki-roots",
-        "version": "1.0.7",
+        "version": "1.0.10",
         "license": "CDLA-Permissive-2.0",
         "licenseFile": null,
         "repository": "https://github.com/rustls/webpki-roots",

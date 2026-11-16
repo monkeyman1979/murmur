@@ -361,7 +361,7 @@ pub fn run() {
             captures::capture_reveal,
             mute_audio::set_mute_while_dictating,
             sound::set_sound_cues,
-            indicator_position::set_indicator_positions,
+            indicator_position::set_indicator_settings,
             indicator_presentation::get_indicator_presentation,
             indicator_presentation::set_indicator_expanded,
             indicator_presentation::finish_indicator_collapse,
@@ -526,7 +526,7 @@ pub fn run() {
             let sound_cues = Arc::new(SoundCuesState::new());
             app.manage(Arc::clone(&sound_cues));
             app.manage(std::sync::Mutex::new(
-                indicator_position::IndicatorPositions::default(),
+                indicator_position::IndicatorSettings::default(),
             ));
             app.manage(indicator_presentation::PresentationState::default());
 
@@ -1284,10 +1284,11 @@ fn show_indicator(app: &AppHandle) {
         return;
     };
 
+    let anchor = indicator_position::current(app).floating_position();
     window_events::emit_indicator(
         app,
         "murmur://indicator-position",
-        indicator_position::current(app).dictation,
+        anchor,
     );
     let native_placed = indicator_native::position_on_focused_screen(app);
     if !native_placed {
@@ -1299,7 +1300,6 @@ fn show_indicator(app: &AppHandle) {
             let size = work_area.size.to_logical::<f64>(scale);
             let win_w_pt = 360.0;
             let win_h_pt = 40.0;
-            let anchor = indicator_position::current(app).dictation;
             let (offset_x, offset_y) = anchor.offsets(size.width, size.height, win_w_pt, win_h_pt);
             let x = position.x + offset_x;
             // Tauri uses top-left coordinates; offsets are bottom-left based.

@@ -57,7 +57,7 @@ import {
 } from "@/composables/useMeetingTranscriptRetention";
 import { useMuteWhileDictating } from "@/composables/useMuteWhileDictating";
 import { useSoundCues } from "@/composables/useSoundCues";
-import { useIndicatorPositions } from "@/composables/useIndicatorPositions";
+import { useIndicatorSettings } from "@/composables/useIndicatorSettings";
 import {
   retentionChangeRequiresConfirmation,
 } from "@/lib/retention";
@@ -87,7 +87,7 @@ const {
   refresh: refreshInputDevices,
 } = useInputDevices();
 const { enabled: soundCuesEnabled } = useSoundCues();
-const { dictation: dictationPosition, meeting: meetingPosition, dictationStyle, meetingStyle } = useIndicatorPositions();
+const { position: indicatorPosition, style: indicatorStyle } = useIndicatorSettings();
 const { enabled: muteWhileDictatingEnabled } = useMuteWhileDictating();
 const { days: retentionDays } = useHistoryRetention();
 const { retention: meetingAudioRetention } = useMeetingAudioRetention();
@@ -402,45 +402,6 @@ function confirmMeetingAiPromptRestore(): void {
       </CardContent>
     </Card>
 
-    <!-- Recording feedback: how Murmur shows (and sounds) that it is recording. -->
-    <Card>
-      <CardContent class="flex flex-col gap-0 px-4 py-2">
-        <h2 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-          {{ t('generalSettings.recordingFeedback') }}
-        </h2>
-        <SettingRow
-          :title="t('indicatorPosition.dictation')"
-          :description="t('indicatorPosition.dictationHelp')"
-        >
-          <IndicatorPlacementPicker
-            v-model="dictationPosition" v-model:style="dictationStyle"
-            :label="t('indicatorPosition.dictation')"
-          />
-        </SettingRow>
-
-        <Separator />
-
-        <SettingRow
-          :title="t('indicatorPosition.meeting')"
-          :description="t('indicatorPosition.meetingHelp')"
-        >
-          <IndicatorPlacementPicker
-            v-model="meetingPosition" v-model:style="meetingStyle"
-            :label="t('indicatorPosition.meeting')"
-          />
-        </SettingRow>
-
-        <Separator />
-
-        <SettingRow
-          :title="t('generalSettings.sound')"
-          :description="t('generalSettings.soundHelp')"
-        >
-          <Switch v-model="soundCuesEnabled" :aria-label="t('generalSettings.sound')" />
-        </SettingRow>
-      </CardContent>
-    </Card>
-
     <!-- Fundamentals -->
     <Card>
       <CardContent class="flex flex-col gap-0 px-4 py-2">
@@ -523,6 +484,33 @@ function confirmMeetingAiPromptRestore(): void {
           </Select>
         </SettingRow>
 
+      </CardContent>
+    </Card>
+
+    <!-- Recording feedback: one placement for dictation and meeting recording. -->
+    <Card>
+      <CardContent class="flex flex-col gap-0 px-4 py-2">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+          {{ t('generalSettings.recordingFeedback') }}
+        </h2>
+        <SettingRow
+          :title="t('indicatorPosition.title')"
+          :description="indicatorStyle === 'notch' ? t('indicatorPosition.notchDescription') : t('indicatorPosition.description')"
+        >
+          <IndicatorPlacementPicker
+            v-model="indicatorPosition" v-model:style="indicatorStyle"
+            :label="t('indicatorPosition.title')"
+          />
+        </SettingRow>
+
+        <Separator />
+
+        <SettingRow
+          :title="t('generalSettings.sound')"
+          :description="t('generalSettings.soundHelp')"
+        >
+          <Switch v-model="soundCuesEnabled" :aria-label="t('generalSettings.sound')" />
+        </SettingRow>
       </CardContent>
     </Card>
 

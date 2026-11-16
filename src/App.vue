@@ -29,7 +29,7 @@ import { startCalendarReminders } from "@/composables/useCalendarReminders";
 import { useOnboarding } from "@/composables/useOnboarding";
 import { useMuteWhileDictating } from "@/composables/useMuteWhileDictating";
 import { useSoundCues } from "@/composables/useSoundCues";
-import { useIndicatorPositions } from "@/composables/useIndicatorPositions";
+import { useIndicatorSettings } from "@/composables/useIndicatorSettings";
 import { useTheme } from "@/composables/useTheme";
 import { useVocabulary } from "@/composables/useVocabulary";
 import {
@@ -102,7 +102,7 @@ clearLegacyDictationLanguage();
 // launch would always fire with no chime regardless of the user's
 // saved preference.
 useSoundCues();
-useIndicatorPositions();
+useIndicatorSettings();
 
 // Mute-while-dictating — same pattern. Rust atomic needs the
 // persisted flag value before the first hotkey press so

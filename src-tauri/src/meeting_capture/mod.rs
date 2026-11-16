@@ -341,8 +341,8 @@ impl Drop for MeetingControllerVisibilityGuard {
 #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
 pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::WebviewWindow) {
     let preferences = crate::indicator_position::current(app);
-    let anchor = preferences.meeting;
-    let style = preferences.meeting_style;
+    let anchor = preferences.floating_position();
+    let style = preferences.style;
     crate::window_events::emit_meeting_controller(app, "murmur://indicator-position", anchor);
 
     let Some(main_window) = app.get_webview_window("main") else {

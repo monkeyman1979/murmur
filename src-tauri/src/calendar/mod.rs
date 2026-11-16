@@ -7,6 +7,8 @@
 
 #[cfg(target_os = "macos")]
 mod native;
+#[cfg(any(test, all(target_os = "macos", feature = "meeting-capture")))]
+mod reminder_window;
 pub mod reminders;
 
 use serde::Serialize;

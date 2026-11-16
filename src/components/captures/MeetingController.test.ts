@@ -98,12 +98,12 @@ describe("MeetingController discard confirmation", () => {
     expect(controller.find(".meeting-controller-pill").exists()).toBe(false);
     expect(controller.findAll("time")).toHaveLength(1);
     expect(controller.get('[aria-label="Pause meeting recording"]').text()).toBe("Pause");
-    expect(controller.get('[aria-label="Stop meeting recording and transcribe"]').text()).toBe("Finish");
+    expect(controller.get('[aria-label="Stop meeting recording and transcribe"]').text()).toBe("Stop");
     await controller.get('[aria-label="Pause meeting recording"]').trigger("click");
     expect(surfaceMocks.pause).toHaveBeenCalledOnce();
     surfaceMocks.stop.mockResolvedValue(null);
     await controller.get('[aria-label="Stop meeting recording and transcribe"]').trigger("click");
-    // Finish first folds the notch into the camera housing, then stops.
+    // Stop first folds the notch into the camera housing, then ends recording.
     const panel = controller.get(".notch-surface");
     expect(surfaceMocks.stop).not.toHaveBeenCalled();
     expect(panel.classes()).toContain("notch-surface--exiting");
@@ -123,6 +123,19 @@ describe("MeetingController discard confirmation", () => {
     finishSurfaceTransition(panel.element);
     await flushPromises();
     expect(cancelMock).toHaveBeenCalledWith(true);
+    controller.unmount();
+  });
+
+  it.each([
+    ["en", en], ["es", es], ["fr", fr], ["ru", ru],
+  ] as const)("uses the existing localized Stop label in the %s meeting notch", async (locale, catalog) => {
+    surfaceMocks.notch = true;
+    const controller = mountController(locale);
+    await flushPromises();
+    await controller.get(".notch-surface__handle").trigger("click");
+    await flushPromises();
+    const button = controller.get(`[aria-label="${catalog.meetingController.stopLabel}"]`);
+    expect(button.text()).toBe(catalog.meetingController.stop);
     controller.unmount();
   });
 
@@ -166,7 +179,7 @@ describe("MeetingController discard confirmation", () => {
     controller.unmount();
   });
 
-  it("places a subtle discard text action above Pause/Finish and still confirms", async () => {
+  it("places a subtle discard text action above Pause/Stop and still confirms", async () => {
     surfaceMocks.notch = true;
     const controller = mountController();
     await flushPromises();
@@ -179,9 +192,9 @@ describe("MeetingController discard confirmation", () => {
     const actions = controller.findAll(".meeting-notch-controls button");
     const discardIndex = actions.findIndex(button => button.attributes("aria-label") === "Discard meeting recording");
     const pauseIndex = actions.findIndex(button => button.attributes("aria-label") === "Pause meeting recording");
-    const finishIndex = actions.findIndex(button => button.attributes("aria-label") === "Stop meeting recording and transcribe");
+    const stopIndex = actions.findIndex(button => button.attributes("aria-label") === "Stop meeting recording and transcribe");
     expect(discardIndex).toBeLessThan(pauseIndex);
-    expect(discardIndex).toBeLessThan(finishIndex);
+    expect(discardIndex).toBeLessThan(stopIndex);
     await discard.trigger("click");
     expect(cancelMock).not.toHaveBeenCalled();
     expect(controller.find('[aria-label="Confirm discard meeting recording"]').exists()).toBe(true);
