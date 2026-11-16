@@ -23,7 +23,7 @@ Murmur v0.1.8 adds a notch style for the recording widgets on MacBooks with a ca
 ### Validation scope
 
 - Automated frontend (619), Rust, permission-boundary and release-metadata tests, Clippy with warnings denied and both required CI jobs passed. The production app and DMG each passed Apple notarization, stapled-ticket, Gatekeeper and exact-entitlement checks. The updater archive signature verified against the unchanged trusted public key, and its extracted app matched the verified build.
-- The owner tested the notch behaviour (including the laptop notch with a meeting on an external display) in the signed debug build. The owner chose to publish first and then test the production v0.1.7 → v0.1.8 in-app update; until that is confirmed, the installed upgrade path, data/permission retention, mixed-scale displays and independent localization QA remain unverified.
+- The owner tested the notch behaviour (including the laptop notch with a meeting on an external display) in the signed debug build. After publication, the owner updated the installed production v0.1.7 to v0.1.8 through the GitHub-hosted in-app update (Settings → About) and reported that it worked and everything carried over. Mixed-scale displays and independent localization QA remain unverified.
 
 ## [0.1.7] - 2026-11-15
 
