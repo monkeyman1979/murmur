@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CalendarConnection from "@/components/settings/CalendarConnection.vue";
 import HotkeyRecorder from "@/components/settings/HotkeyRecorder.vue";
+import IndicatorPlacementPicker from "@/components/settings/IndicatorPlacementPicker.vue";
 import SettingRow from "@/components/settings/SettingRow.vue";
 import SpeechModelSettings from "@/components/settings/SpeechModelSettings.vue";
 import SupportedDictationLanguagesDialog from "@/components/settings/SupportedDictationLanguagesDialog.vue";
@@ -56,7 +57,7 @@ import {
 } from "@/composables/useMeetingTranscriptRetention";
 import { useMuteWhileDictating } from "@/composables/useMuteWhileDictating";
 import { useSoundCues } from "@/composables/useSoundCues";
-import { INDICATOR_POSITIONS, useIndicatorPositions } from "@/composables/useIndicatorPositions";
+import { useIndicatorPositions } from "@/composables/useIndicatorPositions";
 import {
   retentionChangeRequiresConfirmation,
 } from "@/lib/retention";
@@ -86,7 +87,7 @@ const {
   refresh: refreshInputDevices,
 } = useInputDevices();
 const { enabled: soundCuesEnabled } = useSoundCues();
-const { dictation: dictationPosition, meeting: meetingPosition } = useIndicatorPositions();
+const { dictation: dictationPosition, meeting: meetingPosition, dictationStyle, meetingStyle } = useIndicatorPositions();
 const { enabled: muteWhileDictatingEnabled } = useMuteWhileDictating();
 const { days: retentionDays } = useHistoryRetention();
 const { retention: meetingAudioRetention } = useMeetingAudioRetention();
@@ -401,6 +402,45 @@ function confirmMeetingAiPromptRestore(): void {
       </CardContent>
     </Card>
 
+    <!-- Recording feedback: how Murmur shows (and sounds) that it is recording. -->
+    <Card>
+      <CardContent class="flex flex-col gap-0 px-4 py-2">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+          {{ t('generalSettings.recordingFeedback') }}
+        </h2>
+        <SettingRow
+          :title="t('indicatorPosition.dictation')"
+          :description="t('indicatorPosition.dictationHelp')"
+        >
+          <IndicatorPlacementPicker
+            v-model="dictationPosition" v-model:style="dictationStyle"
+            :label="t('indicatorPosition.dictation')"
+          />
+        </SettingRow>
+
+        <Separator />
+
+        <SettingRow
+          :title="t('indicatorPosition.meeting')"
+          :description="t('indicatorPosition.meetingHelp')"
+        >
+          <IndicatorPlacementPicker
+            v-model="meetingPosition" v-model:style="meetingStyle"
+            :label="t('indicatorPosition.meeting')"
+          />
+        </SettingRow>
+
+        <Separator />
+
+        <SettingRow
+          :title="t('generalSettings.sound')"
+          :description="t('generalSettings.soundHelp')"
+        >
+          <Switch v-model="soundCuesEnabled" :aria-label="t('generalSettings.sound')" />
+        </SettingRow>
+      </CardContent>
+    </Card>
+
     <!-- Fundamentals -->
     <Card>
       <CardContent class="flex flex-col gap-0 px-4 py-2">
@@ -412,51 +452,6 @@ function confirmMeetingAiPromptRestore(): void {
           :description="t('generalSettings.loginHelp')"
         >
           <Switch v-model="autostartSwitch" :aria-label="t('generalSettings.login')" />
-        </SettingRow>
-
-        <Separator />
-
-        <SettingRow
-          :title="t('indicatorPosition.dictation')"
-          :description="t('indicatorPosition.dictationHelp')"
-        >
-          <Select v-model="dictationPosition">
-            <SelectTrigger class="w-56 max-w-full" :aria-label="t('indicatorPosition.dictation')">
-              <SelectValue>{{ t(`indicatorPosition.${dictationPosition}`) }}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="position in INDICATOR_POSITIONS" :key="position" :value="position">
-                {{ t(`indicatorPosition.${position}`) }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </SettingRow>
-
-        <Separator />
-
-        <SettingRow
-          :title="t('indicatorPosition.meeting')"
-          :description="t('indicatorPosition.meetingHelp')"
-        >
-          <Select v-model="meetingPosition">
-            <SelectTrigger class="w-56 max-w-full" :aria-label="t('indicatorPosition.meeting')">
-              <SelectValue>{{ t(`indicatorPosition.${meetingPosition}`) }}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="position in INDICATOR_POSITIONS" :key="position" :value="position">
-                {{ t(`indicatorPosition.${position}`) }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </SettingRow>
-
-        <Separator />
-
-        <SettingRow
-          :title="t('generalSettings.sound')"
-          :description="t('generalSettings.soundHelp')"
-        >
-          <Switch v-model="soundCuesEnabled" :aria-label="t('generalSettings.sound')" />
         </SettingRow>
 
         <Separator />

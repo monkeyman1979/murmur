@@ -2,15 +2,17 @@ import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const invokeMock = vi.hoisted(() => vi.fn());
+const currentWindow = vi.hoisted(() => ({ label: "main" }));
 const listenMock = vi.hoisted(() => vi.fn().mockResolvedValue(() => {}));
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: invokeMock }));
+vi.mock("@tauri-apps/api/window", () => ({ getCurrentWindow: () => ({ label: currentWindow.label }) }));
 vi.mock("@tauri-apps/api/event", () => ({ listen: listenMock }));
 
 import { useMeetingCapture } from "@/composables/useMeetingCapture";
 import { MEETING_RECORDING_NOTICE_KEY } from "@/lib/captures";
 
-beforeEach(() => invokeMock.mockReset());
+beforeEach(() => { invokeMock.mockReset(); currentWindow.label = "main"; });
 
 describe("useMeetingCapture authoritative command boundary", () => {
   it("clears a transient status issue after recorder status is confirmed again", async () => {
@@ -82,6 +84,30 @@ describe("useMeetingCapture authoritative command boundary", () => {
 });
 
 describe("floating controller free capture", () => {
+  it("keeps the laptop meeting mirror on its own status/duration stream without recorder actions", async () => {
+    vi.resetModules();
+    listenMock.mockClear();
+    currentWindow.label = "meeting-notch";
+    let status = { capture: { id: 19, status: "recording", title: "Test meeting" }, active_duration_ms: 2_000, paused_duration_ms: 0, paused: false };
+    invokeMock.mockImplementation(async (command) => {
+      if (command !== "meeting_recorder_status") throw new Error("Mirror must only read recorder status");
+      return status;
+    });
+    const { useMeetingCapture: mirrorCapture } = await import("./useMeetingCapture");
+    const mirror = mirrorCapture({ enableMainWindowFlows: false });
+    await flushPromises();
+    expect(mirror.activeCapture.value?.status).toBe("recording");
+    for (const call of listenMock.mock.calls) expect(call[2]).toEqual({ target: { kind: "WebviewWindow", label: "meeting-notch" } });
+    const duration = listenMock.mock.calls.find(call => call[0] === "murmur://meeting-capture-duration")![1];
+    duration({ payload: { capture_id: 19, active_duration_ms: 8_000 } });
+    expect(mirror.activeDurationMs.value).toBe(8_000);
+    status = { ...status, capture: { ...status.capture, status: "paused" }, paused: true };
+    const state = listenMock.mock.calls.find(call => call[0] === "murmur://meeting-capture-state")![1];
+    state({ payload: { capture_id: 19 } });
+    await flushPromises();
+    expect(mirror.activeCapture.value?.status).toBe("paused");
+    expect(invokeMock.mock.calls.every(call => call[0] === "meeting_recorder_status")).toBe(true);
+  });
   it("does not run main-window recovery or subscribe to tray start requests", async () => {
     vi.resetModules();
     listenMock.mockClear();

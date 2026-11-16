@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { computed, ref } from "vue";
 import { i18n } from "@/i18n";
 
@@ -275,30 +276,31 @@ function discoverInterruptedCaptures(): void {
 function installListeners(enableMainWindowFlows: boolean): void {
   if (initialized) return;
   initialized = true;
+  const options = { target: { kind: "WebviewWindow" as const, label: getCurrentWindow().label } };
 
   // Recovery discovery mutates persisted capture state and tray start requests
   // control the main application flow. The floating controller needs neither;
   // keeping them out also lets its Tauri capability omit both authorities.
   if (enableMainWindowFlows) {
     discoverInterruptedCaptures();
-    void listen("murmur://meeting-start-requested", () => requestStartFlow());
+    void listen("murmur://meeting-start-requested", () => requestStartFlow(), options);
   }
   void listen("murmur://meeting-capture-state", ({ payload }) => {
     if (eventCaptureId(payload)) void hydrate();
-  });
+  }, options);
   void listen("murmur://meeting-capture-duration", ({ payload }) => {
     const id = eventCaptureId(payload);
     if (!id || id !== activeCapture.value?.id || typeof payload !== "object" || payload === null) return;
     const value = payload as Record<string, unknown>;
     if (typeof value.active_duration_ms === "number") activeDurationMs.value = Math.max(0, value.active_duration_ms);
     if (typeof value.paused_duration_ms === "number") pausedDurationMs.value = Math.max(0, value.paused_duration_ms);
-  });
+  }, options);
   void listen("murmur://meeting-capture-warning", ({ payload }) => {
     const id = eventCaptureId(payload);
     if (!id || id !== activeCapture.value?.id || typeof payload !== "object" || payload === null) return;
     const value = (payload as { warning?: unknown }).warning;
     warning.value = typeof value === "string" ? value : null;
-  });
+  }, options);
 
   void hydrate();
 }

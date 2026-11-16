@@ -1,4 +1,5 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onMounted, onUnmounted, ref } from "vue";
 
 /** Keep the content-sized pill against its anchored window edge, rather than
@@ -15,7 +16,7 @@ export function useIndicatorAlignment() {
         case "top-center": case "bottom-center": alignment.value = "justify-center"; break;
         case "top-right": case "bottom-right": alignment.value = "justify-end"; break;
       }
-    }).then((cleanup) => {
+    }, { target: { kind: "WebviewWindow", label: getCurrentWindow().label } }).then((cleanup) => {
       if (disposed) cleanup();
       else unlisten = cleanup;
     }).catch((error) => {

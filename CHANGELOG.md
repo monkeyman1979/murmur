@@ -2,6 +2,22 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Notch style for the dictation indicator and meeting controls on MacBooks with a camera notch: compact wings beside the camera, expanding below it on click or scroll. On an external display without a notch, the saved floating position is used there and the laptop notch still shows the recording. For meetings the laptop notch is fully usable (open, pause, finish, discard); for dictation it shows status only.
+- The meeting notch grows slightly with a soft shadow on hover, even while another app is frontmost, to show it can be clicked or scrolled open.
+- New Settings → General → Recording feedback section with the dictation and meeting placement pickers and Sound cues.
+
+### Improved
+
+- Collapsing the expanded meeting notch no longer flashes a duplicated timer and recording icon.
+- Finish and Discard fold the meeting panel smoothly into the camera notch instead of vanishing.
+- Asking to discard a meeting crossfades into the confirmation without shifting the buttons.
+- Scrolling the meeting panel open while another app is frontmost now activates Murmur, as clicking does, and gives focus back when it closes. macOS may still refuse this, in which case button hover styles work but the pointing cursor does not appear.
+- Floating and Notch placement previews are the same height, and the notch preview is balanced and closer to the real notch shape.
+
 ## [0.1.7] - 2026-11-15
 
 ### Added

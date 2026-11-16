@@ -11,12 +11,56 @@
 
 /// Label of the dictation indicator pill.
 pub const INDICATOR: &str = "indicator";
+/// Secondary read-only laptop status while dictating on a notchless display.
+pub const NOTCH_INDICATOR: &str = "indicator-notch";
+
+pub(crate) fn mirror_needed(
+    style: crate::indicator_position::IndicatorStyle,
+    focused_has_notch: bool,
+    laptop_available: bool,
+) -> bool {
+    style == crate::indicator_position::IndicatorStyle::Notch
+        && !focused_has_notch
+        && laptop_available
+}
+#[cfg(test)]
+mod mirror_tests {
+    use super::*;
+    use crate::indicator_position::IndicatorStyle;
+
+    #[test]
+    fn laptop_mirror_only_supplements_notch_mode_on_an_external_display() {
+        assert!(mirror_needed(IndicatorStyle::Notch, false, true));
+        assert!(!mirror_needed(IndicatorStyle::Notch, true, true));
+        assert!(!mirror_needed(IndicatorStyle::Notch, false, false));
+        assert!(!mirror_needed(IndicatorStyle::Floating, false, true));
+    }
+}
+
 /// Label of the floating meeting-recording control.
 pub const MEETING_CONTROLLER: &str = "meeting-controller";
+pub const MEETING_NOTCH: &str = "meeting-notch";
 
 #[cfg(target_os = "macos")]
 pub fn force_transparent(app: &tauri::AppHandle, label: &str) {
     mac::force_transparent(app, label);
+}
+
+/// Reveal without activating Murmur or changing the current key window. The
+/// surface remains focusable when the user deliberately navigates to it.
+pub fn show_without_focus(window: &tauri::WebviewWindow) -> tauri::Result<()> {
+    #[cfg(target_os = "macos")]
+    {
+        let ns_window = window.ns_window()? as usize;
+        window.run_on_main_thread(move || unsafe {
+            let window = &*(ns_window as *mut objc2_app_kit::NSWindow);
+            window.orderFront(None);
+        })
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        window.show()
+    }
 }
 
 /// Move the dictation indicator to its saved anchor on the display containing
@@ -48,7 +92,7 @@ mod mac {
     use objc2_foundation::{NSPoint, NSRect, NSSize};
     use tauri::{AppHandle, Manager};
 
-    use super::INDICATOR;
+    use super::{mirror_needed, INDICATOR, NOTCH_INDICATOR};
 
     type CFTypeRef = *const c_void;
     type CFStringRef = *const c_void;
@@ -185,7 +229,9 @@ mod mac {
         // hotkey does not activate Murmur, so this is still the app/control the
         // user was typing into when dictation began.
         let focused_center = focused_target_center();
-        let anchor = crate::indicator_position::current(app).dictation;
+        let preferences = crate::indicator_position::current(app);
+        let anchor = preferences.dictation;
+        let style = preferences.dictation_style;
         let Some(window) = app.get_webview_window(INDICATOR) else {
             crate::murmur_dev_log!(
                 "[murmur][indicator_native] indicator window not found for placement"
@@ -202,17 +248,24 @@ mod mac {
             }
         };
 
+        let app = app.clone();
         let scheduled = window.run_on_main_thread(move || unsafe {
             let mtm = MainThreadMarker::new_unchecked();
             let screens = NSScreen::screens(mtm);
-            let main_screen = NSScreen::mainScreen(mtm);
+            // Quartz uses the primary display origin, not NSScreen.mainScreen
+            // (which can be the currently active external display).
+            let primary_screen = screens.firstObject();
+            let mirror = app.get_webview_window(NOTCH_INDICATOR);
+            let mirror_handle = mirror.as_ref().and_then(|w| w.ns_window().ok());
+            let mirror_native = mirror_handle.map(|handle| &*(handle as *mut NSWindow));
+            if let Some(mirror) = mirror_native { mirror.orderOut(None); }
 
             // AX geometry uses the Quartz top-left coordinate system. Convert
             // its focused center to AppKit's bottom-left system before testing
             // it against NSScreen frames. If AX geometry is unavailable, use
             // the pointer display, then the primary display.
             let focused_appkit_point = focused_center.and_then(|point| {
-                let main = main_screen.as_ref()?;
+                let main = primary_screen.as_ref()?;
                 let frame = NSScreen::frame(main);
                 Some(NSPoint::new(
                     point.x,
@@ -231,7 +284,7 @@ mod mac {
                         .iter()
                         .find(|screen| point_in_rect(pointer, NSScreen::frame(screen)))
                 })
-                .or(main_screen);
+                .or(primary_screen);
             let Some(screen) = target_screen else {
                 crate::murmur_dev_log!("[murmur][indicator_native] AppKit found no screen for placement");
                 return;
@@ -239,16 +292,25 @@ mod mac {
 
             let indicator = &*(ns_window as *mut NSWindow);
             let work_area = NSScreen::visibleFrame(&screen);
-            let frame = NSWindow::frame(indicator);
-            let (offset_x, offset_y) = anchor.offsets(
-                work_area.size.width,
-                work_area.size.height,
-                frame.size.width,
-                frame.size.height,
+            crate::indicator_presentation::mac::place(
+                &app, INDICATOR, indicator, &screen, anchor, style,
             );
-            let x = work_area.origin.x + offset_x;
-            let y = work_area.origin.y + offset_y;
-            indicator.setFrameOrigin(NSPoint::new(x, y));
+            let laptop = screens.iter().find(|candidate| candidate.safeAreaInsets().top > 0.0);
+            if mirror_needed(style, screen.safeAreaInsets().top > 0.0, laptop.is_some()) {
+                if let (Some(laptop), Some(mirror)) = (laptop, mirror_native) {
+                    let presentation = crate::indicator_presentation::mac::place(
+                        &app, NOTCH_INDICATOR, mirror, &laptop, anchor, style,
+                    );
+                    if presentation.style == crate::indicator_position::IndicatorStyle::Notch {
+                        mirror.setIgnoresMouseEvents(true);
+                        mirror.orderFront(None);
+                    }
+                }
+            }
+            indicator.orderFront(None);
+            let frame = NSWindow::frame(indicator);
+            let x = frame.origin.x;
+            let y = frame.origin.y;
             crate::murmur_dev_log!(
                 "[murmur][indicator_native] positioned on focused screen: visibleFrame=({:.1},{:.1},{:.1},{:.1}) target=({x:.1},{y:.1})",
                 work_area.origin.x,

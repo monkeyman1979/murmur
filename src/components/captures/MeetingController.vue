@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from "vue";
-import { Pause, Play, Square, X } from "lucide-vue-next";
+import { Pause, Play, Square, X, TriangleAlert, AudioLines, ChevronUp } from "lucide-vue-next";
 import { useMeetingCapture } from "@/composables/useMeetingCapture";
 import { useTheme } from "@/composables/useTheme";
 import { useIndicatorAlignment } from "@/composables/useIndicatorAlignment";
 import { IconTooltip } from "@/components/ui/tooltip";
+import RecordingSurface from "@/components/RecordingSurface.vue";
 import { formatMeetingDuration } from "@/lib/format";
 import { useI18n } from "vue-i18n";
 
@@ -52,7 +53,10 @@ const issue = computed(() => {
 });
 
 const statusLabel = computed(() => t(paused.value ? "meetingController.pausedStatus" : "meetingController.recordingStatus"));
-const busy = computed(() => action.value !== null);
+// True while the notch plays its exit motion before Finish/Discard runs.
+const ending = ref(false);
+const busy = computed(() => action.value !== null || ending.value);
+const surface = ref<InstanceType<typeof RecordingSurface> | null>(null);
 
 // The controller is pre-painted offscreen at application startup, so a CSS
 // animation attached at component mount would finish before the user ever sees
@@ -96,10 +100,31 @@ function requestCancel(): void {
   confirmingCancel.value = true;
 }
 
+/** Shrink the notch into the camera, then end the capture. The native side
+ * hides the window when the capture ends, which is invisible by then. If the
+ * capture did not actually end, bring the panel back. */
+async function endCapture<T>(run: () => Promise<T>, ended: (result: T) => boolean): Promise<T> {
+  ending.value = true;
+  try {
+    await surface.value?.playExit();
+    const result = await run();
+    if (!ended(result)) surface.value?.cancelExit();
+    return result;
+  } finally {
+    ending.value = false;
+  }
+}
+
 async function confirmCancel(): Promise<void> {
-  const result = await cancel(true);
+  if (busy.value) return;
+  const result = await endCapture(() => cancel(true), result => result?.status === "cancelled");
   if (result?.status === "cleanup_failed") cleanupWarning.value = true;
   if (result) confirmingCancel.value = false;
+}
+
+async function finish(): Promise<void> {
+  if (busy.value) return;
+  await endCapture(stop, result => result !== null);
 }
 
 void hydrate();
@@ -116,8 +141,66 @@ void hydrate();
     class="flex h-screen w-screen items-center bg-transparent"
     :class="alignment"
     style="background: transparent !important"
-    data-tauri-drag-region
   >
+    <RecordingSurface ref="surface" sync-collapse-paint hover-cue :status-label="issue?.detail ?? statusLabel" @expanded-change="open => { if (!open) confirmingCancel = false; }">
+      <template #leading>
+        <span class="size-1.5 rounded-full" :class="issue || paused ? 'bg-amber-400' : 'bg-red-500'" />
+        <Pause v-if="paused" class="size-3.5 text-white/80" />
+        <AudioLines v-else class="size-3.5 text-white/80" />
+      </template>
+      <template #trailing>
+        <TriangleAlert v-if="issue" class="size-4 text-amber-400" />
+        <time v-else class="meeting-notch-timer font-mono text-[11px] tabular-nums text-white/90" :datetime="`PT${Math.floor(activeDurationMs / 1000)}S`">{{ timer }}</time>
+      </template>
+      <template #compact>
+        <span v-if="issue" role="alert">{{ issue.label }}</span>
+        <span v-else>{{ statusLabel }} {{ timer }}</span>
+      </template>
+      <template #expanded="{ collapse }">
+        <div class="meeting-notch-controls flex w-full flex-col gap-2">
+          <div class="flex min-w-0 items-center justify-between gap-4">
+            <div class="flex min-w-0 flex-col gap-1">
+              <p class="truncate text-sm font-semibold text-white">{{ t('meetingController.meeting') }}</p>
+              <p v-if="issue" class="truncate text-xs leading-snug text-amber-300" role="alert" :title="issue.detail">{{ issue.label }}</p>
+              <p v-else class="text-xs text-white/50">{{ t(paused ? 'meetingController.paused' : 'meetingController.recording') }}</p>
+            </div>
+            <button type="button" class="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/5 text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/70" :aria-label="t('indicatorPosition.collapse')" @click="collapse">
+              <ChevronUp class="size-3.5" aria-hidden="true" />
+            </button>
+          </div>
+
+          <!-- Both states share one grid cell and an identical 24px text row, so
+               switching to the discard confirmation crossfades in place instead
+               of swapping instantly and nudging the buttons by a few pixels. -->
+          <div class="meeting-notch-swap">
+            <Transition name="meeting-notch-swap">
+              <div v-if="confirmingCancel" key="confirm" class="flex flex-col gap-2">
+                <p class="flex h-6 items-center text-xs text-white/75">{{ t('meetingController.confirmQuestion') }}</p>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" class="meeting-notch-action bg-white/10 text-white" :disabled="busy" :aria-label="t('meetingController.keepLabel')" @click="confirmingCancel = false">{{ t('meetingController.keep') }}</button>
+                  <button type="button" class="meeting-notch-action bg-red-500/20 text-red-300" :disabled="busy" :aria-label="t('meetingController.confirmDiscardLabel')" @click="confirmCancel">{{ t('meetingController.discard') }}</button>
+                </div>
+              </div>
+              <div v-else key="actions" class="flex flex-col gap-2">
+                <button type="button" class="inline-flex h-6 self-start items-center rounded text-[11px] text-white/55 underline-offset-4 transition-colors hover:text-red-300 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/70 disabled:opacity-40" :disabled="busy || !controls.includes('cancel')" :aria-label="t('meetingController.discardLabel')" @click="requestCancel">
+                  {{ t('meetingController.discardAction') }}
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                  <button v-if="!issue && controls.includes('resume')" type="button" class="meeting-notch-action bg-white/10 text-white/90" :disabled="busy" :aria-label="t('meetingController.resumeLabel')" @click="resume">
+                    <Play class="size-3.5 fill-current" aria-hidden="true" />{{ t('meetingController.resume') }}
+                  </button>
+                  <button v-else type="button" class="meeting-notch-action bg-white/10 text-white/90" :disabled="busy || !!issue || !controls.includes('pause')" :aria-label="t('meetingController.pauseLabel')" @click="pause">
+                    <Pause class="size-3.5" aria-hidden="true" />{{ t('meetingController.pause') }}
+                  </button>
+                  <button type="button" class="meeting-notch-action bg-white text-zinc-950" :disabled="busy || !controls.includes('stop')" :aria-label="t('meetingController.stopLabel')" @click="finish">
+                    <Square class="size-3 fill-current" aria-hidden="true" />{{ t('meetingController.finish') }}
+                  </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
+        </div>
+      </template>
     <div
       class="meeting-controller-pill pointer-events-auto flex items-center gap-1.5 rounded-full border border-white/10 bg-zinc-950/95 py-1.5 text-white shadow-lg select-none"
       :class="[confirmingCancel ? 'px-3' : 'px-1.5', { 'meeting-controller-pill--starting': startHighlight }]"
@@ -226,10 +309,40 @@ void hydrate();
         </div>
       </template>
     </div>
+    </RecordingSurface>
   </div>
 </template>
 
 <style>
+.meeting-notch-action {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 140ms ease, transform 140ms ease;
+}
+.meeting-notch-action:hover { filter: brightness(.9); }
+.meeting-notch-action:active { transform: scale(.98); }
+.meeting-notch-action:focus-visible { outline: 2px solid #ffffffa0; outline-offset: 2px; }
+.meeting-notch-action:disabled { opacity: .4; cursor: default; }
+.meeting-notch-swap { display: grid; }
+.meeting-notch-swap > * { grid-area: 1 / 1; }
+.meeting-notch-swap-enter-active { transition: opacity 180ms ease 40ms, transform 220ms cubic-bezier(.22, 1, .36, 1) 40ms; }
+.meeting-notch-swap-leave-active { transition: opacity 120ms ease, transform 120ms ease; pointer-events: none; }
+.meeting-notch-swap-enter-from { opacity: 0; transform: translateY(3px); }
+.meeting-notch-swap-leave-to { opacity: 0; transform: translateY(-3px); }
+@media (prefers-reduced-motion: reduce) {
+  .meeting-notch-swap-enter-active, .meeting-notch-swap-leave-active { transition: opacity 120ms ease; }
+  .meeting-notch-swap-enter-from, .meeting-notch-swap-leave-to { transform: none; }
+  .meeting-notch-action { transition: none; }
+  .meeting-notch-action:active { transform: none; }
+}
+
 @property --meeting-controller-border-angle {
   syntax: "<angle>";
   initial-value: 0deg;

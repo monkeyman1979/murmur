@@ -83,7 +83,6 @@ use parking_lot::Mutex;
 use {
     objc2::MainThreadMarker,
     objc2_app_kit::{NSScreen, NSWindow},
-    objc2_foundation::NSPoint,
     tauri::Manager,
 };
 
@@ -286,8 +285,11 @@ pub struct MeetingRecorderEvent {
 
 #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
 fn hide_meeting_controller(app: &tauri::AppHandle) {
-    if let Some(window) = app.get_webview_window("meeting-controller") {
-        let _ = window.hide();
+    for label in ["meeting-controller", crate::indicator_native::MEETING_NOTCH] {
+        crate::indicator_presentation::stop_monitoring(app, label);
+    }
+    for label in ["meeting-controller", crate::indicator_native::MEETING_NOTCH] {
+        if let Some(window) = app.get_webview_window(label) { let _ = window.hide(); }
     }
 }
 
@@ -338,7 +340,9 @@ impl Drop for MeetingControllerVisibilityGuard {
 /// caller for why.
 #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
 pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::WebviewWindow) {
-    let anchor = crate::indicator_position::current(app).meeting;
+    let preferences = crate::indicator_position::current(app);
+    let anchor = preferences.meeting;
+    let style = preferences.meeting_style;
     crate::window_events::emit_meeting_controller(app, "murmur://indicator-position", anchor);
 
     let Some(main_window) = app.get_webview_window("main") else {
@@ -361,10 +365,15 @@ pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::Webvi
     // `Send`; they are cast back and dereferenced only on the AppKit thread.
     let main_ns_window = main_ns_window as usize;
     let controller_ns_window = controller_ns_window as usize;
+    let app = app.clone();
     if let Err(error) = window.run_on_main_thread(move || unsafe {
         let main_window = &*(main_ns_window as *mut NSWindow);
         let controller = &*(controller_ns_window as *mut NSWindow);
         let mtm = MainThreadMarker::new_unchecked();
+        let mirror = app.get_webview_window(crate::indicator_native::MEETING_NOTCH);
+        let mirror_handle = mirror.as_ref().and_then(|window| window.ns_window().ok());
+        let mirror_native = mirror_handle.map(|handle| &*(handle as *mut NSWindow));
+        if let Some(mirror) = mirror_native { mirror.orderOut(None); }
         let screen = main_window.screen().or_else(|| NSScreen::mainScreen(mtm));
         let Some(screen) = screen else {
             crate::murmur_diag!(
@@ -374,15 +383,28 @@ pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::Webvi
         };
 
         let work_area = NSScreen::visibleFrame(&screen);
-        let controller_frame = NSWindow::frame(controller);
-        let (offset_x, offset_y) = anchor.offsets(
-            work_area.size.width,
-            work_area.size.height,
-            controller_frame.size.width,
-            controller_frame.size.height,
+        crate::indicator_presentation::mac::place(
+            &app, "meeting-controller", controller, &screen, anchor, style,
         );
-        let x = work_area.origin.x + offset_x;
-        let y = work_area.origin.y + offset_y;
+        let screens = NSScreen::screens(mtm);
+        let laptop = screens.iter().find(|candidate| candidate.safeAreaInsets().top > 0.0);
+        if crate::indicator_native::mirror_needed(style, screen.safeAreaInsets().top > 0.0, laptop.is_some()) {
+            if let (Some(laptop), Some(mirror)) = (laptop, mirror_native) {
+                let presentation = crate::indicator_presentation::mac::place(
+                    &app, crate::indicator_native::MEETING_NOTCH, mirror, &laptop, anchor, style,
+                );
+                if presentation.style == crate::indicator_position::IndicatorStyle::Notch {
+                    // A full controller, not a click-through mirror: with Notch
+                    // selected the laptop notch must open, scroll and control
+                    // the meeting even when it started on an external display.
+                    mirror.setIgnoresMouseEvents(false);
+                    mirror.orderFront(None);
+                }
+            }
+        }
+        let controller_frame = NSWindow::frame(controller);
+        let x = controller_frame.origin.x;
+        let y = controller_frame.origin.y;
 
         crate::murmur_diag!(
             "[murmur][mc-diag] AppKit visible_frame=({:.1},{:.1},{:.1},{:.1}) \
@@ -394,7 +416,6 @@ pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::Webvi
             controller_frame.size.width,
             controller_frame.size.height,
         );
-        controller.setFrameOrigin(NSPoint::new(x, y));
     }) {
         crate::murmur_diag!(
             "[murmur][mc-diag] scheduling AppKit controller placement failed: {error:?}"
@@ -410,13 +431,7 @@ pub(crate) fn place_meeting_window(app: &tauri::AppHandle, window: &tauri::Webvi
 pub(crate) fn show_meeting_window_without_focus(
     window: &tauri::WebviewWindow,
 ) -> tauri::Result<()> {
-    let ns_window = window.ns_window()? as usize;
-    // The native handle belongs to this app-managed window. Like placement,
-    // dereference it only on AppKit's main thread while the window is alive.
-    window.run_on_main_thread(move || unsafe {
-        let controller = &*(ns_window as *mut NSWindow);
-        controller.orderFront(None);
-    })
+    crate::indicator_native::show_without_focus(window)
 }
 
 #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
@@ -456,7 +471,7 @@ fn emit_meeting_state(
                     Err(e) => crate::murmur_diag!("[murmur][mc-diag] orderFront() FAILED: {e:?}"),
                 }
             }
-            match window.set_always_on_top(true) {
+            match crate::indicator_presentation::refresh_level(app, &window) {
                 Ok(()) => crate::murmur_diag!("[murmur][mc-diag] set_always_on_top ok"),
                 Err(e) => crate::murmur_diag!("[murmur][mc-diag] set_always_on_top FAILED: {e:?}"),
             }
