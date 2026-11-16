@@ -19,7 +19,7 @@ This update fixes meeting reminder placement and simplifies recording feedback s
 
 ### Validation scope
 
-- All 629 frontend tests, Rust all-target checks/tests and Clippy with warnings denied, release-metadata/updater/bundle-audit tests, production frontend build and legal-inventory checks passed locally. Production dependency audit found no known vulnerabilities; the full audit reports two existing moderate advisories in development-only test dependencies.
+- All 629 frontend tests, Rust all-target checks/tests and Clippy with warnings denied, release-metadata/updater/bundle-audit tests, production frontend build and legal-inventory checks passed locally. Production frontend dependency audit found no known vulnerabilities; the full audit reports two existing moderate advisories in development-only test dependencies.
 - The owner confirmed in the locally signed debug app that reminders appear on the working display and recover to the laptop when the external monitor is disconnected. The updated Stop label was also confirmed. Automated checks and production artifact verification are recorded separately; debug QA does not establish a production-identity upgrade or broader macOS, display and localization coverage.
 
 ## [0.1.8] - 2026-11-16
