@@ -2,11 +2,15 @@
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import { useIndicatorAlignment } from "@/composables/useIndicatorAlignment";
+import RecordingSurface from "@/components/RecordingSurface.vue";
+import { Mic, LoaderCircle, TriangleAlert } from "lucide-vue-next";
 
 const { t } = useI18n();
 const alignment = useIndicatorAlignment();
+const mirror = new URLSearchParams(window.location.search).get("mirror") === "1";
 
 // No imports from the main app tree — this component is intentionally isolated.
 // The window being visible IS the recording state; Rust controls show/hide via
@@ -31,6 +35,7 @@ type IndicatorState =
   | "idle";
 const state = ref<IndicatorState>("recording");
 const deviceName = ref("");
+const hasIssue = computed(() => !["connecting", "recording", "transcribing", "idle"].includes(state.value));
 
 const noResultLabel = computed(() => {
   if (state.value === "no-audio") {
@@ -46,6 +51,16 @@ const noResultLabel = computed(() => {
   return "";
 });
 
+const compactLabel = computed(() => {
+  if (state.value === "no-audio" || state.value === "no-speech") return noResultLabel.value;
+  const key = ({
+    connecting: "connecting", recording: "recording", transcribing: "transcribing",
+    cancelled: "cancelled", "microphone-error": "microphoneError",
+    "model-missing": "modelMissing", "recording-limit": "recordingLimit", idle: "recording",
+  } as const)[state.value];
+  return t(`indicator.${key}`);
+});
+
 // Live audio level in [0, 1], driven by `murmur://level` events that the
 // audio thread emits at ~30 Hz while recording. On Cmd::Stop/Cancel the Rust
 // side snaps this back to 0 so the next capture starts from rest. Only
@@ -57,12 +72,13 @@ let unlistenState: UnlistenFn | null = null;
 let unlistenDevice: UnlistenFn | null = null;
 
 onMounted(async () => {
+  const options = { target: { kind: "WebviewWindow" as const, label: getCurrentWindow().label } };
   unlistenLevel = await listen<number>("murmur://level", (e) => {
     level.value = typeof e.payload === "number" ? e.payload : 0;
-  });
+  }, options);
   unlistenDevice = await listen<string>("murmur://indicator-device", (e) => {
     deviceName.value = typeof e.payload === "string" ? e.payload : "";
-  });
+  }, options);
   unlistenState = await listen<IndicatorState>(
     "murmur://indicator-state",
     (e) => {
@@ -82,6 +98,7 @@ onMounted(async () => {
         if (e.payload === "recording") deviceName.value = "";
       }
     },
+    options,
   );
 });
 onUnmounted(() => {
@@ -105,6 +122,22 @@ onUnmounted(() => {
     :class="alignment"
     style="background: transparent !important"
   >
+    <RecordingSurface :interactive="!mirror" :status-label="compactLabel">
+      <template #leading>
+        <span class="size-1.5 shrink-0 rounded-full" :class="hasIssue ? 'bg-amber-400' : state === 'connecting' ? 'bg-zinc-400' : 'bg-red-500'" />
+        <Mic class="size-3.5 text-white/80" />
+      </template>
+      <template #trailing>
+        <TriangleAlert v-if="hasIssue" class="size-4 text-amber-400" />
+        <LoaderCircle v-else-if="state === 'transcribing' || state === 'connecting'" class="size-4 animate-spin text-white/75 motion-reduce:animate-none" />
+        <span v-else class="flex h-4 items-center gap-0.5">
+          <span v-for="bar in 4" :key="bar" class="w-0.5 rounded-full bg-white/80 transition-[height] duration-75 motion-reduce:transition-none" :style="{ height: `${3 + level * (bar % 2 ? 9 : 13)}px` }" />
+        </span>
+      </template>
+      <template #compact>
+        <span class="size-2 shrink-0 rounded-full bg-red-500" :style="{ transform: `scale(${1 + level * 0.6})` }" aria-hidden="true" />
+        <span class="min-w-0 truncate" aria-live="polite">{{ compactLabel }}</span>
+      </template>
     <div
       role="status"
       aria-live="polite"
@@ -185,6 +218,7 @@ onUnmounted(() => {
            renders nothing visible. A blank pill also covers the brief
            window where an event arrives just before the hide. -->
     </div>
+    </RecordingSurface>
   </div>
 </template>
 

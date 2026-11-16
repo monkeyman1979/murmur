@@ -8,6 +8,7 @@ const events = vi.hoisted(() => ({
   cleanup: vi.fn(),
   listen: vi.fn(),
 }));
+vi.mock("@tauri-apps/api/window", () => ({ getCurrentWindow: () => ({ label: "indicator" }) }));
 vi.mock("@tauri-apps/api/event", () => ({ listen: events.listen }));
 
 const Pill = defineComponent({

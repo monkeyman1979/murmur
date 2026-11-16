@@ -7,6 +7,9 @@ const eventMocks = vi.hoisted(() => ({
   unlisteners: [] as ReturnType<typeof vi.fn>[],
 }));
 
+vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn(async () => undefined) }));
+
+vi.mock("@tauri-apps/api/window", () => ({ getCurrentWindow: () => ({ label: "indicator" }) }));
 vi.mock("@tauri-apps/api/event", () => ({
   listen: vi.fn(
     (event: string, callback: (event: { payload: unknown }) => void) => {
@@ -20,6 +23,7 @@ vi.mock("@tauri-apps/api/event", () => ({
 
 import Indicator from "@/components/Indicator.vue";
 import { i18n } from "@/i18n";
+import { listen } from "@tauri-apps/api/event";
 
 async function emit(event: string, payload: unknown) {
   eventMocks.callbacks.get(event)?.({ payload });
@@ -44,6 +48,7 @@ describe("Indicator dictation result feedback", () => {
     await nextTick();
     await emit("murmur://indicator-position", position);
     expect(wrapper.get(".h-screen").classes()).toContain(alignment);
+    expect(listen).toHaveBeenCalledWith("murmur://indicator-position", expect.any(Function), { target: { kind: "WebviewWindow", label: "indicator" } });
     wrapper.unmount();
   });
 
@@ -100,7 +105,7 @@ describe("Indicator dictation result feedback", () => {
     expect(wrapper.text()).toContain("No audio · Check audio input");
 
     wrapper.unmount();
-    expect(eventMocks.unlisteners).toHaveLength(4);
+    expect(eventMocks.unlisteners).toHaveLength(5);
     for (const unlisten of eventMocks.unlisteners) expect(unlisten).toHaveBeenCalledOnce();
   });
 });

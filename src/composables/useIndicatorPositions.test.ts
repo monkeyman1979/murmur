@@ -26,7 +26,7 @@ describe("recording indicator positions", () => {
     expect(dictation.value).toBe("bottom-center");
     expect(meeting.value).toBe("bottom-center");
     expect(invokeMock).toHaveBeenCalledWith("set_indicator_positions", {
-      dictation: "bottom-center", meeting: "bottom-center",
+      dictation: "bottom-center", meeting: "bottom-center", dictationStyle: "floating", meetingStyle: "floating",
     });
   });
 
@@ -49,7 +49,7 @@ describe("recording indicator positions", () => {
     expect(useIndicatorPositions().dictation.value).toBe("top-left");
     expect(useIndicatorPositions().meeting.value).toBe("bottom-right");
     expect(invokeMock).toHaveBeenCalledWith("set_indicator_positions", {
-      dictation: "top-left", meeting: "bottom-right",
+      dictation: "top-left", meeting: "bottom-right", dictationStyle: "floating", meetingStyle: "floating",
     });
   });
 
@@ -76,8 +76,38 @@ describe("recording indicator positions", () => {
     expect(localStorage.getItem(DICTATION_KEY)).toBe("top-right");
     expect(localStorage.getItem(MEETING_KEY)).toBe("bottom-left");
     expect(invokeMock).toHaveBeenLastCalledWith("set_indicator_positions", {
-      dictation: "top-right", meeting: "bottom-left",
+      dictation: "top-right", meeting: "bottom-left", dictationStyle: "floating", meetingStyle: "floating",
     });
+  });
+
+  it("restores mixed display styles without losing either floating position", async () => {
+    localStorage.setItem(DICTATION_KEY, "top-left");
+    localStorage.setItem(MEETING_KEY, "bottom-right");
+    localStorage.setItem("murmur:dictation-indicator-style", "notch");
+    const { useIndicatorPositions } = await import("./useIndicatorPositions");
+    const settings = useIndicatorPositions();
+    expect(settings.dictationStyle.value).toBe("notch");
+    expect(settings.meetingStyle.value).toBe("floating");
+    expect(invokeMock).toHaveBeenLastCalledWith("set_indicator_positions", {
+      dictation: "top-left", meeting: "bottom-right", dictationStyle: "notch", meetingStyle: "floating",
+    });
+    settings.dictationStyle.value = "floating";
+    settings.meetingStyle.value = "notch";
+    await nextTick();
+    expect(settings.dictation.value).toBe("top-left");
+    expect(settings.meeting.value).toBe("bottom-right");
+    expect(localStorage.getItem("murmur:dictation-indicator-style")).toBe("floating");
+    expect(localStorage.getItem("murmur:meeting-indicator-style")).toBe("notch");
+    expect(invokeMock).toHaveBeenLastCalledWith("set_indicator_positions", {
+      dictation: "top-left", meeting: "bottom-right", dictationStyle: "floating", meetingStyle: "notch",
+    });
+  });
+
+  it("defaults invalid display styles to floating", async () => {
+    localStorage.setItem("murmur:dictation-indicator-style", "unknown");
+    const { useIndicatorPositions } = await import("./useIndicatorPositions");
+    expect(useIndicatorPositions().dictationStyle.value).toBe("floating");
+    expect(localStorage.getItem("murmur:dictation-indicator-style")).toBe("floating");
   });
 
   it("can place windows even when browser storage is unavailable", async () => {
@@ -87,7 +117,7 @@ describe("recording indicator positions", () => {
     useIndicatorPositions().meeting.value = "top-left";
     await nextTick();
     expect(invokeMock).toHaveBeenLastCalledWith("set_indicator_positions", {
-      dictation: "bottom-center", meeting: "top-left",
+      dictation: "bottom-center", meeting: "top-left", dictationStyle: "floating", meetingStyle: "floating",
     });
   });
 });

@@ -45,10 +45,20 @@ impl IndicatorPosition {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "kebab-case")]
+pub enum IndicatorStyle {
+    #[default]
+    Floating,
+    Notch,
+}
+
 #[derive(Clone, Copy, Default)]
 pub struct IndicatorPositions {
     pub dictation: IndicatorPosition,
     pub meeting: IndicatorPosition,
+    pub dictation_style: IndicatorStyle,
+    pub meeting_style: IndicatorStyle,
 }
 
 pub fn current(app: &tauri::AppHandle) -> IndicatorPositions {
@@ -63,11 +73,17 @@ pub fn set_indicator_positions(
     state: tauri::State<'_, Mutex<IndicatorPositions>>,
     dictation: IndicatorPosition,
     meeting: IndicatorPosition,
+    dictation_style: Option<IndicatorStyle>,
+    meeting_style: Option<IndicatorStyle>,
 ) -> Result<(), String> {
     *state
         .lock()
-        .map_err(|_| "Recording position state unavailable")? =
-        IndicatorPositions { dictation, meeting };
+        .map_err(|_| "Recording position state unavailable")? = IndicatorPositions {
+        dictation,
+        meeting,
+        dictation_style: dictation_style.unwrap_or_default(),
+        meeting_style: meeting_style.unwrap_or_default(),
+    };
     Ok(())
 }
 
@@ -94,6 +110,8 @@ mod tests {
         let positions = IndicatorPositions::default();
         assert_eq!(positions.dictation, IndicatorPosition::BottomCenter);
         assert_eq!(positions.meeting, IndicatorPosition::BottomCenter);
+        assert_eq!(positions.dictation_style, IndicatorStyle::Floating);
+        assert_eq!(positions.meeting_style, IndicatorStyle::Floating);
     }
 
     #[test]

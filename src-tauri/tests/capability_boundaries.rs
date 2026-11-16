@@ -74,8 +74,10 @@ fn each_window_has_one_exact_capability() {
         files,
         string_set(&[
             "indicator.json",
+            "indicator-notch.json",
             "main.json",
             "meeting-controller.json",
+            "meeting-notch.json",
             "meeting-reminder.json"
         ]),
         "an extra capability could add authority to a matching window"
@@ -86,6 +88,8 @@ fn each_window_has_one_exact_capability() {
         "indicator",
         "meeting-controller",
         "meeting-reminder",
+        "indicator-notch",
+        "meeting-notch",
     ] {
         let value = capability(label);
         assert_eq!(value["identifier"], label);
@@ -107,6 +111,23 @@ fn hidden_main_window_keeps_durable_reminder_acknowledgments_running() {
             .find(|window| window["label"] == "main")
             .unwrap();
         assert_eq!(main["backgroundThrottling"], "disabled", "{file}");
+    }
+}
+
+#[test]
+fn recording_surfaces_allow_deliberate_keyboard_focus_and_native_expansion() {
+    for file in ["tauri.conf.json", "tauri.debug.conf.json"] {
+        let config: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(manifest_path(file)).unwrap()
+        ).unwrap();
+        let windows = config["app"]["windows"].as_array().unwrap();
+        let indicator = windows.iter().find(|w| w["label"] == "indicator").unwrap();
+        assert_eq!(indicator["focus"], false);
+        assert_eq!(indicator["focusable"], true);
+        assert_eq!(indicator["acceptFirstMouse"], true);
+        let meeting = windows.iter().find(|w| w["label"] == "meeting-controller").unwrap();
+        assert!(meeting.get("maxWidth").is_none());
+        assert!(meeting.get("maxHeight").is_none());
     }
 }
 
@@ -134,6 +155,8 @@ fn only_main_can_open_the_exact_project_urls() {
         "indicator",
         "meeting-controller",
         "meeting-reminder",
+        "indicator-notch",
+        "meeting-notch",
     ] {
         let capability = capability(label);
         let opener_permissions = capability["permissions"]
@@ -161,13 +184,57 @@ fn only_main_can_open_the_exact_project_urls() {
 }
 
 #[test]
-fn indicator_has_no_application_command_authority() {
+fn indicator_can_only_read_and_resize_its_own_presentation() {
     let value = capability("indicator");
-    assert!(app_command_permissions(&value).is_empty());
+    assert_eq!(app_command_permissions(&value), string_set(&[
+        "allow-get-indicator-presentation", "allow-set-indicator-expanded", "allow-finish-indicator-collapse",
+    ]));
     assert_eq!(
         value["permissions"],
-        serde_json::json!(["core:event:allow-listen", "core:event:allow-unlisten"])
+        serde_json::json!([
+            "core:event:allow-listen", "core:event:allow-unlisten",
+            "allow-get-indicator-presentation", "allow-finish-indicator-collapse", "allow-set-indicator-expanded"
+        ])
     );
+}
+
+#[test]
+fn laptop_mirror_has_status_only_authority() {
+    assert_eq!(app_command_permissions(&capability("indicator-notch")), string_set(&[
+        "allow-get-indicator-presentation",
+    ]));
+    for file in ["tauri.conf.json", "tauri.debug.conf.json"] {
+        let config: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(manifest_path(file)).unwrap()).unwrap();
+        let mirror = config["app"]["windows"].as_array().unwrap().iter().find(|w| w["label"] == "indicator-notch").unwrap();
+        assert_eq!(mirror["url"], "index.html?window=indicator&mirror=1");
+        assert_eq!(mirror["visible"], false);
+        assert_eq!(mirror["focusable"], false);
+    }
+}
+
+#[test]
+fn laptop_meeting_notch_has_exactly_the_meeting_controller_authority() {
+    // With Notch selected, the laptop notch must open and control a meeting
+    // even when it started on a notchless external display. It gets the same
+    // recording controls as the controller, and nothing more (no dragging).
+    let value = capability("meeting-notch");
+    let expected = command_policy::MEETING_CONTROLLER_COMMANDS
+        .iter()
+        .map(|command| command_permission(command))
+        .collect();
+    assert_eq!(app_command_permissions(&value), expected);
+    let permissions = value["permissions"].as_array().expect("permissions array");
+    assert!(!permissions.contains(&serde_json::json!("core:window:allow-start-dragging")));
+    assert!(!permissions.contains(&serde_json::json!("core:event:allow-emit")));
+    assert!(!permissions.contains(&serde_json::json!("core:event:allow-emit-to")));
+    for file in ["tauri.conf.json", "tauri.debug.conf.json"] {
+        let config: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(manifest_path(file)).unwrap()).unwrap();
+        let notch = config["app"]["windows"].as_array().unwrap().iter().find(|w| w["label"] == "meeting-notch").unwrap();
+        assert_eq!(notch["url"], "index.html?window=meeting-controller");
+        assert_eq!(notch["acceptFirstMouse"], true);
+        assert!(notch.get("focusable").is_none_or(|focusable| focusable == true));
+        assert_eq!(notch["visible"], false);
+    }
 }
 
 #[test]

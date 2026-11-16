@@ -16,7 +16,7 @@ defineProps<{
 
 <template>
   <div
-    class="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+    class="flex flex-col gap-3 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
     :class="{ 'opacity-60': muted }"
   >
     <div class="flex flex-col gap-0.5 min-w-0">

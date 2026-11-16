@@ -1,0 +1,20 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "meeting-notch",
+  "description": "Laptop notch meeting controls shown when the meeting runs on a notchless external display",
+  "windows": [
+    "meeting-notch"
+  ],
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "allow-get-indicator-presentation",
+    "allow-finish-indicator-collapse",
+    "allow-set-indicator-expanded",
+    "allow-meeting-recorder-pause",
+    "allow-meeting-recorder-resume",
+    "allow-meeting-recorder-status",
+    "allow-meeting-recorder-cancel",
+    "allow-meeting-recorder-stop"
+  ]
+}

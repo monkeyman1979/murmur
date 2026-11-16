@@ -6,6 +6,9 @@
   "permissions": [
     "core:event:allow-listen",
     "core:event:allow-unlisten",
+    "allow-get-indicator-presentation",
+    "allow-finish-indicator-collapse",
+    "allow-set-indicator-expanded",
     "core:window:allow-start-dragging",
     "allow-meeting-recorder-pause",
     "allow-meeting-recorder-resume",

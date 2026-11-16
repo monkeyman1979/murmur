@@ -14,6 +14,7 @@ pub mod history;
 pub mod hotkey;
 pub mod indicator_native;
 pub mod indicator_position;
+pub mod indicator_presentation;
 pub mod insertion;
 mod login_item;
 pub mod meeting_capture;
@@ -361,6 +362,9 @@ pub fn run() {
             mute_audio::set_mute_while_dictating,
             sound::set_sound_cues,
             indicator_position::set_indicator_positions,
+            indicator_presentation::get_indicator_presentation,
+            indicator_presentation::set_indicator_expanded,
+            indicator_presentation::finish_indicator_collapse,
             vocabulary::set_vocabulary,
             corrections::set_corrections,
             history::history_list,
@@ -524,6 +528,7 @@ pub fn run() {
             app.manage(std::sync::Mutex::new(
                 indicator_position::IndicatorPositions::default(),
             ));
+            app.manage(indicator_presentation::PresentationState::default());
 
             // Mute-while-dictating — same frontend-source-of-truth
             // pattern as sound cues. `useMuteWhileDictating` pushes
@@ -705,7 +710,9 @@ pub fn run() {
             // shows the window's square corners if the backing stays opaque.
             indicator_native::force_transparent(&app_handle, indicator_native::INDICATOR);
 
-            bootstrap_indicator_first_paint(&app_handle);
+            indicator_native::force_transparent(&app_handle, indicator_native::NOTCH_INDICATOR);
+            bootstrap_indicator_first_paint(&app_handle, indicator_native::INDICATOR);
+            bootstrap_indicator_first_paint(&app_handle, indicator_native::NOTCH_INDICATOR);
             #[cfg(feature = "meeting-capture")]
             {
                 indicator_native::force_transparent(
@@ -713,6 +720,8 @@ pub fn run() {
                     indicator_native::MEETING_CONTROLLER,
                 );
                 bootstrap_meeting_controller_first_paint(&app_handle);
+                indicator_native::force_transparent(&app_handle, indicator_native::MEETING_NOTCH);
+                bootstrap_indicator_first_paint(&app_handle, indicator_native::MEETING_NOTCH);
             }
 
             // Install the only persistent entry point during native setup.
@@ -1280,7 +1289,9 @@ fn show_indicator(app: &AppHandle) {
         "murmur://indicator-position",
         indicator_position::current(app).dictation,
     );
-    if !indicator_native::position_on_focused_screen(app) {
+    let native_placed = indicator_native::position_on_focused_screen(app);
+    if !native_placed {
+        if let Some(mirror) = app.get_webview_window(indicator_native::NOTCH_INDICATOR) { let _ = mirror.hide(); }
         if let Ok(Some(monitor)) = window.primary_monitor() {
             let scale = monitor.scale_factor();
             let work_area = monitor.work_area();
@@ -1297,9 +1308,11 @@ fn show_indicator(app: &AppHandle) {
         }
     }
 
-    let _ = window.show();
-    // Re-assert always-on-top in case macOS demoted it after a Space switch.
-    let _ = window.set_always_on_top(true);
+    // Native placement reveals the primary and optional laptop mirror together.
+    // Only the platform fallback needs a separate reveal.
+    if !native_placed {
+        let _ = indicator_native::show_without_focus(&window);
+    }
     // Re-apply native transparency defensively — cheap, idempotent,
     // covers any timing race where `setup()` ran before the WKWebView
     // subtree was fully constructed.
@@ -1307,8 +1320,11 @@ fn show_indicator(app: &AppHandle) {
 }
 
 fn hide_indicator(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("indicator") {
-        let _ = window.hide();
+    indicator_presentation::stop_monitoring(app, indicator_native::INDICATOR);
+    for label in [indicator_native::INDICATOR, indicator_native::NOTCH_INDICATOR] {
+        if let Some(window) = app.get_webview_window(label) {
+            let _ = window.hide();
+        }
     }
 }
 
@@ -1319,7 +1335,7 @@ fn bootstrap_meeting_controller_first_paint(app: &AppHandle) {
         return;
     };
     let _ = window.set_position(tauri::PhysicalPosition::new(-10_000, -10_000));
-    let _ = window.show();
+    let _ = indicator_native::show_without_focus(&window);
     let window = window.clone();
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(std::time::Duration::from_millis(300)).await;
@@ -1338,13 +1354,13 @@ fn bootstrap_meeting_controller_first_paint(app: &AppHandle) {
 /// async runtime so the caller isn't blocked. The user never sees the
 /// bootstrap paint. `show_indicator` will re-position on the real first
 /// press.
-fn bootstrap_indicator_first_paint(app: &AppHandle) {
-    let Some(window) = app.get_webview_window("indicator") else {
+fn bootstrap_indicator_first_paint(app: &AppHandle, label: &str) {
+    let Some(window) = app.get_webview_window(label) else {
         crate::murmur_dev_log!("[murmur] bootstrap: indicator window not found");
         return;
     };
     let _ = window.set_position(tauri::PhysicalPosition::new(-10_000, -10_000));
-    let _ = window.show();
+    let _ = indicator_native::show_without_focus(&window);
     let window = window.clone();
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(std::time::Duration::from_millis(300)).await;

@@ -8,6 +8,9 @@ pub const APP_COMMANDS: &[&str] = &[
     "present_calendar_reminder",
     "calendar_reminder_current",
     "calendar_reminder_action",
+    "finish_indicator_collapse",
+    "get_indicator_presentation",
+    "set_indicator_expanded",
     "model_info",
     "list_models",
     "download_model",
@@ -210,6 +213,9 @@ pub const REMINDER_WINDOW_COMMANDS: &[&str] =
 // It cannot start capture, mutate history/settings, or read transcripts.
 #[allow(dead_code)]
 pub const MEETING_CONTROLLER_COMMANDS: &[&str] = &[
+    "finish_indicator_collapse",
+    "get_indicator_presentation",
+    "set_indicator_expanded",
     "meeting_recorder_pause",
     "meeting_recorder_resume",
     "meeting_recorder_status",
