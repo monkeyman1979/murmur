@@ -375,7 +375,6 @@
     "floating": "Flottant",
     "notch": "Encoche",
     "floatingPosition": "Position flottante",
-    "notchHelp": "Survolez le panneau pour un aperçu ; cliquez ou faites défiler vers le bas dessus pour le développer. Sans encoche, la position flottante enregistrée est utilisée. D’autres apps d’encoche peuvent se superposer.",
     "expand": "Développer les commandes d’enregistrement",
     "collapse": "Réduire les commandes d’enregistrement",
     "dictation": "Position de l’indicateur de dictée",

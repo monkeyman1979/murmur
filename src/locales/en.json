@@ -400,7 +400,6 @@
     "floating": "Floating",
     "notch": "Notch",
     "floatingPosition": "Floating position",
-    "notchHelp": "Hover for a hint; click or scroll down over the panel to expand. On a display without a notch, your saved floating position is used. Other notch apps may overlap.",
     "expand": "Expand recording controls",
     "collapse": "Collapse recording controls",
     "dictation": "Dictation indicator position",

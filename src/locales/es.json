@@ -375,7 +375,6 @@
     "floating": "Flotante",
     "notch": "Notch",
     "floatingPosition": "Posición flotante",
-    "notchHelp": "Pasa el cursor para ver una pista; haz clic o desplázate hacia abajo sobre el panel para ampliarlo. En pantallas sin notch se usa la posición flotante guardada. Otras apps de notch pueden superponerse.",
     "expand": "Ampliar controles de grabación",
     "collapse": "Contraer controles de grabación",
     "dictation": "Posición del indicador de dictado",
