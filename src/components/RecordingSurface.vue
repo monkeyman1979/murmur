@@ -23,7 +23,7 @@ const emit = defineEmits<{ 'expanded-change': [expanded: boolean] }>();
 const arrivalKey = ref(0);
 const surface = ref<HTMLElement | null>(null);
 const closing = ref(false);
-// Ending a capture from the expanded panel (Finish/Discard) first shrinks the
+// Ending a capture from the expanded panel (Stop/Discard) first shrinks the
 // surface into the exact camera housing, so the native hide that follows is
 // invisible instead of the panel vanishing mid-air.
 const exiting = ref(false);

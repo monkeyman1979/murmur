@@ -63,6 +63,13 @@ pub fn position_on_focused_screen(app: &tauri::AppHandle) -> bool {
     mac::position_on_focused_screen(app)
 }
 
+/// Focused window geometry only, in Quartz global logical coordinates.
+/// Reminder callers run this potentially blocking AX query off the AppKit thread.
+#[cfg(all(target_os = "macos", feature = "meeting-capture"))]
+pub(crate) fn focused_window_center() -> Option<objc2_foundation::NSPoint> {
+    mac::focused_target_center(&[mac::AX_FOCUSED_WINDOW])
+}
+
 #[cfg(not(target_os = "macos"))]
 pub fn force_transparent(_app: &tauri::AppHandle, _label: &str) {}
 
@@ -94,7 +101,7 @@ mod mac {
     // The AX attribute names are CFSTR macros in Apple's headers, not exported
     // framework symbols, so construct their CFString values locally.
     const AX_FOCUSED_UI_ELEMENT: &str = "AXFocusedUIElement";
-    const AX_FOCUSED_WINDOW: &str = "AXFocusedWindow";
+    pub(super) const AX_FOCUSED_WINDOW: &str = "AXFocusedWindow";
     const AX_POSITION: &str = "AXPosition";
     const AX_SIZE: &str = "AXSize";
 
@@ -117,7 +124,7 @@ mod mac {
     /// Center of the focused UI element, or its focused window when the
     /// element does not expose geometry. Accessibility permission is already a
     /// Murmur prerequisite for pasting, so this adds no new permission prompt.
-    fn focused_target_center() -> Option<NSPoint> {
+    pub(super) fn focused_target_center(attributes: &[&str]) -> Option<NSPoint> {
         let pid = objc2::rc::autoreleasepool(|_| {
             NSWorkspace::sharedWorkspace()
                 .frontmostApplication()
@@ -130,27 +137,14 @@ mod mac {
                 return None;
             }
 
-            let focused_ui_attribute = CFString::new(AX_FOCUSED_UI_ELEMENT);
-            let focused_window_attribute = CFString::new(AX_FOCUSED_WINDOW);
-            let center = copy_attribute(
-                application,
-                focused_ui_attribute.as_concrete_TypeRef() as CFStringRef,
-            )
-            .and_then(|element| {
-                let center = element_center(element as AXUIElementRef);
-                CFRelease(element);
-                center
-            })
-            .or_else(|| {
-                copy_attribute(
-                    application,
-                    focused_window_attribute.as_concrete_TypeRef() as CFStringRef,
-                )
-                .and_then(|window| {
-                    let center = element_center(window as AXUIElementRef);
-                    CFRelease(window);
-                    center
-                })
+            let center = attributes.iter().find_map(|name| {
+                let attribute = CFString::new(name);
+                copy_attribute(application, attribute.as_concrete_TypeRef() as CFStringRef)
+                    .and_then(|element| {
+                        let center = element_center(element as AXUIElementRef);
+                        CFRelease(element);
+                        center
+                    })
             });
             CFRelease(application);
             center
@@ -217,10 +211,10 @@ mod mac {
         // Query the external app before scheduling AppKit work. The global
         // hotkey does not activate Murmur, so this is still the app/control the
         // user was typing into when dictation began.
-        let focused_center = focused_target_center();
+        let focused_center = focused_target_center(&[AX_FOCUSED_UI_ELEMENT, AX_FOCUSED_WINDOW]);
         let preferences = crate::indicator_position::current(app);
-        let anchor = preferences.dictation;
-        let style = preferences.dictation_style;
+        let anchor = preferences.floating_position();
+        let style = preferences.style;
         let Some(window) = app.get_webview_window(INDICATOR) else {
             crate::murmur_dev_log!(
                 "[murmur][indicator_native] indicator window not found for placement"

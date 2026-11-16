@@ -2,6 +2,26 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.9] - 2026-11-16
+
+This update fixes meeting reminder placement and simplifies recording feedback settings.
+
+### Changed
+
+- With Notch selected, dictation and meeting recording controls use bottom-center on displays without a camera notch, independent of the saved Floating position. Switching back to Floating restores that position; laptop notch behavior and top-right meeting reminders are unchanged.
+- Combined dictation and meeting recording placement into one Recording indicator setting under Recording feedback, now directly below Fundamentals. A single saved position/style and native setting serve both recording types. Existing choices migrate using dictation values first, with meeting values as a fallback; obsolete per-type keys are removed after the shared setting saves.
+
+### Fixed
+
+- The meeting notch uses the same Stop button label as the floating meeting controls, including all four interface languages. Recording and transcription behavior is unchanged.
+- Meeting reminders appear on the display containing the frontmost app’s focused window (pointer display, then primary display as fallbacks). A visible reminder stays on that display unless it disconnects, in which case the same reminder moves to an available display. Focus changes do not move it.
+- Meeting reminders keep their full-size Start recording / Dismiss prompt at the top-right of the chosen display with the original 8-point edge inset, independently of recording feedback’s Floating/Notch style and saved position. They no longer shrink into recording controls or create a laptop notch controller before recording starts.
+
+### Validation scope
+
+- All 629 frontend tests, Rust all-target checks/tests and Clippy with warnings denied, release-metadata/updater/bundle-audit tests, production frontend build and legal-inventory checks passed locally. Production dependency audit found no known vulnerabilities; the full audit reports two existing moderate advisories in development-only test dependencies.
+- The owner confirmed in the locally signed debug app that reminders appear on the working display and recover to the laptop when the external monitor is disconnected. The updated Stop label was also confirmed. Automated checks and production artifact verification are recorded separately; debug QA does not establish a production-identity upgrade or broader macOS, display and localization coverage.
+
 ## [0.1.8] - 2026-11-16
 
 Murmur v0.1.8 adds a notch style for the recording widgets on MacBooks with a camera notch.

@@ -167,6 +167,8 @@ fn recording(app: &AppHandle) -> bool {
 fn publish(app: &AppHandle, view: Option<ReminderView>) {
     crate::window_events::emit_reminder(app, "murmur://calendar-reminder", view.clone());
     if view.is_none() {
+        #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
+        super::reminder_window::stop(app);
         if let Some(window) = app.get_webview_window(WINDOW) {
             let _ = window.hide();
         }
@@ -222,12 +224,57 @@ pub fn configure_calendar_reminders(
     Ok(())
 }
 
+/// Top-right origin within the usable screen in native logical points.
+/// Preserve the reminder's original margin, independently of recording widgets.
+#[cfg(any(test, all(target_os = "macos", feature = "meeting-capture")))]
+pub(super) fn reminder_offsets(
+    width: f64,
+    height: f64,
+    window_width: f64,
+    window_height: f64,
+) -> (f64, f64) {
+    const MARGIN: f64 = 8.0;
+    (
+        (width - window_width - MARGIN).max(0.0),
+        (height - window_height - MARGIN).max(0.0),
+    )
+}
+
 #[tauri::command]
-pub fn present_calendar_reminder(
+pub async fn present_calendar_reminder(
     app: AppHandle,
     state: tauri::State<'_, Arc<CalendarReminderState>>,
     token: String,
 ) -> Result<(), String> {
+    let state = state.inner().clone();
+    #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
+    {
+        let focused = super::reminder_window::focused_window_center().await;
+        let (send, receive) = tokio::sync::oneshot::channel();
+        let handle = app.clone();
+        // Validation, publication and native reveal are one main-thread turn.
+        // Never hold the engine lock on a worker while waiting for AppKit.
+        app.run_on_main_thread(move || {
+            let result = present_current_reminder(handle, state, token, focused);
+            let _ = send.send(result);
+        })
+        .map_err(|_| "Reminder could not be shown.".to_string())?;
+        receive
+            .await
+            .map_err(|_| "Reminder presentation was interrupted.".to_string())?
+    }
+    #[cfg(not(all(target_os = "macos", feature = "meeting-capture")))]
+    present_current_reminder(app, state, token)
+}
+
+fn present_current_reminder(
+    app: AppHandle,
+    state: Arc<CalendarReminderState>,
+    token: String,
+    #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
+    focused: Option<objc2_foundation::NSPoint>,
+) -> Result<(), String> {
+    // Revalidate at reveal: an offer may expire or be canceled during focus lookup.
     let mut engine = state.engine.lock();
     let now = crate::history::now_millis();
     let pending = engine
@@ -254,10 +301,9 @@ pub fn present_calendar_reminder(
     publish(&app, view);
     #[cfg(all(target_os = "macos", feature = "meeting-capture"))]
     {
-        // Use the recording controller's native coordinate space and target
-        // display, avoiding mixed-scale primary-monitor conversion errors.
-        crate::meeting_capture::place_meeting_window(&app, &window);
-        crate::meeting_capture::show_meeting_window_without_focus(&window)
+        let mtm = objc2::MainThreadMarker::new().ok_or("Reminder requires the main thread.")?;
+        super::reminder_window::place(&app, &window, token, focused, mtm)?;
+        crate::indicator_native::show_without_focus(&window)
             .map_err(|_| "Reminder could not be shown.".to_string())
     }
     #[cfg(not(all(target_os = "macos", feature = "meeting-capture")))]
@@ -381,6 +427,20 @@ pub fn spawn(app: AppHandle) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reminder_uses_its_original_eight_point_top_right_inset() {
+        assert_eq!(reminder_offsets(1200.0, 800.0, 360.0, 208.0), (832.0, 584.0));
+        // Placement uses the actual window size, not compact controller geometry.
+        assert_eq!(reminder_offsets(1200.0, 800.0, 400.0, 240.0), (792.0, 552.0));
+    }
+
+    #[test]
+    fn reminder_offsets_clamp_to_small_work_areas() {
+        assert_eq!(reminder_offsets(300.0, 180.0, 360.0, 208.0), (0.0, 0.0));
+        assert_eq!(reminder_offsets(364.0, 212.0, 360.0, 208.0), (0.0, 0.0));
+    }
+
     fn meeting(id: &str, start: i64) -> CalendarMeeting {
         CalendarMeeting {
             id: id.into(),

@@ -1,5 +1,5 @@
-//! Saved anchors for the two recording windows. Coordinates remain in logical
-//! points, with the existing dictation inset shared by every screen edge.
+//! One saved position and style for dictation and meeting recording surfaces.
+//! Coordinates remain in logical points, with a shared inset at every screen edge.
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::Manager;
@@ -53,37 +53,39 @@ pub enum IndicatorStyle {
     Notch,
 }
 
-#[derive(Clone, Copy, Default)]
-pub struct IndicatorPositions {
-    pub dictation: IndicatorPosition,
-    pub meeting: IndicatorPosition,
-    pub dictation_style: IndicatorStyle,
-    pub meeting_style: IndicatorStyle,
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct IndicatorSettings {
+    pub position: IndicatorPosition,
+    pub style: IndicatorStyle,
 }
 
-pub fn current(app: &tauri::AppHandle) -> IndicatorPositions {
-    app.state::<Mutex<IndicatorPositions>>()
+impl IndicatorSettings {
+    /// Position for the floating surface when no physical notch is used.
+    /// Notch mode has a fixed fallback; never overwrite the saved Floating choice.
+    pub fn floating_position(self) -> IndicatorPosition {
+        match self.style {
+            IndicatorStyle::Floating => self.position,
+            IndicatorStyle::Notch => IndicatorPosition::BottomCenter,
+        }
+    }
+}
+
+pub fn current(app: &tauri::AppHandle) -> IndicatorSettings {
+    app.state::<Mutex<IndicatorSettings>>()
         .lock()
-        .map(|positions| *positions)
+        .map(|settings| *settings)
         .unwrap_or_default()
 }
 
 #[tauri::command]
-pub fn set_indicator_positions(
-    state: tauri::State<'_, Mutex<IndicatorPositions>>,
-    dictation: IndicatorPosition,
-    meeting: IndicatorPosition,
-    dictation_style: Option<IndicatorStyle>,
-    meeting_style: Option<IndicatorStyle>,
+pub fn set_indicator_settings(
+    state: tauri::State<'_, Mutex<IndicatorSettings>>,
+    settings: IndicatorSettings,
 ) -> Result<(), String> {
     *state
         .lock()
-        .map_err(|_| "Recording position state unavailable")? = IndicatorPositions {
-        dictation,
-        meeting,
-        dictation_style: dictation_style.unwrap_or_default(),
-        meeting_style: meeting_style.unwrap_or_default(),
-    };
+        .map_err(|_| "Recording indicator settings unavailable")? = settings;
     Ok(())
 }
 
@@ -106,12 +108,57 @@ mod tests {
     }
 
     #[test]
-    fn both_windows_default_to_bottom_center() {
-        let positions = IndicatorPositions::default();
-        assert_eq!(positions.dictation, IndicatorPosition::BottomCenter);
-        assert_eq!(positions.meeting, IndicatorPosition::BottomCenter);
-        assert_eq!(positions.dictation_style, IndicatorStyle::Floating);
-        assert_eq!(positions.meeting_style, IndicatorStyle::Floating);
+    fn notch_fallback_is_bottom_center_without_changing_any_saved_floating_choice() {
+        for position in [
+            IndicatorPosition::TopLeft,
+            IndicatorPosition::TopCenter,
+            IndicatorPosition::TopRight,
+            IndicatorPosition::BottomLeft,
+            IndicatorPosition::BottomCenter,
+            IndicatorPosition::BottomRight,
+        ] {
+            let mut settings = IndicatorSettings {
+                position,
+                style: IndicatorStyle::Notch,
+            };
+            let anchor = settings.floating_position();
+            assert_eq!(anchor, IndicatorPosition::BottomCenter);
+            // Both dictation and meeting controls retain 20pt bottom clearance.
+            assert_eq!(anchor.offsets(1200.0, 800.0, 360.0, 40.0), (420.0, 20.0));
+            assert_eq!(anchor.offsets(1200.0, 800.0, 320.0, 46.0), (440.0, 20.0));
+            assert_eq!(settings.position, position);
+            settings.style = IndicatorStyle::Floating;
+            assert_eq!(settings.floating_position(), position);
+        }
+    }
+
+    #[test]
+    fn shared_settings_default_to_floating_bottom_center() {
+        let settings = IndicatorSettings::default();
+        assert_eq!(settings.position, IndicatorPosition::BottomCenter);
+        assert_eq!(settings.style, IndicatorStyle::Floating);
+    }
+
+    #[test]
+    fn settings_contract_contains_only_one_position_and_style() {
+        let value = serde_json::json!({ "position": "top-right", "style": "notch" });
+        let settings: IndicatorSettings = serde_json::from_value(value.clone()).unwrap();
+        assert_eq!(settings.position, IndicatorPosition::TopRight);
+        assert_eq!(settings.style, IndicatorStyle::Notch);
+        assert_eq!(serde_json::to_value(settings).unwrap(), value);
+        assert!(
+            serde_json::from_value::<IndicatorSettings>(serde_json::json!({
+                "position": "top-right", "style": "notch", "meeting": "bottom-left"
+            }))
+            .is_err()
+        );
+        assert!(
+            serde_json::from_value::<IndicatorSettings>(serde_json::json!({
+                "dictation": "top-right", "meeting": "bottom-left",
+                "dictationStyle": "notch", "meetingStyle": "floating"
+            }))
+            .is_err()
+        );
     }
 
     #[test]

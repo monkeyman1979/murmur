@@ -4,9 +4,9 @@ Murmur is a local-first macOS menu-bar app for voice dictation and meeting trans
 
 ## Download
 
-**[Download for Apple Silicon Mac (.dmg)](https://github.com/monkeyman1979/murmur/releases/download/v0.1.8/Murmur_0.1.8_aarch64.dmg)**
+**[Download for Apple Silicon Mac (.dmg)](https://github.com/monkeyman1979/murmur/releases/download/v0.1.9/Murmur_0.1.9_aarch64.dmg)**
 
-**Requires macOS 14.4 or later. Not compatible with Intel Macs.** Windows and Linux are not supported. Official installers are Developer ID–signed, Apple-notarized and stapled; verify the checksum in the [GitHub Release](https://github.com/monkeyman1979/murmur/releases/tag/v0.1.8).
+**Requires macOS 14.4 or later. Not compatible with Intel Macs.** Windows and Linux are not supported. Official installers are Developer ID–signed, Apple-notarized and stapled; verify the checksum in the [GitHub Release](https://github.com/monkeyman1979/murmur/releases/tag/v0.1.9).
 
 Installation and functional checks were performed on Apple Silicon with **macOS 27.0.1 (26A434)**. The macOS 14.4 floor is the configured requirement, not a claim that every older supported macOS version has been independently tested.
 
@@ -24,9 +24,11 @@ Starting with v0.1.2, Murmur checks [GitHub Releases](https://github.com/monkeym
 
 ### Recording widget placement
 
-Settings → General → Recording feedback lets you choose separate styles and positions for the dictation indicator and meeting controls. Floating widgets default to bottom center; top/bottom left, center and right are available, with consistent spacing from the usable screen edges. Choices are saved for the next recording and across app restarts. Meeting controls can still be dragged during recording.
+Settings → General → Recording feedback, directly below Fundamentals, has one shared style and position for the dictation indicator and meeting controls. Floating widgets default to bottom center; top/bottom left, center and right are available, with consistent spacing from the usable screen edges. Choices are saved for the next recording and across app restarts. Meeting controls can still be dragged during recording.
 
-On MacBooks with a camera notch, choose **Notch** to show recording status beside the camera instead. Click or scroll on the notch to expand it; meeting controls (pause, resume, finish, discard) appear below the camera, and the meeting notch grows slightly on hover to show it is clickable. If you record on an external display without a notch, the saved floating position is used there and the laptop notch still shows the recording; for meetings it stays fully usable. Other notch apps can overlap Murmur's notch; choose Floating if you use one.
+On MacBooks with a camera notch, choose **Notch** to show recording status beside the camera instead. Click or scroll on the notch to expand it; meeting controls (pause, resume, stop, discard) appear below the camera, and the meeting notch grows slightly on hover to show it is clickable. With Notch selected on an external display without a notch, the floating indicator appears at bottom center and the laptop notch still shows the recording; for meetings it stays fully usable. Switching back to Floating restores your saved floating position. Other notch apps can overlap Murmur's notch; choose Floating if you use one.
+
+Meeting reminders are separate from recording feedback: they appear at the top-right of the display where you are working and stay there unless that display disconnects, when the same reminder moves to an available display.
 
 ## Languages
 
