@@ -2,7 +2,9 @@
 
 Notable changes to Murmur are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.1.8] - 2026-11-16
+
+Murmur v0.1.8 adds a notch style for the recording widgets on MacBooks with a camera notch.
 
 ### Added
 
