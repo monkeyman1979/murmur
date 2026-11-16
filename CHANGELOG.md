@@ -17,6 +17,10 @@ This update fixes meeting reminder placement and simplifies recording feedback s
 - Meeting reminders appear on the display containing the frontmost app’s focused window (pointer display, then primary display as fallbacks). A visible reminder stays on that display unless it disconnects, in which case the same reminder moves to an available display. Focus changes do not move it.
 - Meeting reminders keep their full-size Start recording / Dismiss prompt at the top-right of the chosen display with the original 8-point edge inset, independently of recording feedback’s Floating/Notch style and saved position. They no longer shrink into recording controls or create a laptop notch controller before recording starts.
 
+### Security
+
+- Applied patch-only updates to native certificate verification and trusted roots so download connections reject distrusted certificate chains. No SDK or broader dependency upgrades are included.
+
 ### Validation scope
 
 - All 629 frontend tests, Rust all-target checks/tests and Clippy with warnings denied, release-metadata/updater/bundle-audit tests, production frontend build and legal-inventory checks passed locally. Production frontend dependency audit found no known vulnerabilities; the full audit reports two existing moderate advisories in development-only test dependencies.
